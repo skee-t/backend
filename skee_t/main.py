@@ -16,7 +16,7 @@ APP_NAME = 'skee_t'
 LOG = logging.getLogger(__name__)
 
 
-class Lycosidae(Launcher):
+class Skee_T(Launcher):
 
     __server = None
 
@@ -42,7 +42,7 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     if CONF.action == 'start':
-        launcher = Lycosidae()
+        launcher = Skee_T()
         launcher.start()
     else:
         Launcher.stop()

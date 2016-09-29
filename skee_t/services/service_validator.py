@@ -1,6 +1,6 @@
 #! -*- coding: UTF-8 -*-
 import logging
-from lycosidae.conf import CONF
+from skee_t.conf import CONF
 
 __author__ = 'pluto'
 

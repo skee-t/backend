@@ -7,19 +7,19 @@ from sqlalchemy.sql.functions import now
 __author__ = 'pluto'
 
 
-class LycosidaeDbBaseModel(object):
+class SkeeTDbBaseModel(object):
 
     @declared_attr
     def __tablename__(cls):
         return '%ss' % cls.__name__.lower()
 
 
-DB_BASE_MODEL = declarative_base(cls=LycosidaeDbBaseModel)
+DB_BASE_MODEL = declarative_base(cls=SkeeTDbBaseModel)
 
 
 class GenericModel(object):
     """
-    The basic model object of the lycosidae project.
+    The basic model object of the Skee_T backend project.
     This is parent model of the persistent objects.
     .. attribute:: create_time
         The datetime of record when be created.
