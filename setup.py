@@ -10,7 +10,7 @@ setup(
     url='http://.skee_t.com',
     description='README.md',
     packages=find_packages(),
-    package_dir={'lycosidae': 'lycosidae'},
+    package_dir={'skee_t': 'skee_t'},
     install_requires=[
         'Paste<=1.7.5.1',
         'PasteDeploy<=1.5.2,>=1.5.0',
