@@ -12,10 +12,10 @@ __author__ = 'pluto'
 LOG = logging.getLogger(__name__)
 
 
-class UserApi(Router):
+class UserApi_V1(Router):
 
     def __init__(self, mapper):
-        super(UserApi, self).__init__(mapper)
+        super(UserApi_V1, self).__init__(mapper)
         controller_v1 = ControllerV1()
         mapper.connect('/create_user',
                        controller=Resource(controller_v1),
