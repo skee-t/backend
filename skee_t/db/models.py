@@ -113,6 +113,8 @@ class Car(DB_BASE_MODEL, GenericModel):
         班车状态。-1：取消；0：可报名；1：满额；2：已结束
     .. attribute :: type
         班车类型。0：单程；1：往返
+    .. attribute :: location
+        乘车地点。必填项，不能为空，需要前端业务校验
     """
     id = Column('id', BigInteger(20), autoincrement=True, primary_key=True)
     running_no = Column('running_no', String(36), nullable=False, unique=True)
@@ -124,6 +126,7 @@ class Car(DB_BASE_MODEL, GenericModel):
     state = Column('state', Integer(4), nullable=False, default=0)
     type = Column('type', Integer(4), nullable=False, default=1)
     description = Column('description', Text, nullable=True)
+    location = Column('location', String(255), nullable=False)
 
 
 class CarMember(DB_BASE_MODEL, GenericModel):
@@ -136,3 +139,25 @@ class CarMember(DB_BASE_MODEL, GenericModel):
     running_no = Column('running_no', String(36), nullable=False, unique=True)
     user_uuid = Column('user_uuid', String(36), nullable=False, unique=True)
     state = Column('state', Integer(1), nullable=False, default=1)
+
+
+class Feedback(DB_BASE_MODEL, GenericModel):
+    """
+    用户反馈信息表
+    """
+    id = Column('id', BigInteger(20), autoincrement=True, primary_key=True)
+    user_uuid = Column('user_uuid', String(36), nullable=False, unique=True)
+    content = Column('content', Text, nullable=True)
+
+
+class System(DB_BASE_MODEL):
+    """
+    系统表
+    定义系统参数
+    .. attribute :: params
+        系统参数集合，Json字符串的形式直接存储。可包含：客服电话，客服邮箱等系统信息。
+    """
+    __table__ = 'system'
+    id = Column('id', Integer(11), autoincrement=True, primary_key=True)
+    params = Column('params', Text, nullable=True)
+
