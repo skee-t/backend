@@ -105,6 +105,8 @@ class Car(DB_BASE_MODEL, GenericModel):
     """
     班车信息类
     对应班车信息表（Cars）
+    .. attribute :: running_no
+        车次号。同一班车可也有多个车次。
     .. attribute :: licence
         车牌号
     .. attribute :: state
@@ -113,6 +115,7 @@ class Car(DB_BASE_MODEL, GenericModel):
         班车类型。0：单程；1：往返
     """
     id = Column('id', BigInteger(20), autoincrement=True, primary_key=True)
+    running_no = Column('running_no', String(36), nullable=False, unique=True)
     licence = Column('licence', String(10), nullable=False, unique=True)
     fee = Column('fee', Float(11, 2), nullable=False, default=0.00)
     time = Column('time', DateTime, nullable=False, default=now())
@@ -121,4 +124,15 @@ class Car(DB_BASE_MODEL, GenericModel):
     state = Column('state', Integer(4), nullable=False, default=0)
     type = Column('type', Integer(4), nullable=False, default=1)
     description = Column('description', Text, nullable=True)
-    
+
+
+class CarMember(DB_BASE_MODEL, GenericModel):
+    """
+    班车成员类
+    .. attribute :: running_no
+        车次号
+    """
+    id = Column('id', BigInteger(20), autoincrement=True, primary_key=True)
+    running_no = Column('running_no', String(36), nullable=False, unique=True)
+    user_uuid = Column('user_uuid', String(36), nullable=False, unique=True)
+    state = Column('state', Integer(1), nullable=False, default=1)
