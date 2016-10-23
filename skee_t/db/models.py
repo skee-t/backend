@@ -144,9 +144,12 @@ class CarMember(DB_BASE_MODEL, GenericModel):
 class Feedback(DB_BASE_MODEL, GenericModel):
     """
     用户反馈信息表
+    .. attribute :: contact
+        联系方式，必填项，需要业务校验
     """
     id = Column('id', BigInteger(20), autoincrement=True, primary_key=True)
     user_uuid = Column('user_uuid', String(36), nullable=False, unique=True)
+    contact = Column('contact', String(20), nullable=False)
     content = Column('content', Text, nullable=True)
 
 
@@ -160,4 +163,3 @@ class System(DB_BASE_MODEL):
     __table__ = 'system'
     id = Column('id', Integer(11), autoincrement=True, primary_key=True)
     params = Column('params', Text, nullable=True)
-

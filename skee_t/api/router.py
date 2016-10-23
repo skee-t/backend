@@ -1,10 +1,15 @@
 #! -*- coding: UTF-8 -*-
 import json
+import logging
 from webob import Response
+from skee_t.services.services import UserService
 from skee_t.wsgi import Router
 from skee_t.wsgi import Resource
 
 __author__ = 'pluto'
+
+
+LOG = logging.getLogger(__name__)
 
 
 class API_V1(Router):
@@ -12,9 +17,9 @@ class API_V1(Router):
     def __init__(self, mapper):
         super(API_V1, self).__init__(mapper)
         controller_v1 = ControllerV1()
-        mapper.connect('/create',
+        mapper.connect('/create_user',
                        controller=Resource(controller_v1),
-                       action='create',
+                       action='create_user',
                        conditions={'method': ['POST']})
         # mapper.connect('/list',
         #                controller=wsgi.Resource(controller_v1),
@@ -35,13 +40,12 @@ class ControllerV1(object):
     def __init__(self):
         pass
 
-    def create(self, request):
-        print 'The method ----> %s' % request.method
-        print 'The content type ----> %s' % request.content_type
-        print 'The body ----> %s' % request.json_body
-        print request.json_body['name']
-        print request.json['name']
-        print type(request.json)
-        name = {"aaaa": "bbbb"}
-        response_str = json.dumps(name)
-        return Response(body=response_str)
+    def create_user(self, request):
+        req_json = request.json_body
+        LOG.info('Current received message is %s' % req_json)
+        service = UserService()
+        rst = service.create_user(req_json)
+        LOG.info('The result of create user information is %s' % rst)
+        resp_body = {'result': rst}
+
+        return Response(body=json.dumps(resp_body))
