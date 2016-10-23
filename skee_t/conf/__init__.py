@@ -6,6 +6,9 @@ __author__ = 'pluto'
 
 DEFAULTS_OPTS = [
     cfg.BoolOpt('debug', default=False, help='Whether debug or not'),
+
+    cfg.StrOpt('user_appliance', default='skis', help='The appliance which user wonted.'),
+    cfg.StrOpt('user_image_path', default='', help='The default path of user image.'),
 ]
 
 DB_OPTS = [
