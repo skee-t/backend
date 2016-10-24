@@ -1,17 +1,18 @@
 #! -*- coding: UTF-8 -*-
-from sqlalchemy import Column, BigInteger, String, Integer, Boolean, Text, DateTime, Float
+from sqlalchemy import Column, BigInteger, String, Integer, Boolean, Text, DateTime, Float, SmallInteger
 from sqlalchemy.sql.functions import now
 from skee_t.conf import CONF
 from skee_t.db.model_base import DB_BASE_MODEL, GenericModel
 
 __author__ = 'pluto'
 
+
 class SnowPack(DB_BASE_MODEL, GenericModel):
     """
     雪场信息类
     定义雪场信息
     """
-    id = Column('id', BigInteger(20), autoincrement=True, primary_key=True)
+    id = Column('id', BigInteger, primary_key=True, autoincrement=True)
     name = Column('name', String(255), nullable=False)
     city = Column('city', String(100), nullable=False)
     location = Column('location', String(255), nullable=False)
@@ -35,7 +36,7 @@ class User(DB_BASE_MODEL):
     .. attribute :: deleted
         将用户信息逻辑删除
     """
-    id = Column('id', BigInteger(20), autoincrement=True, primary_key=True)
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     uuid = Column('uuid', String(36), nullable=False, unique=True)
     name = Column('name', String(50), nullable=False)
     real_name = Column('real_name', String(50), nullable=True)
@@ -67,22 +68,22 @@ class Lesson(DB_BASE_MODEL, GenericModel):
     .. attribute :: estimate
         课程评价。计算自各个参与者评价的平均值，与星级对应。
     """
-    id = Column('id', BigInteger(20), autoincrement=True, primary_key=True)
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     uuid = Column('uuid', String(36), nullable=False, unique=True)
     title = Column('title', String(255), nullable=False)
     pack_uuid = Column('pack', String(36), nullable=False)
     contact = Column('contact', String(100), nullable=True)
-    level_limit = Column('level_limit', Integer(11), nullable=False, default=1)
+    level_limit = Column('level_limit', Integer, nullable=False, default=1)
     venue = Column('venue', String(255), nullable=False)
     meeting_time = Column('meeting_time', DateTime, nullable=False, default=now())
-    quota = Column('quota', Integer(11), nullable=False, default=1)
+    quota = Column('quota', Integer, nullable=False, default=1)
     fee = Column('fee', Float(11, 2), nullable=False, default=0.00)
-    period = Column('period', Integer(11), nullable=False, default=0)
+    period = Column('period', Integer, nullable=False, default=0)
     description = Column('description', Text, nullable=True)
-    state = Column('state', Integer(4), nullable=False, default=0)
+    state = Column('state', SmallInteger, nullable=False, default=0)
     deleted = Column('deleted', Boolean, nullable=False, default=0)
-    hotspot = Column('hotspot', Integer(11), nullable=False, default=0)
-    estimate = Column('estimate', Integer(4), nullable=False, default=0)
+    hotspot = Column('hotspot', Integer, nullable=False, default=0)
+    estimate = Column('estimate', SmallInteger, nullable=False, default=0)
 
 
 
@@ -94,11 +95,11 @@ class LessonMember(DB_BASE_MODEL, GenericModel):
     .. attribute :: estimate
         参与评价，只有为完成状态的成员才能参与评价。整数，数值可与星级对应。
     """
-    id = Column('id', BigInteger(20), autoincrement=True, primary_key=True)
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     lesson_uuid = Column('lesson_uuid', String(36), nullable=False, unique=True)
     user_uuid = Column('user_uuid', String(36), nullable=False, unique=True)
-    estimate = Column('estimate', Integer(4), nullable=False, default=0)
-    state = Column('state', Integer(1), nullable=False, default=1)
+    estimate = Column('estimate', SmallInteger, nullable=False, default=0)
+    state = Column('state', SmallInteger, nullable=False, default=1)
 
 
 class Car(DB_BASE_MODEL, GenericModel):
@@ -116,15 +117,15 @@ class Car(DB_BASE_MODEL, GenericModel):
     .. attribute :: location
         乘车地点。必填项，不能为空，需要前端业务校验
     """
-    id = Column('id', BigInteger(20), autoincrement=True, primary_key=True)
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     running_no = Column('running_no', String(36), nullable=False, unique=True)
     licence = Column('licence', String(10), nullable=False, unique=True)
     fee = Column('fee', Float(11, 2), nullable=False, default=0.00)
     time = Column('time', DateTime, nullable=False, default=now())
-    quota = Column('quota', Integer(11), nullable=False, default=0)
-    interest = Column('interest', Integer(11), nullable=False, default=0)
-    state = Column('state', Integer(4), nullable=False, default=0)
-    type = Column('type', Integer(4), nullable=False, default=1)
+    quota = Column('quota', Integer, nullable=False, default=0)
+    interest = Column('interest', Integer, nullable=False, default=0)
+    state = Column('state', SmallInteger, nullable=False, default=0)
+    type = Column('type', SmallInteger, nullable=False, default=1)
     description = Column('description', Text, nullable=True)
     location = Column('location', String(255), nullable=False)
 
@@ -135,10 +136,10 @@ class CarMember(DB_BASE_MODEL, GenericModel):
     .. attribute :: running_no
         车次号
     """
-    id = Column('id', BigInteger(20), autoincrement=True, primary_key=True)
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     running_no = Column('running_no', String(36), nullable=False, unique=True)
     user_uuid = Column('user_uuid', String(36), nullable=False, unique=True)
-    state = Column('state', Integer(1), nullable=False, default=1)
+    state = Column('state', SmallInteger, nullable=False, default=1)
 
 
 class Feedback(DB_BASE_MODEL, GenericModel):
@@ -147,7 +148,7 @@ class Feedback(DB_BASE_MODEL, GenericModel):
     .. attribute :: contact
         联系方式，必填项，需要业务校验
     """
-    id = Column('id', BigInteger(20), autoincrement=True, primary_key=True)
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     user_uuid = Column('user_uuid', String(36), nullable=False, unique=True)
     contact = Column('contact', String(20), nullable=False)
     content = Column('content', Text, nullable=True)
@@ -160,6 +161,7 @@ class System(DB_BASE_MODEL):
     .. attribute :: params
         系统参数集合，Json字符串的形式直接存储。可包含：客服电话，客服邮箱等系统信息。
     """
-    __table__ = 'system'
-    id = Column('id', Integer(11), autoincrement=True, primary_key=True)
+    id = Column('id', Integer, autoincrement=True, primary_key=True)
     params = Column('params', Text, nullable=True)
+
+    __tablename__ = 'system'
