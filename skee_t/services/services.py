@@ -43,7 +43,7 @@ class UserService(BaseService):
         session = None
         rst_status = False
         try:
-            engine = DbEngine().get_instance()
+            engine = DbEngine.get_instance()
             session = engine.get_session(autocommit=False, expire_on_commit=True)
             # Save current location and job information
             session.add(user)
