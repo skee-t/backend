@@ -29,7 +29,7 @@ class UserService(BaseService):
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
         :return:
         """
-        user = User(uuid=uuid.uuid4(),
+        user = User(uuid=str(uuid.uuid4()),
                     name=dict_args.get('name'),
                     real_name=dict_args.get('real_name'),
                     image_path=dict_args.get(''),
