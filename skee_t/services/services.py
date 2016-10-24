@@ -6,7 +6,7 @@ import uuid
 from skee_t.db import DbEngine
 from skee_t.db.models import User
 from skee_t.services import BaseService
-from skee_t.services.service_validator import NetworkCreateValidator
+from skee_t.services.service_validator import NetworkCreateValidator, UserCreateValidator
 
 __author__ = 'pluto'
 
@@ -22,7 +22,7 @@ class UserService(BaseService):
     def __init__(self):
         pass
 
-    @NetworkCreateValidator
+    @UserCreateValidator
     def create_user(self, dict_args={}):
         """
         创建用户方法
