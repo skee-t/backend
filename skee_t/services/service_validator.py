@@ -1,6 +1,5 @@
 #! -*- coding: UTF-8 -*-
 import logging
-from skee_t.conf import CONF
 
 __author__ = 'pluto'
 
@@ -34,7 +33,17 @@ class UserCreateValidator(GenericValidator):
         super(UserCreateValidator, self).__call__(dict_args)
 
         assert 'name' in dict_args, EXCEPTION_ERROR_MESSAGE % '\'name\''
+#
+        return self._fn(self, dict_args)
 
-        self._fn(dict_args)
+class SkiResortCreateValidator(GenericValidator):
 
+    def __init__(self, fn, *args, **kvargs):
+        super(SkiResortCreateValidator, self).__init__(fn, args, kvargs)
 
+    def __call__(self, dict_args={}):
+        super(SkiResortCreateValidator, self).__call__(dict_args)
+
+        assert 'name' in dict_args, EXCEPTION_ERROR_MESSAGE % '\'name\''
+
+        return self._fn(self, dict_args)

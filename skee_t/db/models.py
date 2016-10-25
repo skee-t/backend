@@ -1,24 +1,32 @@
 #! -*- coding: UTF-8 -*-
 from sqlalchemy import Column, BigInteger, String, Integer, Boolean, Text, DateTime, Float, SmallInteger
+from sqlalchemy import create_engine
 from sqlalchemy.sql.functions import now
+
 from skee_t.conf import CONF
+from skee_t.db import DbEngine
 from skee_t.db.model_base import DB_BASE_MODEL, GenericModel
 
 __author__ = 'pluto'
 
 
-class SnowPack(DB_BASE_MODEL, GenericModel):
+class SkiResort(DB_BASE_MODEL, GenericModel):
     """
     雪场信息类
     定义雪场信息
     """
+    __tablename__ = 'ski_resort'
+
     id = Column('id', BigInteger, primary_key=True, autoincrement=True)
-    name = Column('name', String(255), nullable=False)
-    city = Column('city', String(100), nullable=False)
-    location = Column('location', String(255), nullable=False)
-    contact = Column('contact', String(100), nullable=True)
-    disabled = Column('disabled', Boolean, nullable=False, default=0)
-    deleted = Column('deleted', Boolean, nullable=False, default=0)
+    name = Column('name', String(255), nullable=False, doc='雪场名称')
+    city = Column('city', String(100), nullable=False, doc='雪场所在城市')
+    address = Column('address', String(255), nullable=False, doc='雪场具体位置')
+    spec_pic = Column('spec_pic', String(255), nullable=False, doc='雪场特色照片')
+    trail_pic = Column('trail_pic', String(255), nullable=False, doc='雪场雪道图')
+    has_bus = Column('has_bus', Boolean, nullable=False, default=0, doc='是否有班车 0：没有；1：有')
+    contact = Column('contact', String(100), nullable=True, doc='雪场联系方式')
+    disabled = Column('disabled', Boolean, nullable=False, default=0, doc='用于锁定雪场')
+    deleted = Column('deleted', Boolean, nullable=False, default=0, doc='用户逻辑删除')
 
 
 class User(DB_BASE_MODEL):
@@ -165,3 +173,8 @@ class System(DB_BASE_MODEL):
     params = Column('params', Text, nullable=True)
 
     __tablename__ = 'system'
+
+
+# 根据class创建表
+engine = create_engine(DbEngine.get_instance().get_db_url(), echo=True)
+DB_BASE_MODEL.metadata.create_all(engine)

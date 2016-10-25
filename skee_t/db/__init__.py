@@ -2,6 +2,7 @@
 import sqlalchemy
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm import sessionmaker
+
 from skee_t.conf import CONF
 
 __author__ = 'pluto'
@@ -65,6 +66,7 @@ class DbEngine(object):
     """
     def __init__(self, db_url=None, idle_timeout=3600, max_pool_size=10,
                  max_overflow=0, pool_timeout=30, encoding='UTF-8', debug=False):
+        self._db_url = db_url
         self._engine = create_engine(db_url,
                                      idle_timeout,
                                      max_pool_size,
@@ -73,6 +75,9 @@ class DbEngine(object):
                                      encoding,
                                      debug)
         self._session_maker = sessionmaker(bind=self._engine)
+
+    def get_db_url(self):
+        return self._db_url
 
     def get_engine(self):
         return self._engine
@@ -100,3 +105,4 @@ class DbEngine(object):
                    CONF.database.pool_timeout,
                    CONF.database.encoding,
                    CONF.database.debug)
+

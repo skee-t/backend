@@ -1,8 +1,8 @@
 #! -*- coding: UTF-8 -*-
 
-import json
 import logging
 import uuid
+
 from skee_t.db import DbEngine
 from skee_t.db.models import User
 from skee_t.services import BaseService
@@ -50,7 +50,8 @@ class UserService(BaseService):
             session.commit()
             rst_status = True
         except Exception as e:
-            LOG.error("Create user information error.", e)
-            if session is not None:
+            LOG.exception("Create user information error.")
+            #LOG.error("Create user information error.", e)
+        if session is not None:
                 session.rollback()
         return rst_status
