@@ -3,6 +3,7 @@ import json
 import logging
 
 from webob import Response
+from skee_t.db.wrappers import SkiResortWrapper
 
 from skee_t.services.service_skiResort import SkiResortService
 from skee_t.wsgi import Resource
@@ -55,12 +56,12 @@ class ControllerV1(object):
     def list_ski_resort(self, request):
         LOG.info('Current received message is %s' % request.GET)
         service = SkiResortService()
-        rst = service.list_skiResort(request.GET['pageIndex'])
+        rst = [SkiResortWrapper(item) for item in service.list_skiResort(request.GET['pageIndex'])]
         LOG.info('The result of create user information is %s' % rst)
-        print json.dumps(class_to_dict(rst), skipkeys=True)
+        print json.dumps(rst)
 
         # print MyJEncoder().encode(rst)
-        return Response(body=json.dumps(class_to_dict(rst)))
+        return Response(body=json.dumps(rst))
 
 def convert_to_dict(obj):
     '''把Object对象转换成Dict对象'''
