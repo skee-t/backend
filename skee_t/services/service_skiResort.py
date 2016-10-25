@@ -62,7 +62,6 @@ class SkiResortService(BaseService):
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
         :return:
         """
-        print pageindex
         session = None
         rst_code = 0
         rst_desc = 'success'
@@ -70,9 +69,9 @@ class SkiResortService(BaseService):
         try:
             engine = DbEngine.get_instance()
             session = engine.get_session(autocommit=False, expire_on_commit=True)
-            return session.query(SkiResort).all()
+            return session.query(SkiResort).offset((int(pageindex)-1)*5+1).limit(int(pageindex)*5).all()
         except Exception as e:
-            LOG.exception("Create SkiResort information error.")
+            LOG.exception("List SkiResort information error.")
             # 数据库异常
             rst_code = '999999'
             rst_desc = e.message

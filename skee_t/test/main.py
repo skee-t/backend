@@ -1,5 +1,6 @@
 #! -*- coding: UTF-8 -*-
-import logging
+import logging.config
+import sys
 from wsgiref.simple_server import make_server
 
 import os
@@ -17,10 +18,15 @@ APP_NAME = 'skee_t'
 # 获取当前项目目录
 PROJECT_DIR = os.path.abspath(__file__).replace('/skee_t/test/main.py','')
 DB_CONFIG_FILE = PROJECT_DIR + '/etc/skee_t.conf'
-WEB_CONFIG_FILE =  PROJECT_DIR + '/etc/paste/skee_t.ini'
+WEB_CONFIG_FILE = PROJECT_DIR + '/etc/paste/skee_t.ini'
+LOG_CONFIG_FILE = PROJECT_DIR + '/etc/skee_t_logging.conf'
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+
+    logging.basicConfig(level=logging.DEBUG,stream=sys.stderr)
+    # logging.config.fileConfig(LOG_CONFIG_FILE)    # 采用配置文件
     CONF(default_config_files=[DB_CONFIG_FILE])
 
     engine = create_engine(DbEngine.get_instance()._db_url, echo=True)

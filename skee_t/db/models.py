@@ -25,8 +25,8 @@ class SkiResort(DB_BASE_MODEL, GenericModel):
     trail_pic = Column('trail_pic', String(255), nullable=False, doc='雪场雪道图')
     has_bus = Column('has_bus', Boolean, nullable=False, default=0, doc='是否有班车 0：没有；1：有')
     contact = Column('contact', String(100), nullable=True, doc='雪场联系方式')
-    disabled = Column('disabled', Boolean, nullable=False, default=0, doc='用于锁定雪场')
-    deleted = Column('deleted', Boolean, nullable=False, default=0, doc='用户逻辑删除')
+    disabled = Column('disabled', Boolean, nullable=False, default=0, doc='锁定')
+    deleted = Column('deleted', Boolean, nullable=False, default=0, doc='逻辑删除')
 
 class User(DB_BASE_MODEL):
     """
