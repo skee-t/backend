@@ -28,7 +28,6 @@ class SkiResort(DB_BASE_MODEL, GenericModel):
     disabled = Column('disabled', Boolean, nullable=False, default=0, doc='用于锁定雪场')
     deleted = Column('deleted', Boolean, nullable=False, default=0, doc='用户逻辑删除')
 
-
 class User(DB_BASE_MODEL):
     """
     用户信息类

@@ -55,3 +55,27 @@ class SkiResortService(BaseService):
             if session is not None:
                 session.rollback()
         return {'rst_code':rst_code, 'rst_desc':rst_desc}
+
+    def list_skiResort(self, pageindex):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        print pageindex
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            engine = DbEngine.get_instance()
+            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            return session.query(SkiResort).all()
+        except Exception as e:
+            LOG.exception("Create SkiResort information error.")
+            # 数据库异常
+            rst_code = '999999'
+            rst_desc = e.message
+            if session is not None:
+                session.rollback()
+        return {'rst_code':rst_code, 'rst_desc':rst_desc}
