@@ -56,7 +56,8 @@ class SkiResortService(BaseService):
                 session.rollback()
         return {'rst_code':rst_code, 'rst_desc':rst_desc}
 
-    def list_skiResort(self, pageindex):
+    # @SkiResortListValidator
+    def list_skiResort(self, page_index):
         """
         创建用户方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -69,12 +70,12 @@ class SkiResortService(BaseService):
         try:
             engine = DbEngine.get_instance()
             session = engine.get_session(autocommit=False, expire_on_commit=True)
-            return session.query(SkiResort).offset((int(pageindex)-1)*5+1).limit(int(pageindex)*5).all()
-        except Exception as e:
+            return session.query(SkiResort).offset((int(page_index)-1)*5).limit(int(page_index)*5+1).all()
+        except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
             # 数据库异常
             rst_code = '999999'
             rst_desc = e.message
             if session is not None:
                 session.rollback()
-        return {'rst_code':rst_code, 'rst_desc':rst_desc}
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}

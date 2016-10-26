@@ -1,5 +1,6 @@
 #! -*-coding:UTF-8 -*-
 import abc
+
 from skee_t.db.models import SkiResort
 
 __author__ = 'pluto'
@@ -11,7 +12,7 @@ class AbstractORMWrapper(dict):
         print self._getClass()
         if isinstance(model_obj, self._getClass()):
             for attr in self._getwrapattrs():
-                self[attr] = model_obj.__getattribute__(attr).__str__()
+                self[attr] = model_obj.__getattribute__(attr)
 
     @abc.abstractmethod
     def _getClass(self):

@@ -3,8 +3,8 @@ import json
 import logging
 
 from webob import Response
-from skee_t.db.wrappers import SkiResortWrapper
 
+from skee_t.db.wrappers import SkiResortWrapper
 from skee_t.services.service_skiResort import SkiResortService
 from skee_t.wsgi import Resource
 from skee_t.wsgi import Router
@@ -24,7 +24,7 @@ class SkiResortApi_V1(Router):
                        controller=Resource(controller_v1),
                        action='add_ski_resort',
                        conditions={'method': ['POST']})
-        mapper.connect('/list',
+        mapper.connect('/{page_index}',
                        controller=Resource(controller_v1),
                        action='list_ski_resort',
                        conditions={'method': ['GET']})
@@ -50,53 +50,17 @@ class ControllerV1(object):
         rst = service.create_skiResort(req_json)
         LOG.info('The result of create user information is %s' % rst)
 
-        rspBody = {'rspCode':rst.get('rst_code'),'rspDesc':rst.get('rst_desc')}
-        return Response(body=json.dumps(rspBody))
+        rsp_body = {'rspCode':rst.get('rst_code'),'rspDesc':rst.get('rst_desc')}
+        return Response(body=json.dumps(rsp_body))
 
-    def list_ski_resort(self, request):
-        LOG.info('Current received message is %s' % request.GET)
+    def list_ski_resort(self, request, page_index):
+        print 'page_index:%s' % page_index
         service = SkiResortService()
-        rst = [SkiResortWrapper(item) for item in service.list_skiResort(request.GET['pageIndex'])]
+
+        rst = service.list_skiResort(page_index)
+        if isinstance(rst, list):
+            rst = [SkiResortWrapper(item) for item in rst]
+
         LOG.info('The result of create user information is %s' % rst)
-        print json.dumps(rst)
 
-        # print MyJEncoder().encode(rst)
-        return Response(body=json.dumps(rst))
-
-def convert_to_dict(obj):
-    '''把Object对象转换成Dict对象'''
-    dict = {}
-    dict.update(obj.__dict__)
-    return dict
-
-
-def convert_to_dicts(objs):
-    '''把对象列表转换为字典列表'''
-    obj_arr = []
-
-    for o in objs:
-        #把Object对象转换成Dict对象
-        dict = {}
-        dict.update(o.__dict__)
-        obj_arr.append(dict)
-
-    return obj_arr
-
-
-def class_to_dict(obj):
-    '''把对象(支持单个对象、list、set)转换成字典'''
-    is_list = obj.__class__ == [].__class__
-    is_set = obj.__class__ == set().__class__
-
-    if is_list or is_set:
-        obj_arr = []
-        for o in obj:
-            #把Object对象转换成Dict对象
-            dict = {}
-            dict.update(o.__dict__)
-            obj_arr.append(dict)
-        return obj_arr
-    else:
-        dict = {}
-        dict.update(obj.__dict__)
-        return dict
+        return Response(body=json.dumps(rst, ensure_ascii=False))
