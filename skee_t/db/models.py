@@ -15,9 +15,10 @@ class SkiResort(DB_BASE_MODEL, GenericModel):
     雪场信息类
     定义雪场信息
     """
-    __tablename__ = 'ski_resort'
+    __tablename__ = 'ski_resorts'
 
     id = Column('id', BigInteger, primary_key=True, autoincrement=True)
+    uuid = Column('uuid', String(36), nullable=False, unique=True)
     name = Column('name', String(255), nullable=False, doc='雪场名称')
     city = Column('city', String(100), nullable=False, doc='雪场所在城市')
     address = Column('address', String(255), nullable=False, doc='雪场具体位置')
@@ -28,6 +29,7 @@ class SkiResort(DB_BASE_MODEL, GenericModel):
     disabled = Column('disabled', Boolean, nullable=False, default=0, doc='锁定')
     deleted = Column('deleted', Boolean, nullable=False, default=0, doc='逻辑删除')
 
+
 class User(DB_BASE_MODEL):
     """
     用户信息类
@@ -37,7 +39,7 @@ class User(DB_BASE_MODEL):
     .. attribute :: age
         这里指的是雪龄，而非年龄
     .. attribute :: appliance
-        器具，擅长的滑雪器械
+        器具，擅长的滑雪器械 1:单板; 11:双板. 因为跟板的数量一致
     .. attribute :: disabled
         此字段可用于锁定用户账户
     .. attribute :: deleted
@@ -47,17 +49,67 @@ class User(DB_BASE_MODEL):
     uuid = Column('uuid', String(36), nullable=False, unique=True)
     name = Column('name', String(50), nullable=False)
     real_name = Column('real_name', String(50), nullable=True)
-    image_path = Column('image_path', String(255), nullable=False, default='')
+    head_image_path = Column('head_image_path', String(255), nullable=False, default='')
     sex = Column('sex', Integer, nullable=False, default=1)
     age = Column('age', Integer, nullable=False, default=0)
     level = Column('level', Integer, nullable=False, default=1)
     contact = Column('contact', String(100), nullable=True)
-    appliance = Column('appliance', String(50), nullable=False, default=CONF.default.user_appliance)
+    appliance = Column('appliance', SmallInteger, nullable=False, default=1)
     history = Column('history', Text, nullable=False, default=CONF.default.user_image_path)
     create_time = Column('create_time', DateTime, nullable=False, default=now())
     update_time = Column('update_time', DateTime, nullable=False, default=now())
     disabled = Column('disabled', Boolean, nullable=False, default=0)
     deleted = Column('deleted', Boolean, nullable=False, default=0)
+
+
+class Activity(DB_BASE_MODEL, GenericModel):
+    """
+    活动信息类
+    .. attribute:: state
+        课程状态。取值包括-1：终止；0：可报名；1：满额；2：已开始；3：已结束
+    .. attribute:: creator
+        创建人，即领队
+    .. attribute:: updater
+        修改人，如果是系统自动修改，这修改人可设置为system的默认ID，此ID需要创建库的时候直接生成，作为默认数据。
+    .. attribute:: hotspot
+        热点，记录关注人数
+    .. attribute :: estimate
+        评价。计算自各个参与者评价的平均值，与星级对应。
+    """
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+    uuid = Column('uuid', String(36), nullable=False, unique=True)
+    type = Column('type', SmallInteger, nullable=False, default=1, doc='活动类型: 1教学; 2约伴; 3跟大队')
+    title = Column('title', String(255), nullable=False)
+    ski_resort_uuid = Column('ski_resort_uuid', String(36), nullable=False)
+    contact = Column('contact', String(100), nullable=True)
+    level_limit = Column('level_limit', Integer, nullable=False, default=1)
+    venue = Column('venue', String(255), nullable=False, doc='集合地点')
+    meeting_time = Column('meeting_time', DateTime, nullable=False, default=now(), doc='见面时间')
+    quota = Column('quota', Integer, nullable=False, default=1, doc='人数限额')
+    fee = Column('fee', Float(11, 2), nullable=False, default=0.00)
+    period = Column('period', Integer, nullable=False, default=0)
+    notice = Column('notice', Text, nullable=True)
+    state = Column('state', SmallInteger, nullable=False, default=0)
+    deleted = Column('deleted', Boolean, nullable=False, default=0)
+    hotspot = Column('hotspot', Integer, nullable=False, default=0, doc='热点。记录关注人数')
+    estimate = Column('estimate', SmallInteger, nullable=False, default=0, doc='评价。计算自各个参与者评价的平均值，与星级对应。')
+
+
+class ActivityMember(DB_BASE_MODEL, GenericModel):
+    """
+    活动成员类
+    .. attribute :: state
+        成员状态，显示是否成员正常参与教学活动。取值包括：-1：报名后已退出；0：已报名；1：已完成；
+    .. attribute :: estimate
+        参与评价，只有为完成状态的成员才能参与评价。整数，数值可与星级对应。
+    """
+    __tablename__ = 'activity_members'
+
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+    activity_uuid = Column('activity_uuid', String(36), nullable=False, unique=True)
+    user_uuid = Column('user_uuid', String(36), nullable=False, unique=True)
+    estimate = Column('estimate', SmallInteger, nullable=False, default=0)
+    state = Column('state', SmallInteger, nullable=False, default=1)
 
 
 class Lesson(DB_BASE_MODEL, GenericModel):
@@ -93,7 +145,6 @@ class Lesson(DB_BASE_MODEL, GenericModel):
     estimate = Column('estimate', SmallInteger, nullable=False, default=0)
 
 
-
 class LessonMember(DB_BASE_MODEL, GenericModel):
     """
     课程成员类
@@ -102,6 +153,8 @@ class LessonMember(DB_BASE_MODEL, GenericModel):
     .. attribute :: estimate
         参与评价，只有为完成状态的成员才能参与评价。整数，数值可与星级对应。
     """
+    __tablename__ = 'lesson_members'
+
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     lesson_uuid = Column('lesson_uuid', String(36), nullable=False, unique=True)
     user_uuid = Column('user_uuid', String(36), nullable=False, unique=True)
@@ -143,6 +196,8 @@ class CarMember(DB_BASE_MODEL, GenericModel):
     .. attribute :: running_no
         车次号
     """
+    __tablename__ = 'car_members'
+
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     running_no = Column('running_no', String(36), nullable=False, unique=True)
     user_uuid = Column('user_uuid', String(36), nullable=False, unique=True)

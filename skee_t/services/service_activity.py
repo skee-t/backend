@@ -4,9 +4,8 @@ import logging
 import uuid
 
 from skee_t.db import DbEngine
-from skee_t.db.models import SkiResort
+from skee_t.db.models import Activity
 from skee_t.services import BaseService
-from skee_t.services.service_validator import SkiResortCreateValidator
 
 __author__ = 'rensikun'
 
@@ -14,7 +13,7 @@ __author__ = 'rensikun'
 LOG = logging.getLogger(__name__)
 
 
-class SkiResortService(BaseService):
+class ActivityService(BaseService):
     """
 
     """
@@ -22,20 +21,24 @@ class SkiResortService(BaseService):
     def __init__(self):
         pass
 
-    @SkiResortCreateValidator
-    def create_skiResort(self, dict_args={}):
+    def create_activity_teach(self, dict_args={}):
         """
-        创建用户方法
+        创建活动
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
         :return:
         """
-        skiResort = SkiResort(uuid=str(uuid.uuid4()),
-                              name=dict_args.get('name'),
-                              city=dict_args.get('city'),
-                              address=dict_args.get('address'),
-                              spec_pic=dict_args.get('specPic'),
-                              trail_pic=dict_args.get('trailPic'),
+        activity = Activity(  uuid=str(uuid.uuid4()),
+                              type=dict_args.get('type'),
+                              title=dict_args.get('title'),
+                              ski_resort_uuid=dict_args.get('skiResortUUID'),
                               contact=dict_args.get('contact'),
+                              level_limit=dict_args.get('levelLimit'),
+                              venue=dict_args.get('venue'),
+                              meeting_time=dict_args.get('meetingTime'),
+                              quota=dict_args.get('quota'),
+                              fee=dict_args.get('fee'),
+                              period=dict_args.get('period'),
+                              notice=dict_args.get('notice'),
                               creator=dict_args.get('creator'),
                               updater=dict_args.get('creator'),
                     )
@@ -47,7 +50,7 @@ class SkiResortService(BaseService):
         try:
             engine = DbEngine.get_instance()
             session = engine.get_session(autocommit=False, expire_on_commit=True)
-            session.add(skiResort)
+            session.add(activity)
             session.commit()
         except Exception as e:
             LOG.exception("Create SkiResort information error.")
@@ -59,7 +62,7 @@ class SkiResortService(BaseService):
         return {'rst_code':rst_code, 'rst_desc':rst_desc}
 
     # @SkiResortListValidator
-    def list_skiResort(self, city = None, page_index = 1):
+    def list_skiResort_activity(self, skiResort_uuid = None, page_index = 1):
         """
         创建用户方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -72,9 +75,9 @@ class SkiResortService(BaseService):
         try:
             engine = DbEngine.get_instance()
             session = engine.get_session(autocommit=False, expire_on_commit=True)
-            query_sr = session.query(SkiResort)
-            if city:
-                query_sr = query_sr.filter_by(city=city)
+            query_sr = session.query(Activity)
+            if skiResort_uuid:
+                query_sr = query_sr.filter_by(ski_resort_uuid=skiResort_uuid)
             return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5+1).all()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")

@@ -1,7 +1,9 @@
 #! -*-coding:UTF-8 -*-
 import abc
+import datetime
+import decimal
 
-from skee_t.db.models import SkiResort
+from skee_t.db.models import SkiResort, Activity
 
 __author__ = 'pluto'
 
@@ -12,7 +14,12 @@ class AbstractORMWrapper(dict):
         print self._getClass()
         if isinstance(model_obj, self._getClass()):
             for attr in self._getwrapattrs():
-                self[underline_to_camel(attr)] = model_obj.__getattribute__(attr)
+                if isinstance(model_obj.__getattribute__(attr), decimal.Decimal):
+                    self[underline_to_camel(attr)] = format(model_obj.__getattribute__(attr),'0.0f')
+                elif isinstance(model_obj.__getattribute__(attr), datetime.datetime):
+                    self[underline_to_camel(attr)] = model_obj.__getattribute__(attr).strftime('%Y:%m:%d %H:%M:%S')
+                else:
+                    self[underline_to_camel(attr)] = model_obj.__getattribute__(attr)
 
     @abc.abstractmethod
     def _getClass(self):
@@ -26,10 +33,19 @@ class AbstractORMWrapper(dict):
 class SkiResortWrapper(AbstractORMWrapper):
 
     def _getwrapattrs(self):
-        return ['id', 'name', 'city', 'address', 'spec_pic', 'trail_pic', 'has_bus', 'contact', 'disabled', 'deleted',]
+        return ['uuid', 'name', 'city', 'address', 'spec_pic', 'trail_pic', 'has_bus', 'contact', 'disabled', 'deleted',]
 
     def _getClass(self):
         return SkiResort
+
+
+class ActivityWrapper(AbstractORMWrapper):
+
+    def _getwrapattrs(self):
+        return ['uuid', 'title', 'type', 'state', 'fee', 'period', 'meeting_time', 'contact', 'creator', ]
+
+    def _getClass(self):
+        return Activity
 
 
 def camel_to_underline(camel_format):

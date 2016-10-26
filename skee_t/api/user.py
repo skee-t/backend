@@ -1,10 +1,12 @@
 #! -*- coding: UTF-8 -*-
 import json
 import logging
+
 from webob import Response
+
 from skee_t.services.services import UserService
-from skee_t.wsgi import Router
 from skee_t.wsgi import Resource
+from skee_t.wsgi import Router
 
 __author__ = 'pluto'
 
@@ -17,7 +19,7 @@ class UserApi_V1(Router):
     def __init__(self, mapper):
         super(UserApi_V1, self).__init__(mapper)
         controller_v1 = ControllerV1()
-        mapper.connect('/create_user',
+        mapper.connect('/',
                        controller=Resource(controller_v1),
                        action='create_user',
                        conditions={'method': ['POST']})

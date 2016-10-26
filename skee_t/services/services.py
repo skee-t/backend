@@ -32,7 +32,7 @@ class UserService(BaseService):
         user = User(uuid=str(uuid.uuid4()),
                     name=dict_args.get('name'),
                     real_name=dict_args.get('real_name'),
-                    image_path=dict_args.get(''),
+                    head_image_path=dict_args.get(''),
                     sex=dict_args.get('sex'),
                     age=dict_args.get('age'),
                     level=dict_args.get('level'),
