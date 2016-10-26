@@ -28,6 +28,14 @@ class SkiResortApi_V1(Router):
                        controller=Resource(controller_v1),
                        action='list_ski_resort',
                        conditions={'method': ['GET']})
+        mapper.connect('/near/{page_index}',
+                       controller=Resource(controller_v1),
+                       action='list_ski_resort_near',
+                       conditions={'method': ['GET']})
+        mapper.connect('/often/{page_index}',
+                       controller=Resource(controller_v1),
+                       action='list_ski_resort',
+                       conditions={'method': ['GET']})
         # mapper.connect('/detail/{id}',
         #                controller=wsgi.Resource(controller_v1),
         #                action='detail',
@@ -53,13 +61,13 @@ class ControllerV1(object):
         rsp_body = {'rspCode':rst.get('rst_code'),'rspDesc':rst.get('rst_desc')}
         return Response(body=json.dumps(rsp_body))
 
-    def list_ski_resort(self, request, page_index):
+    def list_ski_resort(self, request, city=None, page_index=None):
         print 'page_index:%s' % page_index
         service = SkiResortService()
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
-        rst = service.list_skiResort(page_index)
+        rst = service.list_skiResort(city=city, page_index=page_index)
         if isinstance(rst, list):
             rst = [SkiResortWrapper(item) for item in rst]
             rsp_dict['skiResorts'] = rst
@@ -69,3 +77,10 @@ class ControllerV1(object):
 
         LOG.info('The result of create user information is %s' % rsp_dict)
         return Response(body=json.dumps(rsp_dict, ensure_ascii=False))
+
+    def list_ski_resort_near(self, request, page_index):
+        print 'page_index:%s' % page_index
+        #todo 获取当前用户所在城市
+        return self.list_ski_resort(request, '河北市', page_index)
+
+
