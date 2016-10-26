@@ -57,10 +57,15 @@ class ControllerV1(object):
         print 'page_index:%s' % page_index
         service = SkiResortService()
 
+        rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
+
         rst = service.list_skiResort(page_index)
         if isinstance(rst, list):
             rst = [SkiResortWrapper(item) for item in rst]
+            rsp_dict['skiResorts'] = rst
+        else:
+            rsp_dict['rspCode'] = rst['rst_code']
+            rsp_dict['rspDesc'] = rst['rst_desc']
 
-        LOG.info('The result of create user information is %s' % rst)
-
-        return Response(body=json.dumps(rst, ensure_ascii=False))
+        LOG.info('The result of create user information is %s' % rsp_dict)
+        return Response(body=json.dumps(rsp_dict, ensure_ascii=False))
