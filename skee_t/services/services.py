@@ -31,12 +31,12 @@ class UserService(BaseService):
         """
         user = User(uuid=str(uuid.uuid4()),
                     name=dict_args.get('name'),
-                    real_name=dict_args.get('real_name'),
-                    head_image_path=dict_args.get(''),
+                    real_name=dict_args.get('realName'),
+                    head_image_path=dict_args.get('headImagePath'),
                     sex=dict_args.get('sex'),
                     age=dict_args.get('age'),
                     level=dict_args.get('level'),
-                    contact=dict_args.get('contact'),
+                    phone_no=dict_args.get('phoneNo'),
                     appliance=dict_args.get('appliance'),
                     history=dict_args.get('history'),
                     )
@@ -55,3 +55,24 @@ class UserService(BaseService):
         if session is not None:
                 session.rollback()
         return rst_status
+
+    def get_user_auth_info(self, user_id):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            engine = DbEngine.get_instance()
+            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            return session.query(User).filter(User.uuid == user_id).one()
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = '999999'
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}

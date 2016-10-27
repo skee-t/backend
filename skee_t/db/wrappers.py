@@ -1,11 +1,11 @@
 #! -*-coding:UTF-8 -*-
-import abc
 import datetime
 import decimal
 
+import abc
 from sqlalchemy.util import KeyedTuple
 
-from skee_t.db.models import SkiResort, Activity
+from skee_t.db.models import SkiResort, Activity, User
 
 __author__ = 'pluto'
 
@@ -40,6 +40,15 @@ class SkiResortWrapper(AbstractORMWrapper):
 
     def _getClass(self):
         return SkiResort
+
+
+class UserWrapper(AbstractORMWrapper):
+
+    def _getwrapattrs(self):
+        return ['phone_no', 'level', 'appliance', 'name', 'head_image_path']
+
+    def _getClass(self):
+        return User
 
 
 class ActivityWrapper(AbstractORMWrapper):

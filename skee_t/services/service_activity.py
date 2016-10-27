@@ -93,6 +93,4 @@ class ActivityService(BaseService):
             # 数据库异常
             rst_code = '999999'
             rst_desc = e.message
-            if session is not None:
-                session.rollback()
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
