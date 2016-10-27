@@ -25,7 +25,15 @@ class ActivityApi_V1(Router):
                        controller=Resource(controller_v1),
                        action='add_activity_teach',
                        conditions={'method': ['POST']})
-        mapper.connect('/{skiResortId}/{pageIndex}',
+        mapper.connect('/teach/{pageIndex}',
+                       controller=Resource(controller_v1),
+                       action='list_activity_teach',
+                       conditions={'method': ['GET']})
+        mapper.connect('/myTeach/{userId}/{pageIndex}',
+                       controller=Resource(controller_v1),
+                       action='list_activity_myteach',
+                       conditions={'method': ['GET']})
+        mapper.connect('/all/{skiResortId}/{pageIndex}',
                        controller=Resource(controller_v1),
                        action='list_ski_resort_activity',
                        conditions={'method': ['GET']})
@@ -90,8 +98,26 @@ class ControllerV1(object):
         LOG.info('The result of create user information is %s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))
 
-    def list_ski_resort_near(self, request, page_index):
+    def list_activity_teach(self, request, leaderId=None, pageIndex=None):
         #todo 获取当前用户所在城市
-        return self.list_ski_resort(request, '河北市', page_index)
+        print 'list_activity_teach page_index:%s' % pageIndex
+        service = ActivityService()
+
+        rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
+
+        rst = service.list_skiResort_activity(type=1, leader_id=leaderId, page_index=pageIndex)
+        if isinstance(rst, list):
+            rst = [ActivityWrapper(item) for item in rst]
+            rsp_dict['teachings'] = rst
+        else:
+            rsp_dict['rspCode'] = rst['rst_code']
+            rsp_dict['rspDesc'] = rst['rst_desc']
+
+        LOG.info('The result of create user information is %s' % rsp_dict)
+        return Response(body=MyJson.dumps(rsp_dict))
 
 
+    def list_activity_myteach(self, request, userId, pageIndex):
+        #todo 获取当前用户所在城市
+        print 'list_activity_myteach page_index:%s' % pageIndex
+        return self.list_activity_teach(request,leaderId=userId,pageIndex=pageIndex)

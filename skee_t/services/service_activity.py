@@ -62,7 +62,7 @@ class ActivityService(BaseService):
         return {'rst_code':rst_code, 'rst_desc':rst_desc}
 
     # @SkiResortListValidator
-    def list_skiResort_activity(self, skiResort_uuid = None, page_index = 1):
+    def list_skiResort_activity(self, skiResort_uuid = None, type=None, leader_id = None, page_index = 1):
         """
         创建用户方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -82,6 +82,11 @@ class ActivityService(BaseService):
                 .filter(User.uuid == Activity.creator)
             if skiResort_uuid:
                 query_sr = query_sr.filter(Activity.ski_resort_uuid == skiResort_uuid)
+            if type:
+                query_sr = query_sr.filter(Activity.type == type)
+            if leader_id:
+                query_sr = query_sr.filter(Activity.creator == leader_id)
+
             return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
