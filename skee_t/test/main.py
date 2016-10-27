@@ -22,8 +22,8 @@ WEB_CONFIG_FILE = PROJECT_DIR + '/etc/paste/skee_t.ini'
 LOG_CONFIG_FILE = PROJECT_DIR + '/etc/skee_t_logging.conf'
 
 if __name__ == '__main__':
-    # reload(sys)
-    # sys.setdefaultencoding('utf-8')
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
 
     logging.basicConfig(level=logging.DEBUG,stream=sys.stderr)
     # logging.config.fileConfig(LOG_CONFIG_FILE)    # 采用配置文件

@@ -52,8 +52,8 @@ class UserService(BaseService):
         except Exception as e:
             LOG.exception("Create user information error.")
             #LOG.error("Create user information error.", e)
-        if session is not None:
-                session.rollback()
+            if session is not None:
+                    session.rollback()
         return rst_status
 
     def get_user_auth_info(self, user_id):
