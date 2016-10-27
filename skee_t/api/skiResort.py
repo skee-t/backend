@@ -1,11 +1,11 @@
 #! -*- coding: UTF-8 -*-
-import json
 import logging
 
 from webob import Response
 
 from skee_t.db.wrappers import SkiResortWrapper
 from skee_t.services.service_skiResort import SkiResortService
+from skee_t.utils.my_json import MyJson
 from skee_t.wsgi import Resource
 from skee_t.wsgi import Router
 
@@ -58,8 +58,8 @@ class ControllerV1(object):
         rst = service.create_skiResort(req_json)
         LOG.info('The result of create user information is %s' % rst)
 
-        rsp_body = {'rspCode':rst.get('rst_code'),'rspDesc':rst.get('rst_desc')}
-        return Response(body=json.dumps(rsp_body))
+        rsp_dict = {'rspCode':rst.get('rst_code'),'rspDesc':rst.get('rst_desc')}
+        return Response(body=MyJson.dumps(rsp_dict))
 
     def list_ski_resort(self, request, city=None, pageIndex=None):
         print 'page_index:%s' % pageIndex
@@ -76,10 +76,10 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = rst['rst_desc']
 
         LOG.info('The result of create user information is %s' % rsp_dict)
-        return Response(body=json.dumps(rsp_dict, ensure_ascii=False))
+        return Response(body=MyJson.dumps(rsp_dict))
 
-    def list_ski_resort_near(self, request, page_index):
+    def list_ski_resort_near(self, request, pageIndex):
         #todo 获取当前用户所在城市
-        return self.list_ski_resort(request, '河北市', page_index)
+        return self.list_ski_resort(request, '河北市', pageIndex)
 
 

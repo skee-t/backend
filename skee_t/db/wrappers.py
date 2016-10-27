@@ -3,6 +3,8 @@ import abc
 import datetime
 import decimal
 
+from sqlalchemy.util import KeyedTuple
+
 from skee_t.db.models import SkiResort, Activity
 
 __author__ = 'pluto'
@@ -12,14 +14,15 @@ class AbstractORMWrapper(dict):
 
     def __init__(self, model_obj):
         print self._getClass()
-        if isinstance(model_obj, self._getClass()):
+        if isinstance(model_obj, self._getClass()) or isinstance(model_obj, KeyedTuple):
             for attr in self._getwrapattrs():
-                if isinstance(model_obj.__getattribute__(attr), decimal.Decimal):
-                    self[underline_to_camel(attr)] = format(model_obj.__getattribute__(attr),'0.0f')
-                elif isinstance(model_obj.__getattribute__(attr), datetime.datetime):
-                    self[underline_to_camel(attr)] = model_obj.__getattribute__(attr).strftime('%Y:%m:%d %H:%M:%S')
+                attr_value = model_obj.__getattribute__(attr)
+                if isinstance(attr_value, decimal.Decimal):
+                    self[underline_to_camel(attr)] = format(attr_value, '0.0f')
+                elif isinstance(attr_value, datetime.datetime):
+                    self[underline_to_camel(attr)] = attr_value.strftime('%Y:%m:%d %H:%M:%S')
                 else:
-                    self[underline_to_camel(attr)] = model_obj.__getattribute__(attr)
+                    self[underline_to_camel(attr)] = attr_value
 
     @abc.abstractmethod
     def _getClass(self):
@@ -33,7 +36,7 @@ class AbstractORMWrapper(dict):
 class SkiResortWrapper(AbstractORMWrapper):
 
     def _getwrapattrs(self):
-        return ['uuid', 'name', 'city', 'address', 'spec_pic', 'trail_pic', 'has_bus', 'contact', 'disabled', 'deleted',]
+        return ['id', 'name', 'city', 'address', 'spec_pic', 'trail_pic', 'has_bus']
 
     def _getClass(self):
         return SkiResort
@@ -42,7 +45,8 @@ class SkiResortWrapper(AbstractORMWrapper):
 class ActivityWrapper(AbstractORMWrapper):
 
     def _getwrapattrs(self):
-        return ['uuid', 'title', 'type', 'state', 'fee', 'period', 'meeting_time', 'contact', 'creator', ]
+        return ['id', 'title', 'type', 'state', 'fee', 'period', 'meeting_time',
+                'leader_id', 'leader_name', 'leader_head_image_path']
 
     def _getClass(self):
         return Activity

@@ -4,7 +4,7 @@ import logging
 import uuid
 
 from skee_t.db import DbEngine
-from skee_t.db.models import Activity
+from skee_t.db.models import Activity, User
 from skee_t.services import BaseService
 
 __author__ = 'rensikun'
@@ -75,10 +75,14 @@ class ActivityService(BaseService):
         try:
             engine = DbEngine.get_instance()
             session = engine.get_session(autocommit=False, expire_on_commit=True)
-            query_sr = session.query(Activity)
+            query_sr = session.query(User.uuid.label('leader_id'), User.name.label('leader_name'),
+                                     User.head_image_path.label('leader_head_image_path'),
+                                     Activity.uuid.label('id'), Activity.title, Activity.type, Activity.state,
+                                     Activity.fee, Activity.period, Activity.meeting_time, Activity.contact)\
+                .filter(User.uuid == Activity.creator)
             if skiResort_uuid:
-                query_sr = query_sr.filter_by(ski_resort_uuid=skiResort_uuid)
-            return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5+1).all()
+                query_sr = query_sr.filter(Activity.ski_resort_uuid == skiResort_uuid)
+            return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
             # 数据库异常

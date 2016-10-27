@@ -1,10 +1,10 @@
 #! -*- coding: UTF-8 -*-
-import json
 import logging
 
 from webob import Response
 
 from skee_t.services.services import UserService
+from skee_t.utils.my_json import MyJson
 from skee_t.wsgi import Resource
 from skee_t.wsgi import Router
 
@@ -48,6 +48,6 @@ class ControllerV1(object):
         service = UserService()
         rst = service.create_user(req_json)
         LOG.info('The result of create user information is %s' % rst)
-        resp_body = {'result': rst}
+        rsp_dict = {'result': rst}
 
-        return Response(body=json.dumps(resp_body))
+        return Response(body=MyJson.dumps(rsp_dict))
