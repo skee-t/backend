@@ -30,31 +30,33 @@ class UserService(BaseService):
         :return:
         """
         user = User(uuid=str(uuid.uuid4()),
+                    phone_no=dict_args.get('phoneNo'),
                     name=dict_args.get('name'),
                     real_name=dict_args.get('realName'),
                     head_image_path=dict_args.get('headImagePath'),
                     sex=dict_args.get('sex'),
-                    age=dict_args.get('age'),
-                    level=dict_args.get('level'),
-                    phone_no=dict_args.get('phoneNo'),
-                    appliance=dict_args.get('appliance'),
+                    ski_age=dict_args.get('skiAge'),
+                    ski_level=dict_args.get('skiLevel'),
+                    ski_type=dict_args.get('skiType'),
                     history=dict_args.get('history'),
                     )
         session = None
-        rst_status = False
+        rst_code = 0
+        rst_desc = 'success'
         try:
             engine = DbEngine.get_instance()
             session = engine.get_session(autocommit=False, expire_on_commit=True)
             # Save current location and job information
             session.add(user)
             session.commit()
-            rst_status = True
         except Exception as e:
             LOG.exception("Create user information error.")
-            #LOG.error("Create user information error.", e)
+            rst_code = '999999'
+            rst_desc = e.message
             if session is not None:
-                    session.rollback()
-        return rst_status
+                session.rollback()
+        return {'rst_code':rst_code, 'rst_desc':rst_desc}
+
 
     def get_user_auth_info(self, user_id):
         """

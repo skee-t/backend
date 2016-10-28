@@ -36,10 +36,10 @@ class User(DB_BASE_MODEL):
     定义用户基本信息
     .. attribute :: sex
         性别。0：女；1：男。因为男的有棍，女的有洞。
-    .. attribute :: age
-        这里指的是雪龄，而非年龄
-    .. attribute :: appliance
-        器具，擅长的滑雪器械 1:单板; 11:双板. 因为跟板的数量一致
+    .. attribute :: ski_age
+        这里指的是雪龄
+    .. attribute :: ski_type
+        1:单板; 11:双板. 因为跟板的数量一致
     .. attribute :: disabled
         此字段可用于锁定用户账户
     .. attribute :: deleted
@@ -47,14 +47,14 @@ class User(DB_BASE_MODEL):
     """
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     uuid = Column('uuid', String(36), nullable=False, unique=True)
+    phone_no = Column('phone_no', String(11), nullable=False, unique=True)
     name = Column('name', String(50), nullable=False)
-    phone_no = Column('phone_no', String(11), nullable=False)
     head_image_path = Column('head_image_path', String(255), nullable=False, default='')
     real_name = Column('real_name', String(50), nullable=True)
     sex = Column('sex', Integer, nullable=False, default=1)
-    age = Column('age', Integer, nullable=False, default=0)
-    level = Column('level', Integer, nullable=False, default=1)
-    appliance = Column('appliance', SmallInteger, nullable=False, default=1)
+    ski_age = Column('ski_age', Integer, nullable=False, default=0)
+    ski_level = Column('ski_level', Integer, nullable=False, default=0)
+    ski_type = Column('ski_type', SmallInteger, nullable=False, default=1)
     history = Column('history', Text, nullable=False, default=CONF.default.user_image_path)
     create_time = Column('create_time', DateTime, nullable=False, default=now())
     update_time = Column('update_time', DateTime, nullable=False, default=now())
@@ -110,6 +110,43 @@ class ActivityMember(DB_BASE_MODEL, GenericModel):
     user_uuid = Column('user_uuid', String(36), nullable=False, unique=True)
     estimate = Column('estimate', SmallInteger, nullable=False, default=0)
     state = Column('state', SmallInteger, nullable=False, default=1)
+
+
+class SpToken(DB_BASE_MODEL):
+    """
+    活动成员类
+    .. attribute :: state
+        成员状态，显示是否成员正常参与教学活动。取值包括：-1：报名后已退出；0：已报名；1：已完成；
+    .. attribute :: estimate
+        参与评价，只有为完成状态的成员才能参与评价。整数，数值可与星级对应。
+    """
+    __tablename__ = 'sp_tokens'
+
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+    token = Column('token', String(36), nullable=False, unique=True)
+    phone_no = Column('phone_no', String(11), nullable=False)
+    auth_code = Column('auth_code', String(6), nullable=False)
+    template_code = Column('template_code', String(16), nullable=False)
+    state = Column('state', SmallInteger, nullable=False, default=0, doc='-1:发送失败 0：待验证；1：验证成功; 2:验证失败')
+    request_id = Column('request_id', String(16), nullable=True)
+    verify_count = Column('verify_count', SmallInteger, nullable=False, default=0)
+    last_time = Column('last_time', DateTime, nullable=False, default=now())
+
+
+class SpCount(DB_BASE_MODEL):
+    """
+    活动成员类
+    .. attribute :: state
+        成员状态，显示是否成员正常参与教学活动。取值包括：-1：报名后已退出；0：已报名；1：已完成；
+    .. attribute :: estimate
+        参与评价，只有为完成状态的成员才能参与评价。整数，数值可与星级对应。
+    """
+    __tablename__ = 'sp_counts'
+
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+    phone_no = Column('phone_no', String(11), nullable=False)
+    times = Column('times', SmallInteger, nullable=False, default=1)
+    last_time = Column('last_time', DateTime, nullable=False, default=now())
 
 
 class Lesson(DB_BASE_MODEL, GenericModel):

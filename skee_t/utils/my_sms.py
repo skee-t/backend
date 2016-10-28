@@ -2,6 +2,7 @@
 import logging
 
 import top.api
+from skee_t.conf import CONF
 
 __author__ = 'rensikun'
 
@@ -30,6 +31,13 @@ class SMS:
 
     @staticmethod
     def send_auth_code(phone_no, auth_code):
+        rst_code = 0
+        rst_desc = 'success'
+        request_id = ''
+
+        LOG.info("CONF.sp.switch:%s" % CONF.sp.switch)
+        if not CONF.sp.switch:
+            return {'rst_code': rst_code, 'rst_desc': rst_desc, 'template_code' : '', 'request_id' : request_id}
         req=top.api.AlibabaAliqinFcSmsNumSendRequest()
         req.set_app_info(top.appinfo("23488606","c5c966984e6296b7da091c182ac476de"))
 
@@ -41,19 +49,17 @@ class SMS:
         req.sms_free_sign_name="大鱼测试"
         req.sms_template_code="SMS_19005004"
 
-        rst_code = 0
-        rst_desc = 'success'
         try:
             resp = req.getResponse()
             LOG.info("phone_no:%s rst:%s" %(phone_no, resp))
             rst_code=resp['alibaba_aliqin_fc_sms_num_send_response']['result']['err_code']
             if not resp['alibaba_aliqin_fc_sms_num_send_response']['result']['success']:
                 rst_desc='failed'
-
-            return {'rst_code': rst_code, 'rst_desc': rst_desc, 'request_id':resp['alibaba_aliqin_fc_sms_num_send_response']['request_id']}
+            request_id = resp['alibaba_aliqin_fc_sms_num_send_response']['request_id']
         except Exception as e:
             LOG.exception("send_auth_code")
             # 发送异常
             rst_code = '999999'
             rst_desc = e.message
-        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+        return {'rst_code': rst_code, 'rst_desc': rst_desc, 'template_code':req.sms_template_code,
+                'request_id':request_id}

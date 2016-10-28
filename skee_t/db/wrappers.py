@@ -45,7 +45,7 @@ class SkiResortWrapper(AbstractORMWrapper):
 class UserWrapper(AbstractORMWrapper):
 
     def _getwrapattrs(self):
-        return ['phone_no', 'level', 'appliance', 'name', 'head_image_path']
+        return ['phone_no', 'ski_level', 'ski_type', 'name', 'head_image_path']
 
     def _getClass(self):
         return User

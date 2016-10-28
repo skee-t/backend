@@ -11,6 +11,11 @@ DEFAULTS_OPTS = [
     cfg.StrOpt('user_image_path', default='', help='The default path of user image.'),
 ]
 
+SP_OPTS = [
+    cfg.IntOpt('switch', default=0, help='Whether send sms from sp or not'),
+    cfg.IntOpt('auth_code_limit', default=10, help='send times limit'),
+]
+
 DB_OPTS = [
     cfg.StrOpt('db_type', default='mysql', help=''),
     cfg.StrOpt('driver', default='mysqlconnector', help=''),
@@ -40,6 +45,8 @@ WSGI_OPTS = [
 
 DEFAULTS_GROUP = cfg.OptGroup('default', 'default', help='')
 
+SP_GROUP = cfg.OptGroup('sp', 'sp', help='')
+
 DB_GROUP = cfg.OptGroup('database', 'database', help='')
 
 WSGI_GROUP = cfg.OptGroup('wsgi', 'wsgi', help='')
@@ -48,6 +55,7 @@ CONF = cfg.CONF
 
 CONF.register_group(DB_GROUP)
 CONF.register_opts(DB_OPTS, DB_GROUP)
+CONF.register_opts(SP_OPTS, SP_GROUP)
 
 CONF.register_group(WSGI_GROUP)
 CONF.register_opts(WSGI_OPTS, WSGI_GROUP)

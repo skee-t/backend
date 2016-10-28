@@ -30,7 +30,7 @@ class ActivityService(BaseService):
         activity = Activity(  uuid=str(uuid.uuid4()),
                               type=dict_args.get('type'),
                               title=dict_args.get('title'),
-                              ski_resort_uuid=dict_args.get('skiResortUUID'),
+                              ski_resort_uuid=dict_args.get('skiResortId'),
                               contact=dict_args.get('contact'),
                               level_limit=dict_args.get('levelLimit'),
                               venue=dict_args.get('venue'),
@@ -91,6 +91,6 @@ class ActivityService(BaseService):
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
             # 数据库异常
-            rst_code = '999999'
+            rst_code = 999999
             rst_desc = e.message
         return {'rst_code': rst_code, 'rst_desc': rst_desc}

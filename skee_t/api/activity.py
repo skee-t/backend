@@ -1,6 +1,7 @@
 #! -*- coding: UTF-8 -*-
 import logging
 
+from sqlalchemy.util import KeyedTuple
 from webob import Response
 
 from skee_t.db.wrappers import ActivityWrapper
@@ -68,10 +69,17 @@ class ControllerV1(object):
         req_json['type'] = 1
         req_json['creator'] = '428fcb9b-e958-4109-98f7-bc9b76789079'
 
-        rst = service.create_activity_teach(req_json)
-        LOG.info('The result of create user information is %s' % rst)
+        rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
+        ski_resort = SkiResortService().list_skiResort(uuid=req_json.get('skiResortId'))
+        if not isinstance(ski_resort, KeyedTuple):
+            rsp_dict['rspCode'] = '100001'
+            rsp_dict['rspDesc'] = '雪场不存在'
+        else:
+            rst = service.create_activity_teach(req_json)
+            LOG.info('The result of create user information is %s' % rst)
+            rsp_dict['rspCode'] = rst.get('rst_code')
+            rsp_dict['rspDesc'] = rst.get('rst_desc')
 
-        rsp_dict = {'rspCode':rst.get('rst_code'),'rspDesc':rst.get('rst_desc')}
         return Response(body=MyJson.dumps(rsp_dict))
 
     def list_ski_resort_activity(self, request, skiResortId=None, pageIndex=None):
@@ -81,7 +89,7 @@ class ControllerV1(object):
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
         ski_resort = SkiResortService().list_skiResort(uuid=skiResortId)
-        if not ski_resort:
+        if not isinstance(ski_resort, KeyedTuple):
             rsp_dict['rspCode'] = '100001'
             rsp_dict['rspDesc'] = '雪场不存在'
         else:
