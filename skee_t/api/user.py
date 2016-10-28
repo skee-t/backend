@@ -27,22 +27,18 @@ class UserApi_V1(Router):
                        controller=Resource(controller_v1),
                        action='create_user',
                        conditions={'method': ['POST']})
-        mapper.connect('/authInfo/{userId}',
+        mapper.connect('/auth/{userId}',
                        controller=Resource(controller_v1),
                        action='get_user_auth_info',
                        conditions={'method': ['GET']})
-        mapper.connect('/authInfo',
+        mapper.connect('/auth',
                        controller=Resource(controller_v1),
                        action='add_user_auth_info',
                        conditions={'method': ['POST']})
-        # mapper.connect('/detail/{id}',
-        #                controller=wsgi.Resource(controller_v1),
-        #                action='detail',
-        #                conditions={'method': ['GET']})
-        # mapper.connect('/delete/{id}',
-        #                controller=wsgi.Resource(controller_v1),
-        #                action='delete',
-        #                conditions={'method': ['GET']})
+        # mapper.connect('/auth/pre/{phoneNo}',
+        #                controller=Resource(controller_v1),
+        #                action='add_user_auth_info_pre',
+        #                conditions={'method': ['POST']})
 
 
 class ControllerV1(object):
@@ -121,3 +117,18 @@ class ControllerV1(object):
         LOG.info('The result of create user information is %s' % rst)
         rsp_dict = {'rspCode':rst.get('rst_code'),'rspDesc':rst.get('rst_desc')}
         return Response(body=MyJson.dumps(rsp_dict))
+
+    # def add_user_auth_info_pre(self, request, phoneNo):
+    #     LOG.info('Current received message is %s' % phoneNo)
+    #     service = UserService()
+    #     rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
+    #     rst = service.get_user_auth_info(phone_no=phoneNo)
+    #     if isinstance(rst, User):
+    #         rsp_dict['rspCode'] = 100000
+    #         rsp_dict['rspDesc'] = ''
+    #     else:
+    #         rsp_dict['rspCode'] = rst['rst_code']
+    #         rsp_dict['rspDesc'] = rst['rst_desc']
+    #
+    #     LOG.info('The result of create user information is %s' % rsp_dict)
+    #     return Response(body=MyJson.dumps(rsp_dict))
