@@ -78,7 +78,7 @@ class Activity(DB_BASE_MODEL, GenericModel):
     """
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     uuid = Column('uuid', String(36), nullable=False, unique=True)
-    type = Column('type', SmallInteger, nullable=False, default=1, doc='活动类型: 1教学; 2约伴; 3跟大队')
+    type = Column('type', SmallInteger, nullable=False, default=1, doc='活动类型: 1教学; 2约伴; 3跟大队; 4班车')
     title = Column('title', String(255), nullable=False)
     ski_resort_uuid = Column('ski_resort_uuid', String(36), nullable=False)
     contact = Column('contact', String(100), nullable=True)
@@ -111,6 +111,22 @@ class ActivityMember(DB_BASE_MODEL, GenericModel):
     estimate = Column('estimate', SmallInteger, nullable=False, default=0)
     state = Column('state', SmallInteger, nullable=False, default=1)
 
+
+class TeachingFee(DB_BASE_MODEL, GenericModel):
+    """
+    活动成员类
+    .. attribute :: state
+        成员状态，显示是否成员正常参与教学活动。取值包括：-1：报名后已退出；0：已报名；1：已完成；
+    .. attribute :: estimate
+        参与评价，只有为完成状态的成员才能参与评价。整数，数值可与星级对应。
+    """
+    __tablename__ = 'teaching_fees'
+
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+    uuid = Column('uuid', String(36), nullable=False, unique=True)
+    ski_resort_uuid = Column('ski_resort_uuid', String(36), nullable=False)
+    ski_type = Column('ski_type', SmallInteger, nullable=False, default=1)
+    fee_desc = Column('fee_desc', Text, nullable=False)
 
 class SpToken(DB_BASE_MODEL):
     """
@@ -215,16 +231,17 @@ class Car(DB_BASE_MODEL, GenericModel):
         乘车地点。必填项，不能为空，需要前端业务校验
     """
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
-    running_no = Column('running_no', String(36), nullable=False, unique=True)
-    licence = Column('licence', String(10), nullable=False, unique=True)
-    fee = Column('fee', Float(11, 2), nullable=False, default=0.00)
-    time = Column('time', DateTime, nullable=False, default=now())
-    quota = Column('quota', Integer, nullable=False, default=0)
-    interest = Column('interest', Integer, nullable=False, default=0)
-    state = Column('state', SmallInteger, nullable=False, default=0)
-    type = Column('type', SmallInteger, nullable=False, default=1)
-    description = Column('description', Text, nullable=True)
+    running_no = Column('running_no', String(36), nullable=True, unique=True)
+    ski_resort_uuid = Column('ski_resort_uuid', String(36), nullable=False)
+    licence = Column('licence', String(10), nullable=True, unique=True)
+    fee = Column('fee', Float(11, 2), nullable=True, default=0.00)
+    time = Column('time', DateTime, nullable=True, default=now())
+    quota = Column('quota', Integer, nullable=True, default=0)
+    interest = Column('interest', Integer, nullable=True, default=0)
+    state = Column('state', SmallInteger, nullable=True, default=0)
+    type = Column('type', SmallInteger, nullable=True, default=1)
     location = Column('location', String(255), nullable=False)
+    description = Column('description', Text, nullable=True)
 
 
 class CarMember(DB_BASE_MODEL, GenericModel):

@@ -3,8 +3,10 @@
 import logging
 import uuid
 
+from sqlalchemy import or_
+
 from skee_t.db import DbEngine
-from skee_t.db.models import SkiResort
+from skee_t.db.models import SkiResort, TeachingFee
 from skee_t.services import BaseService
 from skee_t.services.service_validator import SkiResortCreateValidator
 
@@ -80,6 +82,32 @@ class SkiResortService(BaseService):
                 return query_sr.filter_by(uuid=uuid).one()
             elif city:
                 query_sr = query_sr.filter_by(city=city)
+            return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = '999999'
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    # @SkiResortListValidator
+    def list_skiResort_simple(self, ski_type, page_index):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            engine = DbEngine.get_instance()
+            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            query_sr = session.query(SkiResort.uuid.label('id'), SkiResort.name, SkiResort.address,
+                                     TeachingFee.fee_desc.label('teaching_fee'))\
+                .outerjoin(TeachingFee, TeachingFee.ski_resort_uuid == SkiResort.uuid)\
+                .filter(or_(TeachingFee.ski_type == None, TeachingFee.ski_type == ski_type))
             return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")

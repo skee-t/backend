@@ -3,7 +3,7 @@ import logging
 
 from webob import Response
 
-from skee_t.db.wrappers import SkiResortWrapper
+from skee_t.db.wrappers import SkiResortWrapper, SkiResortSimpleWrapper
 from skee_t.services.service_skiResort import SkiResortService
 from skee_t.utils.my_json import MyJson
 from skee_t.wsgi import Resource
@@ -34,12 +34,12 @@ class SkiResortApi_V1(Router):
                        conditions={'method': ['GET']})
         mapper.connect('/often/{pageIndex}',
                        controller=Resource(controller_v1),
-                       action='list_ski_resort',
+                       action='list_ski_resort_often',
                        conditions={'method': ['GET']})
-        # mapper.connect('/detail/{id}',
-        #                controller=wsgi.Resource(controller_v1),
-        #                action='detail',
-        #                conditions={'method': ['GET']})
+        mapper.connect('/simple/{skiType}/{pageIndex}',
+                       controller=Resource(controller_v1),
+                       action='list_ski_resort_simple',
+                       conditions={'method': ['GET']})
         # mapper.connect('/delete/{id}',
         #                controller=wsgi.Resource(controller_v1),
         #                action='delete',
@@ -83,3 +83,19 @@ class ControllerV1(object):
         return self.list_ski_resort(request, '河北市', pageIndex)
 
 
+    def list_ski_resort_simple(self, request, skiType,pageIndex=None):
+        print 'page_index:%s' % pageIndex
+        service = SkiResortService()
+
+        rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
+
+        rst = service.list_skiResort_simple(ski_type=skiType, page_index=pageIndex)
+        if isinstance(rst, list):
+            rst = [SkiResortSimpleWrapper(item) for item in rst]
+            rsp_dict['skiResortSimples'] = rst
+        else:
+            rsp_dict['rspCode'] = rst['rst_code']
+            rsp_dict['rspDesc'] = rst['rst_desc']
+
+        LOG.info('The result of create user information is %s' % rsp_dict)
+        return Response(body=MyJson.dumps(rsp_dict))

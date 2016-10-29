@@ -42,6 +42,15 @@ class SkiResortWrapper(AbstractORMWrapper):
         return SkiResort
 
 
+class SkiResortSimpleWrapper(AbstractORMWrapper):
+
+    def _getwrapattrs(self):
+        return ['id', 'name', 'address', 'teaching_fee']
+
+    def _getClass(self):
+        return SkiResort
+
+
 class UserWrapper(AbstractORMWrapper):
 
     def _getwrapattrs(self):
