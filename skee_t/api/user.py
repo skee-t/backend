@@ -167,7 +167,7 @@ class ControllerV1(object):
         # 获取用户滑雪历史
         ski_his = ActivityService().get_activity_his(user_id_join=user.uuid, page_index=1)
         if isinstance(ski_his, list):
-            ski_his_list = [SkiHisWrapper().getValue(item) for item in ski_his]
+            ski_his_list = [SkiHisWrapper(item)['skiHisStr'] for item in ski_his]
             rsp_dict['skiHistory'] = ski_his_list
         else:
             rsp_dict['rspCode'] = rst['rst_code']

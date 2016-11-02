@@ -53,7 +53,7 @@ class TeachApi_V1(Router):
                        action='list_teach',
                        conditions={'method': ['GET']})
         # 教学小队详情
-        mapper.connect('/team/{teachId}',
+        mapper.connect('/team/{teachId}/{browseOpenId}',
                        controller=Resource(controller_v1),
                        action='detail_teach_team',
                        conditions={'method': ['GET']})
@@ -241,7 +241,7 @@ class ControllerV1(object):
 
         return Response(body=MyJson.dumps(rsp_dict))
 
-    def detail_teach_team(self, request, teachId, leaderId=None):
+    def detail_teach_team(self, request, teachId, leaderId=None, browseOpenId = None):
         # todo 获取当前用户所在城市
         print 'detail_teach_team page_index:%s' % teachId
         service = ActivityService()
@@ -257,13 +257,17 @@ class ControllerV1(object):
             rst = ActivityDetailWrapper(rst)
             rsp_dict.update(rst)
 
-        # 1：已批准待付款; 2: 已付款
-        members = MemberService().list_member(teachId, [1,2], leaderId)
+        # 1：已批准待付款; 2: 已付款; 4: 晋级
+        members = MemberService().list_member(teachId, [1,2,4], leaderId)
         if isinstance(members, list):
             rsp_dict['members'] = [MemberWrapper(item) for item in members]
         else:
             rsp_dict['rspCode'] = members['rst_code']
             rsp_dict['rspDesc'] = members['rst_desc']
+
+        # 记录用户事件
+        if browseOpenId:
+            UserService().add_user_event(browseOpenId, teachId)
 
         LOG.info('The result of create user information is %s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))
@@ -278,7 +282,7 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = user['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
 
-        return self.detail_teach_team(request, teachId, user.uuid)
+        return self.detail_teach_team(request, teachId=teachId, leaderId=user.uuid)
 
 
     def member_apply(self, request):

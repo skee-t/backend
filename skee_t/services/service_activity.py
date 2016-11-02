@@ -5,10 +5,11 @@ import uuid
 
 from sqlalchemy import exists
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.sql import func
 from sqlalchemy.sql.elements import and_
 
 from skee_t.db import DbEngine
-from skee_t.db.models import Activity, User, SkiResort, ActivityMember
+from skee_t.db.models import Activity, User, SkiResort, ActivityMember, UserEvent
 from skee_t.services import BaseService
 
 __author__ = 'rensikun'
@@ -82,10 +83,18 @@ class ActivityService(BaseService):
         try:
             engine = DbEngine.get_instance()
             session = engine.get_session(autocommit=False, expire_on_commit=True)
+
+            sbq_join_count = session.query(func.count(ActivityMember.activity_uuid))\
+                .filter(Activity.uuid == ActivityMember.activity_uuid).correlate(Activity).as_scalar()
+
+            sbq_interest_count = session.query(func.count(UserEvent.open_id.distinct())) \
+                .filter(UserEvent.target_id == Activity.uuid).correlate(Activity).as_scalar()
+
             query_sr = session.query(User.uuid.label('leader_id'), User.name.label('leader_name'),
                                      User.head_image_path.label('leader_head_image_path'),
                                      Activity.uuid.label('id'), Activity.title, Activity.type, Activity.state,
-                                     Activity.fee, Activity.period, Activity.meeting_time, Activity.contact)\
+                                     Activity.fee, Activity.period, Activity.meeting_time, Activity.contact,
+                                     sbq_join_count.label('join_count'),sbq_interest_count.label('interest_count')) \
                 .filter(User.uuid == Activity.creator)
             if skiResort_uuid:
                 query_sr = query_sr.filter(Activity.ski_resort_uuid == skiResort_uuid)

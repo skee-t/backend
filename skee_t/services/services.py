@@ -7,7 +7,7 @@ from datetime import datetime
 from sqlalchemy.orm.exc import NoResultFound
 
 from skee_t.db import DbEngine
-from skee_t.db.models import User, UserLevelTran
+from skee_t.db.models import User, UserLevelTran, UserEvent
 from skee_t.services import BaseService
 from skee_t.services.service_validator import UserCreateValidator
 
@@ -129,3 +129,30 @@ class UserService(BaseService):
             rst_code = 999999
             rst_desc = e.message
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    def add_user_event(self, open_id, target_id):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        userEvent = UserEvent(uuid=str(uuid.uuid4()),
+                              open_id=open_id,
+                              target_id=target_id,
+                    )
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+        try:
+            engine = DbEngine.get_instance()
+            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            # Save current location and job information
+            session.add(userEvent)
+            session.commit()
+        except Exception as e:
+            LOG.exception("Create userEvent error.")
+            rst_code = '999999'
+            rst_desc = e.message
+            if session is not None:
+                session.rollback()
+        return {'rst_code':rst_code, 'rst_desc':rst_desc}

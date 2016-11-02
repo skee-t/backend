@@ -79,6 +79,20 @@ class UserLevelTran(DB_BASE_MODEL):
     entry_time = Column('entry_time', DateTime, nullable=False, default=now())
 
 
+class UserEvent(DB_BASE_MODEL):
+    """
+    用户等级变化记录
+    """
+    __tablename__ = 'user_events'
+
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+    uuid = Column('uuid', String(36), nullable=False, unique=True)
+    open_id = Column('open_id', String(36), nullable=False)
+    target_id = Column('target_id', String(36), nullable=False)
+    action = Column('action', Integer, nullable=False, default=1, doc='1 查看详情')
+    entry_time = Column('entry_time', DateTime, nullable=False, default=now())
+
+
 class Activity(DB_BASE_MODEL, GenericModel):
     """
     活动信息类
@@ -110,6 +124,8 @@ class Activity(DB_BASE_MODEL, GenericModel):
     deleted = Column('deleted', Boolean, nullable=False, default=0)
     hotspot = Column('hotspot', Integer, nullable=False, default=0, doc='热点。记录关注人数')
     estimate = Column('estimate', SmallInteger, nullable=False, default=0, doc='评价。计算自各个参与者评价的平均值，与星级对应。')
+
+
 
 
 class ActivityMember(DB_BASE_MODEL):

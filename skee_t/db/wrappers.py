@@ -15,6 +15,8 @@ class AbstractORMWrapper(dict):
     def __init__(self, model_obj):
         print self._getClass()
         if isinstance(model_obj, self._getClass()) or isinstance(model_obj, KeyedTuple):
+            # 将复杂类型转换为字符串
+            # 将key转化为驼峰
             for attr in self._getwrapattrs():
                 attr_value = model_obj.__getattribute__(attr)
                 if isinstance(attr_value, decimal.Decimal):
@@ -23,6 +25,8 @@ class AbstractORMWrapper(dict):
                     self[underline_to_camel(attr)] = attr_value.strftime('%Y-%m-%d %H:%M:%S')
                 else:
                     self[underline_to_camel(attr)] = attr_value
+            # 组合字段
+            self._mergeattrs(model_obj)
 
     @abc.abstractmethod
     def _getClass(self):
@@ -30,6 +34,9 @@ class AbstractORMWrapper(dict):
 
     @abc.abstractmethod
     def _getwrapattrs(self):
+        pass
+
+    def _mergeattrs(self, model_obj):
         pass
 
 
@@ -69,29 +76,19 @@ class UserDetailWrapper(AbstractORMWrapper):
         return User
 
 
-class SkiHisWrapper(str):
-    def __init__(self):
-        pass
-
-    def getValue(self, model_obj):
-        print self._getClass()
-        str_list = []
-        for attr in self._getwrapattrs():
-            attr_value = model_obj.__getattribute__(attr)
-            if isinstance(attr_value, decimal.Decimal):
-                attr_value = format(attr_value, '0.0f')
-            elif isinstance(attr_value, datetime.datetime):
-                attr_value = attr_value.strftime('%Y-%m-%d')
-            elif isinstance(attr_value, int):
-                attr_value = str(attr_value)
-            str_list.append(attr_value)
-        return ' '.join(str_list)
+class SkiHisWrapper(AbstractORMWrapper):
 
     def _getwrapattrs(self):
         return ['meeting_time', 'ski_resort_name', 'title']
 
     def _getClass(self):
         return str
+
+    def _mergeattrs(self, model_obj):
+        self['skiHisStr'] = '%s %s %s' \
+                            % (model_obj.__getattribute__('meeting_time').strftime('%Y-%m-%d'),
+                               model_obj.__getattribute__('ski_resort_name'),
+                               model_obj.__getattribute__('title'))
 
 
 class ActivityWrapper(AbstractORMWrapper):
@@ -102,6 +99,11 @@ class ActivityWrapper(AbstractORMWrapper):
 
     def _getClass(self):
         return Activity
+
+    def _mergeattrs(self, model_obj):
+        self['peopleStatus'] = '%s人感兴趣/%s人参与' \
+                               % (model_obj.__getattribute__('interest_count'),
+                                  model_obj.__getattribute__('join_count'))
 
 
 class ActivityDetailWrapper(AbstractORMWrapper):
