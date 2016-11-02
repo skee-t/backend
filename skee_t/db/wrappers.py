@@ -1,8 +1,8 @@
 #! -*-coding:UTF-8 -*-
-import abc
 import datetime
 import decimal
 
+import abc
 from sqlalchemy.util import KeyedTuple
 
 from skee_t.db.models import SkiResort, Activity, User, ActivityMember
@@ -49,9 +49,10 @@ class SkiResortWrapper(AbstractORMWrapper):
         return SkiResort
 
     def _mergeattrs(self, model_obj):
-        self['peopleStatus'] = '%s人感兴趣/%s人参与' \
-                               % (model_obj.__getattribute__('interest_count'),
-                                  model_obj.__getattribute__('join_count'))
+        self['peopleStatus'] = '%s人参与/%s人感兴趣' \
+                               % (model_obj.__getattribute__('join_count'),
+                                  model_obj.__getattribute__('interest_count')
+                                  )
 
 
 class SkiResortSimpleWrapper(AbstractORMWrapper):
@@ -106,9 +107,10 @@ class ActivityWrapper(AbstractORMWrapper):
         return Activity
 
     def _mergeattrs(self, model_obj):
-        self['peopleStatus'] = '%s人感兴趣/%s人参与' \
-                               % (model_obj.__getattribute__('interest_count'),
-                                  model_obj.__getattribute__('join_count'))
+        self['peopleStatus'] = '%s人参与/%s人感兴趣' \
+                                 % (model_obj.__getattribute__('join_count'),
+                                    model_obj.__getattribute__('interest_count')
+                                    )
 
 
 class ActivityDetailWrapper(AbstractORMWrapper):
