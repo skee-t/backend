@@ -2,9 +2,12 @@
 
 import logging
 import uuid
+from datetime import datetime
+
+from sqlalchemy.orm.exc import NoResultFound
 
 from skee_t.db import DbEngine
-from skee_t.db.models import User
+from skee_t.db.models import User, UserLevelTran
 from skee_t.services import BaseService
 from skee_t.services.service_validator import UserCreateValidator
 
@@ -30,6 +33,7 @@ class UserService(BaseService):
         :return:
         """
         user = User(uuid=str(uuid.uuid4()),
+                    open_id=dict_args.get('openId'),
                     phone_no=dict_args.get('phoneNo'),
                     name=dict_args.get('name'),
                     real_name=dict_args.get('realName'),
@@ -57,7 +61,7 @@ class UserService(BaseService):
                 session.rollback()
         return {'rst_code':rst_code, 'rst_desc':rst_desc}
 
-    def get_user_auth_info(self, user_id=None, phone_no=None):
+    def get_user(self, open_id = None, user_id=None, phone_no=None):
         """
         创建用户方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -71,14 +75,57 @@ class UserService(BaseService):
             engine = DbEngine.get_instance()
             session = engine.get_session(autocommit=False, expire_on_commit=True)
             u_query = session.query(User)
+            if open_id:
+                u_query = u_query.filter(User.open_id == open_id)
             if user_id:
                 u_query = u_query.filter(User.uuid == user_id)
             if phone_no:
                 u_query = u_query.filter(User.phone_no == phone_no)
             return u_query.one()
+        except NoResultFound as e:
+            LOG.exception("get_user_auth_info error.")
+            rst_code = 100000
+            rst_desc = '用户不存在'
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
             # 数据库异常
-            rst_code = '999999'
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    # @SkiResortListValidator
+    def level_update(self, activity_id, members):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            engine = DbEngine.get_instance()
+            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            users = session.query(User).filter(User.uuid.in_(members)).all()
+
+            # 批量增加用户等级变化信息
+            user_level_trans_dict = \
+                [{'uuid':str(uuid.uuid4()), 'user_uuid':item.uuid,'activity_uuid':activity_id,
+                  'org_level':item.ski_level, 'level':item.ski_level+1, 'entry_time': datetime.now()}
+                                    for item in users]
+            session.execute(UserLevelTran.__table__.insert(), user_level_trans_dict)
+
+            # 批量修改用户等级
+            session.query(User).filter(User.uuid.in_(members)).update(
+                {User.ski_level:User.ski_level+1, User.update_time:datetime.now()},
+                synchronize_session=False
+                )
+
+            session.commit()
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
             rst_desc = e.message
         return {'rst_code': rst_code, 'rst_desc': rst_desc}

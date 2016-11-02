@@ -28,11 +28,11 @@ class SkiResortApi_V1(Router):
                        controller=Resource(controller_v1),
                        action='list_ski_resort',
                        conditions={'method': ['GET']})
-        mapper.connect('/near/{pageIndex}',
+        mapper.connect('/near/{openid}/{pageIndex}',
                        controller=Resource(controller_v1),
                        action='list_ski_resort_near',
                        conditions={'method': ['GET']})
-        mapper.connect('/often/{pageIndex}',
+        mapper.connect('/often/{userId}/{pageIndex}',
                        controller=Resource(controller_v1),
                        action='list_ski_resort_often',
                        conditions={'method': ['GET']})
@@ -78,12 +78,30 @@ class ControllerV1(object):
         LOG.info('The result of create user information is %s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))
 
-    def list_ski_resort_near(self, request, pageIndex):
-        #todo 获取当前用户所在城市
+    def list_ski_resort_near(self, request, openid, pageIndex):
+        # todo 通过openid从微信结果获取位置
         return self.list_ski_resort(request, '河北市', pageIndex)
 
 
-    def list_ski_resort_simple(self, request, skiType,pageIndex=None):
+    def list_ski_resort_often(self, request, userId, pageIndex):
+        # todo userId
+        service = SkiResortService()
+
+        rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
+
+        rst = service.list_skiResort_often(user_id=userId, page_index=pageIndex)
+        if isinstance(rst, list):
+            rst = [SkiResortWrapper(item) for item in rst]
+            rsp_dict['skiResorts'] = rst
+        else:
+            rsp_dict['rspCode'] = rst['rst_code']
+            rsp_dict['rspDesc'] = rst['rst_desc']
+
+        LOG.info('The result of create user information is %s' % rsp_dict)
+        return Response(body=MyJson.dumps(rsp_dict))
+
+
+    def list_ski_resort_simple(self, request, skiType, pageIndex=None):
         print 'page_index:%s' % pageIndex
         service = SkiResortService()
 

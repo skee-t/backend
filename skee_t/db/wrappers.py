@@ -1,11 +1,11 @@
 #! -*-coding:UTF-8 -*-
+import abc
 import datetime
 import decimal
 
-import abc
 from sqlalchemy.util import KeyedTuple
 
-from skee_t.db.models import SkiResort, Activity, User
+from skee_t.db.models import SkiResort, Activity, User, ActivityMember
 
 __author__ = 'pluto'
 
@@ -20,7 +20,7 @@ class AbstractORMWrapper(dict):
                 if isinstance(attr_value, decimal.Decimal):
                     self[underline_to_camel(attr)] = format(attr_value, '0.0f')
                 elif isinstance(attr_value, datetime.datetime):
-                    self[underline_to_camel(attr)] = attr_value.strftime('%Y:%m:%d %H:%M:%S')
+                    self[underline_to_camel(attr)] = attr_value.strftime('%Y-%m-%d %H:%M:%S')
                 else:
                     self[underline_to_camel(attr)] = attr_value
 
@@ -60,6 +60,40 @@ class UserWrapper(AbstractORMWrapper):
         return User
 
 
+class UserDetailWrapper(AbstractORMWrapper):
+
+    def _getwrapattrs(self):
+        return ['sex', 'phone_no', 'ski_level', 'ski_type', 'ski_age', 'teach_level', 'name', 'head_image_path']
+
+    def _getClass(self):
+        return User
+
+
+class SkiHisWrapper(str):
+    def __init__(self):
+        pass
+
+    def getValue(self, model_obj):
+        print self._getClass()
+        str_list = []
+        for attr in self._getwrapattrs():
+            attr_value = model_obj.__getattribute__(attr)
+            if isinstance(attr_value, decimal.Decimal):
+                attr_value = format(attr_value, '0.0f')
+            elif isinstance(attr_value, datetime.datetime):
+                attr_value = attr_value.strftime('%Y-%m-%d')
+            elif isinstance(attr_value, int):
+                attr_value = str(attr_value)
+            str_list.append(attr_value)
+        return ' '.join(str_list)
+
+    def _getwrapattrs(self):
+        return ['meeting_time', 'ski_resort_name', 'title']
+
+    def _getClass(self):
+        return str
+
+
 class ActivityWrapper(AbstractORMWrapper):
 
     def _getwrapattrs(self):
@@ -69,6 +103,35 @@ class ActivityWrapper(AbstractORMWrapper):
     def _getClass(self):
         return Activity
 
+
+class ActivityDetailWrapper(AbstractORMWrapper):
+
+    def _getwrapattrs(self):
+        return [
+            'id', 'title', 'type', 'state', 'level_limit', 'meeting_time', 'venue', 'period', 'fee', 'quota', 'notice',
+            'ski_resort_id', 'ski_resort_name', 'trail_pic',
+            'leader_id', 'leader_contact', ]
+
+    def _getClass(self):
+        return Activity
+
+
+class MemberWrapper(AbstractORMWrapper):
+
+    def _getwrapattrs(self):
+        return ['id', 'head_image_path', 'name', 'ski_level', 'state']
+
+    def _getClass(self):
+        return ActivityMember
+
+
+class MemberEstimateWrapper(AbstractORMWrapper):
+
+    def _getwrapattrs(self):
+        return ['user_id', 'user_name', 'type', 'score', 'content']
+
+    def _getClass(self):
+        return ActivityMember
 
 def camel_to_underline(camel_format):
     """

@@ -63,3 +63,15 @@ class SkiResortListValidator(GenericValidator):
         assert isinstance(dict_args[0],int), TYPE_ERROR_MESSAGE % dict_args[0]
 
         return self._fn(self, dict_args)
+
+class FeedbackCreateValidator(GenericValidator):
+
+    def __init__(self, fn, *args, **kvargs):
+        super(FeedbackCreateValidator, self).__init__(fn, args, kvargs)
+
+    def __call__(self, dict_args={}):
+        super(FeedbackCreateValidator, self).__call__(dict_args)
+
+        assert 'contact' in dict_args, EXCEPTION_ERROR_MESSAGE % '\'contact\''
+        #
+        return self._fn(self, dict_args)

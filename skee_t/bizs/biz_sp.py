@@ -12,8 +12,6 @@ from skee_t.services.service_sp import SpService
 from skee_t.utils.my_json import MyJson
 from skee_t.utils.my_sms import SMS
 from skee_t.utils.u import U
-from skee_t.wsgi import Resource
-from skee_t.wsgi import Router
 
 __author__ = 'rensikun'
 
@@ -21,40 +19,20 @@ __author__ = 'rensikun'
 LOG = logging.getLogger(__name__)
 
 
-class SP_V1(Router):
-
-    def __init__(self, mapper):
-        super(SP_V1, self).__init__(mapper)
-        controller_v1 = ControllerV1()
-        mapper.connect('/',
-                       controller=Resource(controller_v1),
-                       action='create_sp',
-                       conditions={'method': ['POST']})
-        # mapper.connect('/detail/{id}',
-        #                controller=wsgi.Resource(controller_v1),
-        #                action='detail',
-        #                conditions={'method': ['GET']})
-        # mapper.connect('/delete/{id}',
-        #                controller=wsgi.Resource(controller_v1),
-        #                action='delete',
-        #                conditions={'method': ['GET']})
-
-
-class ControllerV1(object):
+class BizSpV1(object):
 
     def __init__(self):
         pass
 
-    def create_sp(self, request):
-        req_json = request.json_body
-        LOG.info('Current received message is %s' % req_json)
+    def send(self, phone_no):
+        LOG.info('BizSpV1 param is %s' % phone_no)
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
         sp_service = SpService()
 
         # 判断获取验证码次数是否超限
-        sp_count = sp_service.select_sp_count(req_json.get('phoneNo'))
+        sp_count = sp_service.select_sp_count(phone_no)
 
         # 不存在,新增加sp_count
         sp_count_flag = 0
@@ -84,11 +62,11 @@ class ControllerV1(object):
         token = str(uuid.uuid4())
         auth_code = U.gen_auth_code_num()
         # 发送短信
-        sms_rst = SMS.send_auth_code(req_json.get('phoneNo'), auth_code)
+        sms_rst = SMS.send_auth_code(phone_no, auth_code)
         # 记录结果
         sp_token = SpToken(
             token=token,
-            phone_no=req_json.get('phoneNo'),
+            phone_no=phone_no,
             auth_code=auth_code,
             template_code=sms_rst['template_code'],
             state=0 if (int(sms_rst['rst_code'])) == 0 else -1,
@@ -101,4 +79,4 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = sms_rst['rst_desc']
             rsp_dict['token'] = token
 
-        return Response(body=MyJson.dumps(rsp_dict))
+        return rsp_dict

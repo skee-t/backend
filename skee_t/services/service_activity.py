@@ -3,8 +3,12 @@
 import logging
 import uuid
 
+from sqlalchemy import exists
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.sql.elements import and_
+
 from skee_t.db import DbEngine
-from skee_t.db.models import Activity, User
+from skee_t.db.models import Activity, User, SkiResort, ActivityMember
 from skee_t.services import BaseService
 
 __author__ = 'rensikun'
@@ -21,13 +25,14 @@ class ActivityService(BaseService):
     def __init__(self):
         pass
 
-    def create_activity_teach(self, dict_args={}):
+    def create_activity(self, dict_args={}):
         """
         创建活动
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
         :return:
         """
-        activity = Activity(  uuid=str(uuid.uuid4()),
+        uuid_str = str(uuid.uuid4())
+        activity = Activity(  uuid=uuid_str,
                               type=dict_args.get('type'),
                               title=dict_args.get('title'),
                               ski_resort_uuid=dict_args.get('skiResortId'),
@@ -59,10 +64,12 @@ class ActivityService(BaseService):
             rst_desc = e.message
             if session is not None:
                 session.rollback()
-        return {'rst_code':rst_code, 'rst_desc':rst_desc}
+        return {'rst_code':rst_code, 'rst_desc':rst_desc, 'uuid':uuid_str}
 
     # @SkiResortListValidator
-    def list_skiResort_activity(self, skiResort_uuid = None, type=None, leader_id = None, page_index = 1):
+    def list_skiResort_activity(self, skiResort_uuid = None, type=None, leader_id = None,
+                                member_id_un_estimate = None, member_id_join = None, user_id_join = None,
+                                teach_id = None, page_index = None):
         """
         创建用户方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -86,8 +93,140 @@ class ActivityService(BaseService):
                 query_sr = query_sr.filter(Activity.type == type)
             if leader_id:
                 query_sr = query_sr.filter(Activity.creator == leader_id)
+            if teach_id:
+                query_sr = query_sr.filter(Activity.uuid == teach_id)
+                return query_sr.one()
+            if member_id_un_estimate:
+                # 用户参与的已经结束的未评价活动(非领队)
+                query_sr = query_sr\
+                    .filter(exists().where(
+                                and_(ActivityMember.activity_uuid == Activity.uuid,
+                                     ActivityMember.user_uuid == member_id_un_estimate,
+                                     ActivityMember.estimate_score == 0)))\
+                    .filter(Activity.state == 3)\
+                    .filter(Activity.creator != member_id_un_estimate)
+            if member_id_join:
+                # 用户参与的活动(非领队)
+                query_sr = query_sr \
+                    .filter(exists().
+                            where(and_(ActivityMember.user_uuid == member_id_join,
+                                       ActivityMember.activity_uuid == Activity.uuid))) \
+                    .filter(Activity.creator != member_id_join)\
+                    .order_by(Activity.meeting_time.desc())
 
             return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
+        except NoResultFound as e:
+            LOG.exception("List activity information error.")
+            return {'rst_code': 100000, 'rst_desc': '未找到活动'}
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    # @SkiResortListValidator
+    def get_activity_his(self, user_id_join, page_index):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            engine = DbEngine.get_instance()
+            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            query_sr = session.query(Activity.uuid.label('id'), Activity.title, Activity.type, Activity.state,
+                                     Activity.meeting_time, Activity.ski_resort_uuid.label('ski_resort_id'),
+                                     SkiResort.name.label('ski_resort_name')
+                                     ) \
+                .filter(SkiResort.uuid == Activity.ski_resort_uuid)
+            if user_id_join:
+                # 用户参与的活动(包含领队)
+                query_sr = query_sr \
+                    .filter(exists().
+                            where(and_(ActivityMember.user_uuid == user_id_join,
+                                       ActivityMember.activity_uuid == Activity.uuid))) \
+                    .order_by(Activity.meeting_time.desc())
+            return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
+        except NoResultFound as e:
+            LOG.exception("List activity information error.")
+            return None
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    # @SkiResortListValidator
+    def get_activity(self, activity_id, type, leader_id=None):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            engine = DbEngine.get_instance()
+            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            query_sr = session.query(Activity.uuid.label('id'), Activity.title, Activity.type, Activity.state,
+                                     Activity.level_limit, Activity.meeting_time, Activity.venue, Activity.period,
+                                     Activity.fee, Activity.quota, Activity.notice,
+                                     Activity.ski_resort_uuid.label('ski_resort_id'),
+                                     SkiResort.name.label('ski_resort_name'),SkiResort.trail_pic,
+                                     User.uuid.label('leader_id'), Activity.contact.label('leader_contact')
+                                     ) \
+                .filter(User.uuid == Activity.creator) \
+                .filter(SkiResort.uuid == Activity.ski_resort_uuid) \
+                .filter(Activity.type == type) \
+                .filter(Activity.uuid == activity_id)
+            if leader_id:
+                query_sr = query_sr.filter(User.uuid == leader_id)
+            return query_sr.one()
+        except NoResultFound as e:
+            LOG.exception("List activity information error.")
+            return None
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    # @SkiResortListValidator
+    def detail_teach_team(self, teach_id):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            engine = DbEngine.get_instance()
+            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            query_sr = session.query(User.uuid.label('leader_id'), User.name.label('leader_name'),
+                                     User.head_image_path.label('leader_head_image_path'),
+                                     Activity.uuid.label('id'), Activity.title, Activity.type, Activity.state,
+                                     Activity.fee, Activity.period, Activity.meeting_time, Activity.contact,
+                                     Activity.notice) \
+                .filter(User.uuid == Activity.creator) \
+                .filter(User.uuid == Activity.creator) \
+                .filter(Activity.type == 1) \
+                .filter(Activity.uuid == teach_id)
+            return query_sr.one()
+        except NoResultFound as e:
+            LOG.exception("detail_teach_team error.")
+            return None
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
             # 数据库异常
