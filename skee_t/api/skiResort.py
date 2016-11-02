@@ -67,7 +67,7 @@ class ControllerV1(object):
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
-        rst = service.list_skiResort(city=city, page_index=pageIndex)
+        rst = service.list_skiResort_with_count(city=city, page_index=pageIndex)
         if isinstance(rst, list):
             rst = [SkiResortWrapper(item) for item in rst]
             rsp_dict['skiResorts'] = rst

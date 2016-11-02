@@ -30,13 +30,13 @@ class TeachApi_V1(Router):
                        action='add_teach',
                        conditions={'method': ['POST']})
         # 获取指定用户教活动
-        mapper.connect('/t/{userId}/{pageIndex}',
+        mapper.connect('/t/{openId}/{pageIndex}',
                        controller=Resource(controller_v1),
                        action='list_teach_somebody',
                        conditions={'method': ['GET']})
 
         # 获取指定用户学活动
-        mapper.connect('/l/{userId}/{pageIndex}',
+        mapper.connect('/l/{openId}/{pageIndex}',
                        controller=Resource(controller_v1),
                        action='list_learn_somebody',
                        conditions={'method': ['GET']})
@@ -203,11 +203,18 @@ class ControllerV1(object):
         return Response(body=MyJson.dumps(rsp_dict))
 
 
-    def list_teach_somebody(self, request, userId, pageIndex):
+    def list_teach_somebody(self, request, openId, pageIndex):
         print 'list_activity_myteach page_index:%s' % pageIndex
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
-        rst = ActivityService().list_skiResort_activity(type=1, leader_id=userId, page_index=pageIndex)
+        # todo 获取当前用户
+        user = UserService().get_user(open_id=openId)
+        if not isinstance(user, User):
+            rsp_dict['rspCode'] = user['rst_code']
+            rsp_dict['rspDesc'] = user['rst_desc']
+            return Response(body=MyJson.dumps(rsp_dict))
+
+        rst = ActivityService().list_skiResort_activity(type=1, leader_id=user.uuid, page_index=pageIndex)
         if isinstance(rst, list):
             rst = [ActivityWrapper(item) for item in rst]
             rsp_dict['teachings'] = rst
@@ -217,11 +224,11 @@ class ControllerV1(object):
 
         return Response(body=MyJson.dumps(rsp_dict))
 
-    def list_learn_somebody(self, request, userId, pageIndex):
+    def list_learn_somebody(self, request, openId, pageIndex):
         print 'list_learn_somebody page_index:%s' % pageIndex
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
         # 获取当前用户信息
-        user_info = UserService().get_user(user_id=userId)
+        user_info = UserService().get_user(open_id=openId)
         if isinstance(user_info, User):
             rsp_dict['skiLevel'] = user_info.__getattribute__('ski_level')
             # todo 获取当前等级与下一级差距,个性化生产鼓励语
@@ -231,7 +238,7 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = user_info['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
 
-        rst = ActivityService().list_skiResort_activity(type=1, member_id_join=userId, page_index=pageIndex)
+        rst = ActivityService().list_skiResort_activity(type=1, member_id_join=user_info.uuid, page_index=pageIndex)
         if isinstance(rst, list):
             rst = [ActivityWrapper(item) for item in rst]
             rsp_dict['learns'] = rst

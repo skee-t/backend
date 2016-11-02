@@ -48,6 +48,11 @@ class SkiResortWrapper(AbstractORMWrapper):
     def _getClass(self):
         return SkiResort
 
+    def _mergeattrs(self, model_obj):
+        self['peopleStatus'] = '%s人感兴趣/%s人参与' \
+                               % (model_obj.__getattribute__('interest_count'),
+                                  model_obj.__getattribute__('join_count'))
+
 
 class SkiResortSimpleWrapper(AbstractORMWrapper):
 
