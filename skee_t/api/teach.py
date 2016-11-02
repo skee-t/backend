@@ -4,7 +4,7 @@ import logging
 from sqlalchemy.util import KeyedTuple
 from webob import Response
 
-from skee_t.db.models import User
+from skee_t.db.models import User, Level
 from skee_t.db.wrappers import ActivityWrapper, ActivityDetailWrapper, MemberWrapper, MemberEstimateWrapper
 from skee_t.services.service_activity import ActivityService
 from skee_t.services.service_skiResort import SkiResortService
@@ -207,12 +207,21 @@ class ControllerV1(object):
         print 'list_activity_myteach page_index:%s' % pageIndex
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
-        # todo 获取当前用户
-        user = UserService().get_user(open_id=openId)
+        user_service = UserService()
+        user = user_service.get_user(open_id=openId)
         if not isinstance(user, User):
             rsp_dict['rspCode'] = user['rst_code']
             rsp_dict['rspDesc'] = user['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
+
+        # todo 更具当前教学等级,产生有趣的鼓励语
+        level_info = user_service.get_level(0, user.teach_level)
+        if isinstance(level_info, Level):
+            rsp_dict['teachLevel'] = level_info.level_desc
+            rsp_dict['encouragement'] = level_info.comment
+        else:
+            rsp_dict['teachLevel'] = user.teach_level
+            rsp_dict['encouragement'] = '想象着桃李满天下的场景~你是否会然一笑~'
 
         rst = ActivityService().list_skiResort_activity(type=1, leader_id=user.uuid, page_index=pageIndex)
         if isinstance(rst, list):
@@ -228,11 +237,16 @@ class ControllerV1(object):
         print 'list_learn_somebody page_index:%s' % pageIndex
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
         # 获取当前用户信息
-        user_info = UserService().get_user(open_id=openId)
+        user_service = UserService()
+        user_info = user_service.get_user(open_id=openId)
         if isinstance(user_info, User):
-            rsp_dict['skiLevel'] = user_info.__getattribute__('ski_level')
+            level_info = user_service.get_level(user_info.ski_type, user_info.ski_level)
+            rsp_dict['skiLevel'] = user_info.ski_level
             # todo 获取当前等级与下一级差距,个性化生产鼓励语
-            rsp_dict['encouragement'] = '加油~你是滑的最慢的~'
+            if isinstance(level_info, Level):
+                rsp_dict['encouragement'] = level_info.comment
+            else:
+                rsp_dict['encouragement'] = '加油~你是滑的最慢的~'
         else:
             rsp_dict['rspCode'] = user_info['rst_code']
             rsp_dict['rspDesc'] = user_info['rst_desc']

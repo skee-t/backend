@@ -100,7 +100,8 @@ class SkiHisWrapper(AbstractORMWrapper):
 class ActivityWrapper(AbstractORMWrapper):
 
     def _getwrapattrs(self):
-        return ['id', 'title', 'type', 'state', 'fee', 'period', 'meeting_time',
+        return ['id', 'title', 'type', 'state', #'fee', 'period',
+                'meeting_time',
                 'leader_id', 'leader_name', 'leader_head_image_path']
 
     def _getClass(self):
@@ -111,6 +112,10 @@ class ActivityWrapper(AbstractORMWrapper):
                                  % (model_obj.__getattribute__('join_count'),
                                     model_obj.__getattribute__('interest_count')
                                     )
+        self['feeDesc'] = '费用：%0.0f元/人 时长：%s小时（教学）' \
+                               % (model_obj.__getattribute__('fee'),
+                                  model_obj.__getattribute__('period')
+                                  )
 
 
 class ActivityDetailWrapper(AbstractORMWrapper):

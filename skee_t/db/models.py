@@ -10,6 +10,15 @@ from skee_t.db.model_base import DB_BASE_MODEL, GenericModel
 __author__ = 'pluto'
 
 
+class Level(DB_BASE_MODEL, GenericModel):
+    __tablename__ = 'levels'
+    id = Column('id', BigInteger, primary_key=True, autoincrement=True)
+    type = Column('type', SmallInteger, nullable=False, default=1, doc='等级类型: 0教学; 1单板滑行; 11双板滑行')
+    level = Column('level', SmallInteger, nullable=False, default=0)
+    level_desc = Column('level_desc', String(128), nullable=False)
+    comment = Column('comment', Text, nullable=False)
+
+
 class SkiResort(DB_BASE_MODEL, GenericModel):
     """
     雪场信息类
@@ -124,8 +133,6 @@ class Activity(DB_BASE_MODEL, GenericModel):
     deleted = Column('deleted', Boolean, nullable=False, default=0)
     hotspot = Column('hotspot', Integer, nullable=False, default=0, doc='热点。记录关注人数')
     estimate = Column('estimate', SmallInteger, nullable=False, default=0, doc='评价。计算自各个参与者评价的平均值，与星级对应。')
-
-
 
 
 class ActivityMember(DB_BASE_MODEL):
