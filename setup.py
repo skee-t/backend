@@ -7,7 +7,7 @@ setup(
     name='skee_t',
     version='0.1.0',
     author='Skee_T Technology Team',
-    url='http://.skee_t.com',
+    url='http://skee_t.com',
     description='README.md',
     packages=find_packages(),
     package_dir={'skee_t': 'skee_t'},

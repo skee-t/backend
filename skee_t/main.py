@@ -3,7 +3,9 @@ import logging
 import logging.config
 import sys
 from wsgiref.simple_server import make_server
+
 from paste.deploy import loadapp
+
 from skee_t.conf import CONF
 from skee_t.launcher import Launcher
 
@@ -34,8 +36,13 @@ class Skee_T(Launcher):
 
 
 def main():
-    print sys.argv[1:]
-    CONF(sys.argv[1:], default_config_files=DEFAULT_CONFIG_FILES)
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+
+    CONF(default_config_files=[DEFAULT_CONFIG_FILES])
+
+    # print sys.argv[1:]
+    # CONF(sys.argv[1:], default_config_files=DEFAULT_CONFIG_FILES)
     logging.config.fileConfig(CONF.log_config)
 
     if CONF.default.debug is True:
