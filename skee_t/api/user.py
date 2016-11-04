@@ -5,7 +5,7 @@ import logging
 from webob import Response
 
 from skee_t.bizs.biz_sp import BizSpV1
-from skee_t.db.models import User
+from skee_t.db.models import User, Level
 from skee_t.db.wrappers import UserWrapper, UserDetailWrapper, SkiHisWrapper
 from skee_t.services.service_activity import ActivityService
 from skee_t.services.service_sp import SpService
@@ -154,8 +154,9 @@ class ControllerV1(object):
         LOG.info('Current received message is %s' % openId)
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
+        user_service = UserService()
         # todo 获取当前用户
-        user = UserService().get_user(open_id=openId, user_id=userId)
+        user = user_service.get_user(open_id=openId, user_id=userId)
         if not isinstance(user, User):
             rsp_dict['rspCode'] = user['rst_code']
             rsp_dict['rspDesc'] = user['rst_desc']
@@ -163,6 +164,14 @@ class ControllerV1(object):
 
         rst = UserDetailWrapper(user)
         rsp_dict.update(rst)
+
+        level_info = user_service.get_level(0, user.teach_level)
+        if isinstance(level_info, Level):
+            rsp_dict['teachLevel'] = level_info.level_desc
+            rsp_dict['encouragement'] = level_info.comment
+        else:
+            rsp_dict['teachLevel'] = user.teach_level
+            rsp_dict['encouragement'] = '想象着桃李满天下的场景~你是否会然一笑~'
 
         # 获取用户滑雪历史
         ski_his = ActivityService().get_activity_his(user_id_join=user.uuid, page_index=1)
