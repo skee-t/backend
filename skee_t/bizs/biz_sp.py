@@ -4,12 +4,9 @@ import datetime
 import logging
 import uuid
 
-from webob import Response
-
 from skee_t.conf import CONF
 from skee_t.db.models import SpToken, SpCount
 from skee_t.services.service_sp import SpService
-from skee_t.utils.my_json import MyJson
 from skee_t.utils.my_sms import SMS
 from skee_t.utils.u import U
 
@@ -43,11 +40,11 @@ class BizSpV1(object):
                 if sp_count.times >= CONF.sp.auth_code_limit:
                     rsp_dict['rspCode'] = 999999
                     rsp_dict['rspDesc'] = '验证码获取次数超限,请1小时后再试'
-                    return Response(body=MyJson.dumps(rsp_dict))
+                    return rsp_dict
                 elif sp_count.last_time + datetime.timedelta(seconds=30) > datetime.datetime.now():
                     rsp_dict['rspCode'] = 999999
                     rsp_dict['rspDesc'] = '验证码获取太频繁,请慢慢来'
-                    return Response(body=MyJson.dumps(rsp_dict))
+                    return rsp_dict
                 else:
                     # 有效时间内,需times+1
                     sp_count_flag = 1
@@ -57,7 +54,7 @@ class BizSpV1(object):
         else:
             rsp_dict['rspCode'] = sp_count['rst_code']
             rsp_dict['rspDesc'] = sp_count['rst_desc']
-            return Response(body=MyJson.dumps(rsp_dict))
+            return rsp_dict
 
         token = str(uuid.uuid4())
         auth_code = U.gen_auth_code_num()
