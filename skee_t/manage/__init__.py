@@ -1,8 +1,9 @@
 #! -*- coding: UTF-8 -*-
-from requests import Response
-import webob
+import logging
 
 __author__ = 'pluto'
+
+LOG = logging.getLogger(__name__)
 
 
 class Versions(object):
@@ -14,7 +15,7 @@ class Versions(object):
     def __call__(self, environ, start_response):
         content = ["%s\n" % self._version]
         start_response("200 OK", [("Content-type", "text/plain")])
-        print "---------->Test"
+        LOG.info('---------->Test')
         return content
 
     @classmethod
