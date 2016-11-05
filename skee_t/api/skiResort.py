@@ -3,8 +3,10 @@ import logging
 
 from webob import Response
 
+from skee_t.db.models import User
 from skee_t.db.wrappers import SkiResortWrapper, SkiResortSimpleWrapper
 from skee_t.services.service_skiResort import SkiResortService
+from skee_t.services.services import UserService
 from skee_t.utils.my_json import MyJson
 from skee_t.wsgi import Resource
 from skee_t.wsgi import Router
@@ -32,7 +34,7 @@ class SkiResortApi_V1(Router):
                        controller=Resource(controller_v1),
                        action='list_ski_resort_near',
                        conditions={'method': ['GET']})
-        mapper.connect('/often/{userId}/{pageIndex}',
+        mapper.connect('/often/{openid}/{pageIndex}',
                        controller=Resource(controller_v1),
                        action='list_ski_resort_often',
                        conditions={'method': ['GET']})
@@ -83,13 +85,16 @@ class ControllerV1(object):
         return self.list_ski_resort(request, '河北市', pageIndex)
 
 
-    def list_ski_resort_often(self, request, userId, pageIndex):
-        # todo userId
-        service = SkiResortService()
-
+    def list_ski_resort_often(self, request, openid, pageIndex):
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
-        rst = service.list_skiResort_often(user_id=userId, page_index=pageIndex)
+        user = UserService().get_user(open_id=openid)
+        if not isinstance(user, User):
+            rsp_dict['rspCode'] = user['rst_code']
+            rsp_dict['rspDesc'] = user['rst_desc']
+            return Response(body=MyJson.dumps(rsp_dict))
+
+        rst = SkiResortService().list_skiResort_often(user_id=user.uuid, page_index=pageIndex)
         if isinstance(rst, list):
             rst = [SkiResortWrapper(item) for item in rst]
             rsp_dict['skiResorts'] = rst
