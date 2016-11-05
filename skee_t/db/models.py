@@ -263,7 +263,7 @@ class Feedback(DB_BASE_MODEL, GenericModel):
     """
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     state = Column('state', SmallInteger, nullable=False, default=0)
-    user_uuid = Column('user_uuid', String(36), nullable=False, unique=True)
+    user_uuid = Column('user_uuid', String(36), nullable=False)
     contact = Column('contact', String(20), nullable=False)
     content = Column('content', Text, nullable=True)
 
