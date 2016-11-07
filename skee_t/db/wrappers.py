@@ -112,7 +112,7 @@ class ActivityWrapper(AbstractORMWrapper):
                                  % (model_obj.__getattribute__('join_count'),
                                     model_obj.__getattribute__('interest_count')
                                     )
-        self['feeDesc'] = '费用：%0.0f元/人 时长：%s小时（教学）' \
+        self['feeDesc'] = '费用：%0.0f元/人 时长：%s小时' \
                                % (model_obj.__getattribute__('fee'),
                                   model_obj.__getattribute__('period')
                                   )
