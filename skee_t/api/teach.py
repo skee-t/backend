@@ -265,7 +265,7 @@ class ControllerV1(object):
 
     def detail_teach_team(self, request, teachId, leaderId=None, browseOpenId = None):
         print 'detail_teach_team page_index:%s' % teachId
-        rsp_dict = BizTeachV1.detail_teach_team(teachId, leaderId, browseOpenId)
+        rsp_dict = BizTeachV1().detail_teach_team(teachId, leaderId, browseOpenId)
         LOG.info('The result of create user information is %s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))
 
@@ -277,7 +277,7 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = user['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
 
-        rsp_dict = BizTeachV1.detail_teach_team(teachId, teachId=teachId, leaderId=user.uuid)
+        rsp_dict = BizTeachV1().detail_teach_team(teachId, teachId=teachId, leaderId=user.uuid)
         return Response(body=MyJson.dumps(rsp_dict))
 
 
