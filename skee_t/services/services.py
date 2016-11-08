@@ -1,7 +1,6 @@
 #! -*- coding: UTF-8 -*-
 
 import logging
-import uuid
 from datetime import datetime
 
 from sqlalchemy.orm.exc import NoResultFound
@@ -10,6 +9,7 @@ from skee_t.db import DbEngine
 from skee_t.db.models import User, UserLevelTran, UserEvent, Level
 from skee_t.services import BaseService
 from skee_t.services.service_validator import UserCreateValidator
+from skee_t.utils.u import U
 
 __author__ = 'pluto'
 
@@ -32,7 +32,7 @@ class UserService(BaseService):
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
         :return:
         """
-        user = User(uuid=str(uuid.uuid4()),
+        user = User(uuid=U.gen_uuid(),
                     open_id=dict_args.get('openId'),
                     phone_no=dict_args.get('phoneNo'),
                     name=dict_args.get('name'),
@@ -138,7 +138,7 @@ class UserService(BaseService):
 
             # 批量增加用户等级变化信息
             user_level_trans_dict = \
-                [{'uuid':str(uuid.uuid4()), 'user_uuid':item.uuid,'activity_uuid':activity_id,
+                [{'uuid':U.gen_uuid(), 'user_uuid':item.uuid,'activity_uuid':activity_id,
                   'org_level':item.ski_level, 'level':item.ski_level+1, 'entry_time': datetime.now()}
                                     for item in users]
             session.execute(UserLevelTran.__table__.insert(), user_level_trans_dict)
@@ -163,7 +163,7 @@ class UserService(BaseService):
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
         :return:
         """
-        userEvent = UserEvent(uuid=str(uuid.uuid4()),
+        userEvent = UserEvent(uuid=U.gen_uuid(),
                               open_id=open_id,
                               target_id=target_id,
                     )

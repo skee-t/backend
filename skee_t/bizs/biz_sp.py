@@ -2,7 +2,6 @@
 
 import datetime
 import logging
-import uuid
 
 from skee_t.conf import CONF
 from skee_t.db.models import SpToken, SpCount
@@ -56,7 +55,7 @@ class BizSpV1(object):
             rsp_dict['rspDesc'] = sp_count['rst_desc']
             return rsp_dict
 
-        token = str(uuid.uuid4())
+        token = U.gen_uuid()
         auth_code = U.gen_auth_code_num()
         # 发送短信
         sms_rst = SMS.send_auth_code(phone_no, auth_code)

@@ -1,7 +1,6 @@
 #! -*- coding: UTF-8 -*-
 
 import logging
-import uuid
 
 from sqlalchemy import exists
 from sqlalchemy import or_
@@ -12,6 +11,7 @@ from skee_t.db import DbEngine
 from skee_t.db.models import SkiResort, TeachingFee, ActivityMember, Activity, UserEvent
 from skee_t.services import BaseService
 from skee_t.services.service_validator import SkiResortCreateValidator
+from skee_t.utils.u import U
 
 __author__ = 'rensikun'
 
@@ -34,7 +34,7 @@ class SkiResortService(BaseService):
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
         :return:
         """
-        skiResort = SkiResort(uuid=str(uuid.uuid4()),
+        skiResort = SkiResort(uuid=U.gen_uuid(),
                               name=dict_args.get('name'),
                               city=dict_args.get('city'),
                               address=dict_args.get('address'),

@@ -1,7 +1,6 @@
 #! -*- coding: UTF-8 -*-
 
 import logging
-import uuid
 
 from sqlalchemy import exists
 from sqlalchemy.orm.exc import NoResultFound
@@ -11,6 +10,7 @@ from sqlalchemy.sql.elements import and_
 from skee_t.db import DbEngine
 from skee_t.db.models import Activity, User, SkiResort, ActivityMember, UserEvent
 from skee_t.services import BaseService
+from skee_t.utils.u import U
 
 __author__ = 'rensikun'
 
@@ -32,7 +32,7 @@ class ActivityService(BaseService):
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
         :return:
         """
-        uuid_str = str(uuid.uuid4())
+        uuid_str = U.gen_uuid()
         activity = Activity(  uuid=uuid_str,
                               type=dict_args.get('type'),
                               title=dict_args.get('title'),

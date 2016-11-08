@@ -4,8 +4,9 @@ import logging
 from sqlalchemy.util import KeyedTuple
 from webob import Response
 
+from skee_t.bizs.biz_teach import BizTeachV1
 from skee_t.db.models import User, Level
-from skee_t.db.wrappers import ActivityWrapper, ActivityDetailWrapper, MemberWrapper, MemberEstimateWrapper
+from skee_t.db.wrappers import ActivityWrapper, MemberWrapper, MemberEstimateWrapper
 from skee_t.services.service_activity import ActivityService
 from skee_t.services.service_skiResort import SkiResortService
 from skee_t.services.service_teach import MemberService
@@ -132,8 +133,8 @@ class ControllerV1(object):
             # 增加活动
             rst = ActivityService().create_activity(req_json)
             if rst['rst_code'] == 0:
-                # 增加活动成员
-                add_member_rst = MemberService().add_member(rst['uuid'], req_json['creator'], 2)
+                # 增加活动成员(队长状态为4)
+                add_member_rst = MemberService().add_member(rst['uuid'], req_json['creator'], 4)
                 if not add_member_rst:
                     rst['rst_code'] = add_member_rst['rst_code']
                     rst['rst_desc'] = add_member_rst['rst_desc']
@@ -263,47 +264,21 @@ class ControllerV1(object):
         return Response(body=MyJson.dumps(rsp_dict))
 
     def detail_teach_team(self, request, teachId, leaderId=None, browseOpenId = None):
-        # todo 获取当前用户所在城市
         print 'detail_teach_team page_index:%s' % teachId
-        service = ActivityService()
-
-        rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
-
-        rst = service.get_activity(activity_id=teachId,type=1)
-        if not isinstance(rst, KeyedTuple):
-            rsp_dict['rspCode'] = '100001'
-            rsp_dict['rspDesc'] = '教学信息不存在'
-            return Response(body=MyJson.dumps(rsp_dict))
-        else:
-            rst = ActivityDetailWrapper(rst)
-            rsp_dict.update(rst)
-
-        # 1：已批准待付款; 2: 已付款; 4: 晋级
-        members = MemberService().list_member(teachId, [1,2,4], leaderId)
-        if isinstance(members, list):
-            rsp_dict['members'] = [MemberWrapper(item) for item in members]
-        else:
-            rsp_dict['rspCode'] = members['rst_code']
-            rsp_dict['rspDesc'] = members['rst_desc']
-
-        # 记录用户事件
-        if browseOpenId:
-            UserService().add_user_event(browseOpenId, teachId)
-
+        rsp_dict = BizTeachV1.detail_teach_team(teachId, leaderId, browseOpenId)
         LOG.info('The result of create user information is %s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))
 
     def list_member(self, request, teachId, leaderOpenId):
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
-
-        # todo 获取当前用户
         user = UserService().get_user(leaderOpenId)
         if not isinstance(user, User):
             rsp_dict['rspCode'] = user['rst_code']
             rsp_dict['rspDesc'] = user['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
 
-        return self.detail_teach_team(request, teachId=teachId, leaderId=user.uuid)
+        rsp_dict = BizTeachV1.detail_teach_team(teachId, teachId=teachId, leaderId=user.uuid)
+        return Response(body=MyJson.dumps(rsp_dict))
 
 
     def member_apply(self, request):
@@ -406,7 +381,7 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = '教学活动不存在'
             return Response(body=MyJson.dumps(rsp_dict))
 
-        approve_rst = MemberService().member_update(req_json.get('teachId'), req_json.get('members'), 3)
+        approve_rst = MemberService().member_update(req_json.get('teachId'), req_json.get('members'), -1)
         if approve_rst:
             rsp_dict['rspCode'] = approve_rst['rst_code']
             rsp_dict['rspDesc'] = approve_rst['rst_desc']
@@ -434,7 +409,7 @@ class ControllerV1(object):
             return Response(body=MyJson.dumps(rsp_dict))
 
         # 更新活动成员状态
-        approve_rst = MemberService().member_update(req_json.get('teachId'), req_json.get('members'), 4)
+        approve_rst = MemberService().member_update(req_json.get('teachId'), req_json.get('members'), 3)
         if approve_rst['rst_code'] != 0:
             rsp_dict['rspCode'] = approve_rst['rst_code']
             rsp_dict['rspDesc'] = approve_rst['rst_desc']
