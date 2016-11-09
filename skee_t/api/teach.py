@@ -263,26 +263,18 @@ class ControllerV1(object):
 
         return Response(body=MyJson.dumps(rsp_dict))
 
-    def detail_teach_team(self, request, teachId, leaderId=None, browseOpenId = None):
+    def detail_teach_team(self, request, teachId, browseOpenId):
         print 'detail_teach_team page_index:%s' % teachId
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
-        # 验证当前用户是否存在
-        user = None
-        if browseOpenId:
-            user = UserService().get_user(browseOpenId)
-            if not isinstance(user, User):
-                rsp_dict['rspCode'] = user['rst_code']
-                rsp_dict['rspDesc'] = user['rst_desc']
-                return Response(body=MyJson.dumps(rsp_dict))
-
         # 活动教学活动详情及成员列表
-        rsp_dict = BizTeachV1().detail_teach_team(teachId, leaderId, browseOpenId)
+        rsp_dict = BizTeachV1().detail_teach_team(teachId=teachId, browseOpenId=browseOpenId)
 
         # 判断当前浏览用户是否可以参加该活动
         can_join = 1
-        if user:
+        user = UserService().get_user(browseOpenId)
+        if isinstance(user, User):
             for member in rsp_dict['members']:
                 if member['id'] == user.uuid:
                     can_join = 0
