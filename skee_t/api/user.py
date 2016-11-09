@@ -84,6 +84,7 @@ class ControllerV1(object):
         rst = service.get_user(open_id=openid)
         if isinstance(rst, User):
             rst = UserWrapper(rst)
+            rsp_dict['id'] = rst.uuid
             rsp_dict.update(rst)
         else:
             rsp_dict['rspCode'] = rst['rst_code']
