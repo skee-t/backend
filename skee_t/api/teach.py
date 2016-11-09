@@ -266,8 +266,6 @@ class ControllerV1(object):
     def detail_teach_team(self, request, teachId, browseOpenId):
         print 'detail_teach_team page_index:%s' % teachId
 
-        rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
-
         # 活动教学活动详情及成员列表
         rsp_dict = BizTeachV1().detail_teach_team(teachId=teachId, browseOpenId=browseOpenId)
 
@@ -309,8 +307,20 @@ class ControllerV1(object):
 
         activity_item = ActivityService().get_activity(req_json.get('teachId'), 1)
         if not activity_item:
-            rsp_dict['rspCode'] = '100001'
+            rsp_dict['rspCode'] = 100001
             rsp_dict['rspDesc'] = '活动不存在'
+            return Response(body=MyJson.dumps(rsp_dict))
+
+        # 判断是否超员(总人数不超过10人)
+        member_count = MemberService().member_count(req_json.get('teachId'),[4,3,2,1,0])
+        if not isinstance(member_count, KeyedTuple):
+            rsp_dict['rspCode'] = member_count['rst_code']
+            rsp_dict['rspDesc'] = member_count['rst_code']
+            return Response(body=MyJson.dumps(rsp_dict))
+
+        if member_count.__getattribute__('member_count') >= 10:
+            rsp_dict['rspCode'] = 100003
+            rsp_dict['rspDesc'] = '此活动太火爆,申请人过多,请选择其他活动或者稍后再试'
             return Response(body=MyJson.dumps(rsp_dict))
 
         member_item = MemberService().add_member(req_json.get('teachId'), user.uuid)
@@ -352,7 +362,6 @@ class ControllerV1(object):
         return Response(body=MyJson.dumps(rsp_dict))
 
     def member_approve(self, request):
-        # todo 获取当前用户
         req_json = request.json_body
         LOG.info('Current received message is %s' % req_json)
 
@@ -370,6 +379,19 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = '教学活动不存在'
             return Response(body=MyJson.dumps(rsp_dict))
 
+        # 判断是否超员
+        member_count = MemberService().member_count(req_json.get('teachId'),[4,3,2,1])
+        if not isinstance(member_count, KeyedTuple):
+            rsp_dict['rspCode'] = member_count['rst_code']
+            rsp_dict['rspDesc'] = member_count['rst_code']
+            return Response(body=MyJson.dumps(rsp_dict))
+
+        if member_count.__getattribute__('member_count') + req_json.get('members').__len__() > 6:
+            rsp_dict['rspCode'] = '100002'
+            rsp_dict['rspDesc'] = '小队成员数超过6人，请三思~'
+            return Response(body=MyJson.dumps(rsp_dict))
+
+        # 批准入队
         approve_rst = MemberService().member_update(req_json.get('teachId'), req_json.get('members'), 1)
         if approve_rst:
             rsp_dict['rspCode'] = approve_rst['rst_code']

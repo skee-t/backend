@@ -2,7 +2,7 @@
 
 import logging
 
-from sqlalchemy.sql.functions import now
+from sqlalchemy.sql.functions import now, func
 
 from skee_t.db import DbEngine
 from skee_t.db.models import User, ActivityMember
@@ -80,6 +80,29 @@ class MemberService(BaseService):
                 query_sr = query_sr.filter(ActivityMember.user_uuid != leader_id)
 
             return query_sr.order_by(ActivityMember.state.desc(), ActivityMember.create_time.asc()).all()
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    # @SkiResortListValidator
+    def member_count(self, teach_id, states):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            engine = DbEngine.get_instance()
+            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            return session.query(func.count(ActivityMember.user_uuid).label('member_count')) \
+                .filter(ActivityMember.activity_uuid == teach_id).filter(ActivityMember.state.in_(states)).one()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
             # 数据库异常
