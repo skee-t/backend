@@ -20,7 +20,7 @@ class BizTeachV1(object):
     def __init__(self):
         pass
 
-    def detail_teach_team(self, teachId, leaderId, browseOpenId):
+    def detail_teach_team(self, teachId, leaderId = None, browseOpenId= None):
         service = ActivityService()
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
