@@ -42,6 +42,10 @@ class SkiResortApi_V1(Router):
                        controller=Resource(controller_v1),
                        action='list_ski_resort_simple',
                        conditions={'method': ['GET']})
+        mapper.connect('/simple/{skiResortId}/{skiType}/{pageIndex}',
+                       controller=Resource(controller_v1),
+                       action='list_ski_resort_simple',
+                       conditions={'method': ['GET']})
         # mapper.connect('/delete/{id}',
         #                controller=wsgi.Resource(controller_v1),
         #                action='delete',
@@ -106,13 +110,13 @@ class ControllerV1(object):
         return Response(body=MyJson.dumps(rsp_dict))
 
 
-    def list_ski_resort_simple(self, request, skiType, pageIndex=None):
+    def list_ski_resort_simple(self, request, skiType, skiResortId=None, pageIndex=None):
         print 'page_index:%s' % pageIndex
         service = SkiResortService()
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
-        rst = service.list_skiResort_simple(ski_type=skiType, page_index=pageIndex)
+        rst = service.list_skiResort_simple(ski_type=skiType, skiResort_id=skiResortId, page_index=pageIndex)
         if isinstance(rst, list):
             rst = [SkiResortSimpleWrapper(item) for item in rst]
             rsp_dict['skiResortSimples'] = rst

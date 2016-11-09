@@ -176,7 +176,7 @@ class SkiResortService(BaseService):
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
     # @SkiResortListValidator
-    def list_skiResort_simple(self, ski_type, page_index):
+    def list_skiResort_simple(self, ski_type, skiResort_id, page_index):
         """
         创建用户方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -193,6 +193,8 @@ class SkiResortService(BaseService):
                                      TeachingFee.fee_desc.label('teaching_fee'))\
                 .outerjoin(TeachingFee, TeachingFee.ski_resort_uuid == SkiResort.uuid)\
                 .filter(or_(TeachingFee.ski_type == None, TeachingFee.ski_type == ski_type))
+            if skiResort_id:
+                query_sr = query_sr.filter(SkiResort.uuid == skiResort_id)
             return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
