@@ -20,7 +20,7 @@ class BizTeachV1(object):
     def __init__(self):
         pass
 
-    def detail_teach_team(self, teachId, leaderId = None, browseOpenId= None):
+    def detail_teach_team(self, teachId, leaderId = None, memberStates = [1,2,3,4], browseOpenId= None):
         service = ActivityService()
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
@@ -36,7 +36,7 @@ class BizTeachV1(object):
 
         # -2：报名后退出；-1: 队长拒绝； 0：已报名待批准；1：队长批准待付款; 2: 已付款 3:晋级 4:队长
         # 0：已报名待批准；1：已批准待付款; 2: 已付款; 3: 晋级; 4: 队长
-        members = MemberService().list_member(teachId, [1,2,4], leaderId)
+        members = MemberService().list_member(teachId, memberStates, leaderId)
         if isinstance(members, list):
             rsp_dict['members'] = [MemberWrapper(item) for item in members]
         else:
@@ -48,3 +48,27 @@ class BizTeachV1(object):
             UserService().add_user_event(browseOpenId, teachId)
 
         return rsp_dict
+
+    def check_user_activity_membercount(self, teachId, openId, memberStates):
+        rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
+
+        # # todo 获取当前用户
+        # user = UserService().get_user(openId)
+        # if not isinstance(user, User):
+        #     rsp_dict['rspCode'] = user['rst_code']
+        #     rsp_dict['rspDesc'] = user['rst_desc']
+        #     return rsp_dict
+        #
+        # activity_item = ActivityService().get_activity(teachId, 1)
+        # if not activity_item:
+        #     rsp_dict['rspCode'] = 100001
+        #     rsp_dict['rspDesc'] = '活动不存在'
+        #     return rsp_dict
+        #
+        # # 判断是否超员(总人数不超过10人)
+        # member_count = MemberService().member_count(teachId,memberStates)
+        # if not isinstance(member_count, KeyedTuple):
+        #     rsp_dict['rspCode'] = member_count['rst_code']
+        #     rsp_dict['rspDesc'] = member_count['rst_code']
+        #     return rsp_dict
+

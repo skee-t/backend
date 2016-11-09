@@ -264,20 +264,34 @@ class ControllerV1(object):
         return Response(body=MyJson.dumps(rsp_dict))
 
     def detail_teach_team(self, request, teachId, browseOpenId):
-        print 'detail_teach_team page_index:%s' % teachId
+        LOG.info('detail_teach_team teachId:%s openId:%s' % (teachId, browseOpenId))
 
-        # 活动教学活动详情及成员列表
-        rsp_dict = BizTeachV1().detail_teach_team(teachId=teachId, browseOpenId=browseOpenId)
+        # 活动教学活动详情及成员列表(包含申请中)
+        rsp_dict = BizTeachV1().detail_teach_team(teachId=teachId,
+                                                  memberStates=[0,1,2,3,4],
+                                                  browseOpenId=browseOpenId)
 
         # 判断当前浏览用户是否可以参加该活动
+        #  2 已被批准 1 可以加入 0 申请中等待批准
         can_join = 1
+        apply_num = 0
         user = UserService().get_user(browseOpenId)
         if isinstance(user, User):
             for member in rsp_dict['members']:
                 if member['id'] == user.uuid:
-                    can_join = 0
-                    break
+                    if member['state'] == 0:
+                        can_join = 0
+                    else:
+                        can_join = 2
+
+        # 移除申请中队员
+        for i in range(len(rsp_dict['members'])-1,-1,-1):         #倒序
+            if rsp_dict['members'][i]['state'] == 0:
+                apply_num += 1
+                del rsp_dict['members'][i]
+
         rsp_dict['canJoin'] = can_join
+        rsp_dict['applyNum'] = apply_num
         LOG.info('The result of create user information is %s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))
 
