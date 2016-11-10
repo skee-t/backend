@@ -122,6 +122,8 @@ class ActivityService(BaseService):
                                        ActivityMember.activity_uuid == Activity.uuid))) \
                     .filter(Activity.creator != member_id_join)\
                     .order_by(Activity.meeting_time.desc())
+            else:
+                query_sr = query_sr.order_by(Activity.create_time.desc())
 
             return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
         except NoResultFound as e:
