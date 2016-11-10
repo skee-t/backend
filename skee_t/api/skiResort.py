@@ -38,6 +38,11 @@ class SkiResortApi_V1(Router):
                        controller=Resource(controller_v1),
                        action='list_ski_resort_often',
                        conditions={'method': ['GET']})
+
+        mapper.connect('/simple/{skiType}',
+                       controller=Resource(controller_v1),
+                       action='list_ski_resort_simple',
+                       conditions={'method': ['GET']})
         mapper.connect('/simple/{skiType}/{pageIndex}',
                        controller=Resource(controller_v1),
                        action='list_ski_resort_simple',

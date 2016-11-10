@@ -189,13 +189,18 @@ class SkiResortService(BaseService):
         try:
             engine = DbEngine.get_instance()
             session = engine.get_session(autocommit=False, expire_on_commit=True)
-            query_sr = session.query(SkiResort.uuid.label('id'), SkiResort.name, SkiResort.address,
+            query_sr = session.query(SkiResort.uuid.label('id'), SkiResort.name, SkiResort.address, SkiResort.city,
                                      TeachingFee.fee_desc.label('teaching_fee'))\
                 .outerjoin(TeachingFee, TeachingFee.ski_resort_uuid == SkiResort.uuid)\
                 .filter(or_(TeachingFee.ski_type == None, TeachingFee.ski_type == ski_type))
             if skiResort_id:
                 query_sr = query_sr.filter(SkiResort.uuid == skiResort_id)
-            return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
+            else:
+                query_sr = query_sr.order_by(SkiResort.city,SkiResort.name)
+            if page_index:
+                return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
+            else:
+                return query_sr.all()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
             # 数据库异常
