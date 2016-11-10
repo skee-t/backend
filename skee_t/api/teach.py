@@ -172,7 +172,7 @@ class ControllerV1(object):
         rst = ActivityService().list_skiResort_activity(type=1, leader_id=leaderId, page_index=pageIndex)
         if isinstance(rst, list):
             rst = [ActivityWrapper(item) for item in rst]
-            rsp_dict['teachings'] = rst
+            rsp_dict['activitys'] = rst
         else:
             rsp_dict['rspCode'] = rst['rst_code']
             rsp_dict['rspDesc'] = rst['rst_desc']
