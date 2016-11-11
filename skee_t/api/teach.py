@@ -79,6 +79,13 @@ class TeachApi_V1(Router):
                        controller=Resource(controller_v1),
                        action='list_member',
                        conditions={'method': ['GET']})
+
+        # 待晋级教学小队学员列表
+        mapper.connect('/member/wp/{teachId}/{leaderOpenId}',
+                       controller=Resource(controller_v1),
+                       action='list_member_wait_promotion',
+                       conditions={'method': ['GET']})
+
         # 队长给成员晋级
         mapper.connect('/memberPromotion',
                        controller=Resource(controller_v1),
@@ -306,6 +313,18 @@ class ControllerV1(object):
         rsp_dict = BizTeachV1().detail_teach_team(teachId=teachId, leaderId=user.uuid)
         return Response(body=MyJson.dumps(rsp_dict))
 
+    def list_member_wait_promotion(self, request, teachId, leaderOpenId):
+        rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
+        user = UserService().get_user(leaderOpenId)
+        if not isinstance(user, User):
+            rsp_dict['rspCode'] = user['rst_code']
+            rsp_dict['rspDesc'] = user['rst_desc']
+            return Response(body=MyJson.dumps(rsp_dict))
+
+        # 成员状态: 2-已付款 活动状态: 3-已结束
+        rsp_dict = BizTeachV1().detail_teach_team(teachId=teachId, leaderId=user.uuid, memberStates = [2], activityState=3)
+        return Response(body=MyJson.dumps(rsp_dict))
+
 
     def member_apply(self, request):
         req_json = request.json_body
@@ -438,28 +457,28 @@ class ControllerV1(object):
         return Response(body=MyJson.dumps(rsp_dict))
 
     def member_promotion(self, request):
-        # todo 获取当前用户
         req_json = request.json_body
         LOG.info('Current received message is %s' % req_json)
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
-        # todo 获取当前用户
         user = UserService().get_user(req_json.get('leaderOpenId'))
         if not isinstance(user, User):
             rsp_dict['rspCode'] = user['rst_code']
             rsp_dict['rspDesc'] = user['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
 
-        activity_item = ActivityService().get_activity(req_json.get('teachId'), 1, user.uuid)
+        activityService = ActivityService()
+        # 活动类型:1-教学,状态:3-已结束
+        activity_item = activityService.get_activity(req_json.get('teachId'), 1, user.uuid, state=3)
         if not activity_item:
             rsp_dict['rspCode'] = '100001'
-            rsp_dict['rspDesc'] = '教学活动不存在'
+            rsp_dict['rspDesc'] = '教学活动不存在或者状态不正确'
             return Response(body=MyJson.dumps(rsp_dict))
 
         # 更新活动成员状态
         approve_rst = MemberService().member_update(req_json.get('teachId'), req_json.get('members'), 3)
-        if approve_rst['rst_code'] != 0:
+        if approve_rst:
             rsp_dict['rspCode'] = approve_rst['rst_code']
             rsp_dict['rspDesc'] = approve_rst['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
@@ -469,6 +488,14 @@ class ControllerV1(object):
         if update_rst:
             rsp_dict['rspCode'] = update_rst['rst_code']
             rsp_dict['rspDesc'] = update_rst['rst_desc']
+            return Response(body=MyJson.dumps(rsp_dict))
+
+        # 更新活动状态(由3结束->4学员已晋级)
+        update_rst = activityService.update(req_json.get('teachId'), 3, 4, user.uuid)
+        if update_rst:
+            rsp_dict['rspCode'] = update_rst['rst_code']
+            rsp_dict['rspDesc'] = update_rst['rst_desc']
+            return Response(body=MyJson.dumps(rsp_dict))
 
         return Response(body=MyJson.dumps(rsp_dict))
 

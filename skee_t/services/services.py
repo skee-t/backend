@@ -155,7 +155,7 @@ class UserService(BaseService):
             # 数据库异常
             rst_code = 999999
             rst_desc = e.message
-        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+            return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
     def add_user_event(self, open_id, target_id):
         """

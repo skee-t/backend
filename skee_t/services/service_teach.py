@@ -118,9 +118,6 @@ class MemberService(BaseService):
         :return:
         """
         session = None
-        rst_code = 0
-        rst_desc = 'success'
-
         try:
             engine = DbEngine.get_instance()
             session = engine.get_session(autocommit=False, expire_on_commit=True)
@@ -134,9 +131,7 @@ class MemberService(BaseService):
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
             # 数据库异常
-            rst_code = 999999
-            rst_desc = e.message
-        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+            return {'rst_code': 999999, 'rst_desc': e.message}
 
     # @SkiResortListValidator
     def member_estimate(self, dict_args={}):

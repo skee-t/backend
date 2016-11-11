@@ -20,12 +20,15 @@ class BizTeachV1(object):
     def __init__(self):
         pass
 
-    def detail_teach_team(self, teachId, leaderId = None, memberStates = [1,2,3,4], browseOpenId= None):
+    def detail_teach_team(self, teachId, leaderId = None,
+                          memberStates = [1,2,3,4],
+                          activityState=None,
+                          browseOpenId= None):
         service = ActivityService()
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
-        rst = service.get_activity(activity_id=teachId,type=1,leader_id=leaderId)
+        rst = service.get_activity(activity_id=teachId,type=1,leader_id=leaderId,state=activityState)
         if not isinstance(rst, KeyedTuple):
             rsp_dict['rspCode'] = 100001
             rsp_dict['rspDesc'] = '教学信息不存在'

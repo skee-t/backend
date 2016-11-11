@@ -6,6 +6,7 @@ from sqlalchemy import exists
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import func
 from sqlalchemy.sql.elements import and_
+from sqlalchemy.sql.functions import now
 
 from skee_t.db import DbEngine
 from skee_t.db.models import Activity, User, SkiResort, ActivityMember, UserEvent
@@ -174,7 +175,7 @@ class ActivityService(BaseService):
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
     # @SkiResortListValidator
-    def get_activity(self, activity_id, type, leader_id=None):
+    def get_activity(self, activity_id, type, leader_id=None, state = None):
         """
         创建用户方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -198,6 +199,8 @@ class ActivityService(BaseService):
                 .filter(SkiResort.uuid == Activity.ski_resort_uuid) \
                 .filter(Activity.type == type) \
                 .filter(Activity.uuid == activity_id)
+            if state:
+                query_sr = query_sr.filter(Activity.state == state)
             if leader_id:
                 query_sr = query_sr.filter(User.uuid == leader_id)
             return query_sr.one()
@@ -244,3 +247,27 @@ class ActivityService(BaseService):
             rst_code = 999999
             rst_desc = e.message
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    # @SkiResortListValidator
+    def update(self, teach_id, org_state, new_state, updater):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        try:
+            engine = DbEngine.get_instance()
+            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session.query(Activity) \
+                .filter(Activity.uuid == teach_id).filter(Activity.state == org_state) \
+                .update({Activity.state:new_state,
+                         Activity.updater:updater,
+                         Activity.update_time:now()}
+                        ,synchronize_session=False
+                        )
+            session.commit()
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            return {'rst_code': 999999, 'rst_desc': e.message}
