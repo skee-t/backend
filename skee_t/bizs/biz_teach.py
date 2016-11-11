@@ -25,7 +25,7 @@ class BizTeachV1(object):
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
-        rst = service.get_activity(activity_id=teachId,type=1)
+        rst = service.get_activity(activity_id=teachId,type=1,leader_id=leaderId)
         if not isinstance(rst, KeyedTuple):
             rsp_dict['rspCode'] = 100001
             rsp_dict['rspDesc'] = '教学信息不存在'
