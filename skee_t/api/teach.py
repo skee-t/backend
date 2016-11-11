@@ -256,7 +256,7 @@ class ControllerV1(object):
         rst = ActivityService().list_skiResort_activity(type=1, member_id_join=user_info.uuid, page_index=pageIndex)
         if isinstance(rst, list):
             rst = [ActivityWrapper(item) for item in rst]
-            rsp_dict['learns'] = rst
+            rsp_dict['activitys'] = rst
         else:
             rsp_dict['rspCode'] = rst['rst_code']
             rsp_dict['rspDesc'] = rst['rst_desc']
