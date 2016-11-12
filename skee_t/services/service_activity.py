@@ -95,6 +95,7 @@ class ActivityService(BaseService):
                                      User.head_image_path.label('leader_head_image_path'),
                                      Activity.uuid.label('id'), Activity.title, Activity.type, Activity.state,
                                      Activity.fee, Activity.period, Activity.meeting_time, Activity.contact,
+                                     Activity.estimate,
                                      sbq_join_count.label('join_count'),sbq_interest_count.label('interest_count')) \
                 .filter(User.uuid == Activity.creator)
             if skiResort_uuid:
