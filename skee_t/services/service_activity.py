@@ -108,12 +108,13 @@ class ActivityService(BaseService):
                 return query_sr.one()
             if member_id_un_estimate:
                 # 用户参与的已经结束的未评价活动(非领队)
+                # 活动状态为3-已结束 4-学员已晋级
                 query_sr = query_sr\
                     .filter(exists().where(
                                 and_(ActivityMember.activity_uuid == Activity.uuid,
                                      ActivityMember.user_uuid == member_id_un_estimate,
                                      ActivityMember.estimate_score == 0)))\
-                    .filter(Activity.state == 3)\
+                    .filter(Activity.state >= 3)\
                     .filter(Activity.creator != member_id_un_estimate)
             if member_id_join:
                 # 用户参与的活动(非领队)
