@@ -536,7 +536,7 @@ class ControllerV1(object):
 
         teach_info = ActivityService().list_skiResort_activity(type=1, teach_id=teachId)
         if isinstance(teach_info, KeyedTuple):
-            rsp_dict['teaching'] = [ActivityWrapper(teach_info)]
+            rsp_dict['teaching'] = ActivityWrapper(teach_info)
         else:
             rsp_dict['rspCode'] = teach_info['rst_code']
             rsp_dict['rspDesc'] = teach_info['rst_desc']
