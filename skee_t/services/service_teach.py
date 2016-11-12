@@ -165,7 +165,7 @@ class MemberService(BaseService):
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
     # @SkiResortListValidator
-    def list_estimate(self, teach_id):
+    def list_estimate(self, teach_id, user_id = None):
         """
         创建用户方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -178,14 +178,16 @@ class MemberService(BaseService):
         try:
             engine = DbEngine.get_instance()
             session = engine.get_session(autocommit=False, expire_on_commit=True)
-            return session.query(ActivityMember.user_uuid.label('user_id'), User.name.label('user_name'),
+            est_query =  session.query(ActivityMember.user_uuid.label('user_id'), User.name.label('user_name'),
                                  ActivityMember.estimate_type.label('type'),
                                  ActivityMember.estimate_score.label('score'),
                                  ActivityMember.estimate_content.label('content'))\
                 .filter(ActivityMember.user_uuid == User.uuid)\
                 .filter(ActivityMember.activity_uuid == teach_id)\
-                .filter(ActivityMember.estimate_score != 0)\
-                .all()
+                .filter(ActivityMember.estimate_score != 0)
+            if user_id:
+                est_query = est_query.filter(User.uuid == user_id)
+            return   est_query.all()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
             # 数据库异常

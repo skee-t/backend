@@ -110,6 +110,11 @@ class TeachApi_V1(Router):
                        action='list_estimate',
                        conditions={'method': ['GET']})
 
+        mapper.connect('/estimate/{teachId}/{userId}',
+                       controller=Resource(controller_v1),
+                       action='list_estimate',
+                       conditions={'method': ['GET']})
+
 
 class ControllerV1(object):
 
@@ -525,8 +530,7 @@ class ControllerV1(object):
 
         return Response(body=MyJson.dumps(rsp_dict))
 
-    def list_estimate(self, request, teachId):
-        #todo 获取当前用户所在城市
+    def list_estimate(self, request, teachId, userId=None):
         print 'list_estimate page_index:%s' % teachId
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
@@ -537,7 +541,7 @@ class ControllerV1(object):
             rsp_dict['rspCode'] = teach_info['rst_code']
             rsp_dict['rspDesc'] = teach_info['rst_desc']
 
-        rst = MemberService().list_estimate(teach_id=teachId)
+        rst = MemberService().list_estimate(teach_id=teachId, user_id=userId)
         if isinstance(rst, list):
             rst = [MemberEstimateWrapper(item) for item in rst]
             rsp_dict['estimates'] = rst
