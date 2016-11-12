@@ -110,7 +110,7 @@ class TeachApi_V1(Router):
                        action='list_estimate',
                        conditions={'method': ['GET']})
 
-        mapper.connect('/estimate/{teachId}/{userId}',
+        mapper.connect('/estimate/{teachId}/{openId}',
                        controller=Resource(controller_v1),
                        action='list_estimate',
                        conditions={'method': ['GET']})
@@ -511,7 +511,6 @@ class ControllerV1(object):
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
-        # todo 获取当前用户
         user = UserService().get_user(req_json.get('openId'))
         if not isinstance(user, User):
             rsp_dict['rspCode'] = user['rst_code']
@@ -530,9 +529,19 @@ class ControllerV1(object):
 
         return Response(body=MyJson.dumps(rsp_dict))
 
-    def list_estimate(self, request, teachId, userId=None):
+    def list_estimate(self, request, teachId, openId=None):
         print 'list_estimate page_index:%s' % teachId
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
+        # 通过openId获取用户信息
+        userId = None
+        if openId:
+            user = UserService().get_user(openId)
+            if not isinstance(user, User):
+                rsp_dict['rspCode'] = user['rst_code']
+                rsp_dict['rspDesc'] = user['rst_desc']
+                return Response(body=MyJson.dumps(rsp_dict))
+            else:
+                userId = user.uuid
 
         teach_info = ActivityService().list_skiResort_activity(type=1, teach_id=teachId)
         if isinstance(teach_info, KeyedTuple):
