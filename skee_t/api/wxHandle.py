@@ -55,6 +55,7 @@ class ControllerV1(object):
             hashcode = sha1.hexdigest()
             LOG.info("handle/GET func: hashcode %s, signature  %s " % (hashcode, signature))
             if hashcode == signature:
+                LOG.info("return echostr: %s" % echostr)
                 return echostr
             else:
                 return ""
