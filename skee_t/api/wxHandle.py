@@ -69,15 +69,22 @@ class ControllerV1(object):
         try:
             # 非 json
             recMsg = receive.parse_xml(request.json_body)
-            if isinstance(recMsg, receive.Msg) and recMsg.MsgType == 'text':
+            if isinstance(recMsg, receive.Msg):
                 toUser = recMsg.FromUserName
                 fromUser = recMsg.ToUserName
-                content = "test"
-                replyMsg = reply.TextMsg(toUser, fromUser, content)
-                LOG.info("replay-msg %s " % replyMsg)
-                return replyMsg.send()
+                if recMsg.MsgType == 'text':
+                    content = "test"
+                    replyMsg = reply.TextMsg(toUser, fromUser, content)
+                    return replyMsg.send()
+                if recMsg.MsgType == 'image':
+                    mediaId = recMsg.MediaId
+                    replyMsg = reply.ImageMsg(toUser, fromUser, mediaId)
+                    return replyMsg.send()
+                else:
+                    return reply.Msg().send()
             else:
-                LOG.info("do-not-process")
-                return "success"
+                print "non-process"
+                return reply.Msg().send()
+
         except Exception, Argment:
             return Argment
