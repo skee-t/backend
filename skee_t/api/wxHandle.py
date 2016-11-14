@@ -2,6 +2,8 @@
 import hashlib
 import logging
 
+from webob import Response
+
 from skee_t.wsgi import Resource
 from skee_t.wsgi import Router
 from skee_t.wxservices import receive
@@ -56,7 +58,7 @@ class ControllerV1(object):
             LOG.info("handle/GET func: hashcode %s, signature  %s " % (hashcode, signature))
             if hashcode == signature:
                 LOG.info("return echostr: %s" % echostr)
-                return echostr
+                return Response(body=echostr)
             else:
                 return ""
         except Exception, Argument:
