@@ -16,6 +16,16 @@ SP_OPTS = [
     cfg.IntOpt('auth_code_limit', default=10, help='send times limit'),
 ]
 
+WXP_OPTS = [
+    cfg.StrOpt('appid', help='Whether send sms from sp or not'),
+    cfg.StrOpt('mch_id', help='send times limit'),
+    cfg.StrOpt('device_info', help='send times limit'),
+    cfg.StrOpt('trade_type', help='send times limit'),
+    cfg.StrOpt('notify_url', help='send times limit'),
+    cfg.StrOpt('key', help='send times limit'),
+    cfg.StrOpt('i_unifiedorder', help='send times limit'),
+]
+
 DB_OPTS = [
     cfg.StrOpt('db_type', default='mysql', help=''),
     cfg.StrOpt('driver', default='mysqlconnector', help=''),
@@ -47,6 +57,8 @@ DEFAULTS_GROUP = cfg.OptGroup('default', 'default', help='')
 
 SP_GROUP = cfg.OptGroup('sp', 'sp', help='')
 
+WXP_GROUP = cfg.OptGroup('wxp', 'wxp', help='')
+
 DB_GROUP = cfg.OptGroup('database', 'database', help='')
 
 WSGI_GROUP = cfg.OptGroup('wsgi', 'wsgi', help='')
@@ -56,6 +68,7 @@ CONF = cfg.CONF
 CONF.register_group(DB_GROUP)
 CONF.register_opts(DB_OPTS, DB_GROUP)
 CONF.register_opts(SP_OPTS, SP_GROUP)
+CONF.register_opts(WXP_OPTS, WXP_GROUP)
 
 CONF.register_group(WSGI_GROUP)
 CONF.register_opts(WSGI_OPTS, WSGI_GROUP)

@@ -62,6 +62,7 @@ class TeachApi_V1(Router):
                        controller=Resource(controller_v1),
                        action='member_apply',
                        conditions={'method': ['POST']})
+        # 申请人列表
         mapper.connect('/memberApply/{teachId}/{leaderOpenId}',
                        controller=Resource(controller_v1),
                        action='list_member_apply',

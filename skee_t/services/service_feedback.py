@@ -50,6 +50,8 @@ class FeedbackService(BaseService):
             rst_desc = e.message
             if session is not None:
                 session.rollback()
+        finally:
+            session.close()
         return {'rst_code':rst_code, 'rst_desc':rst_desc}
 
     def list_feedback(self, user_id=None, phone_no=None):
