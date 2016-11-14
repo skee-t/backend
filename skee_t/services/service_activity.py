@@ -55,8 +55,7 @@ class ActivityService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             session.add(activity)
             session.commit()
         except Exception as e:
@@ -82,9 +81,7 @@ class ActivityService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
-
+            session = DbEngine.get_session_simple()
             sbq_join_count = session.query(func.count(ActivityMember.activity_uuid))\
                 .filter(Activity.uuid == ActivityMember.activity_uuid).correlate(Activity).as_scalar()
 
@@ -151,8 +148,7 @@ class ActivityService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             query_sr = session.query(Activity.uuid.label('id'), Activity.title, Activity.type, Activity.state,
                                      Activity.meeting_time, Activity.ski_resort_uuid.label('ski_resort_id'),
                                      SkiResort.name.label('ski_resort_name')
@@ -188,8 +184,7 @@ class ActivityService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             query_sr = session.query(Activity.uuid.label('id'), Activity.title, Activity.type, Activity.state,
                                      Activity.level_limit, Activity.meeting_time, Activity.venue, Activity.period,
                                      Activity.fee, Activity.quota, Activity.notice,
@@ -228,8 +223,7 @@ class ActivityService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             query_sr = session.query(User.uuid.label('leader_id'), User.name.label('leader_name'),
                                      User.head_image_path.label('leader_head_image_path'),
                                      Activity.uuid.label('id'), Activity.title, Activity.type, Activity.state,
@@ -259,8 +253,7 @@ class ActivityService(BaseService):
         """
         session = None
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             session.query(Activity) \
                 .filter(Activity.uuid == teach_id).filter(Activity.state == org_state) \
                 .update({Activity.state:new_state,

@@ -28,7 +28,8 @@ def create_engine(connection, idle_timeout=3600, max_pool_size=10, max_overflow=
                               'max_overflow': max_overflow,
                               'pool_timeout': pool_timeout,
                               'encoding': encoding,
-                              'echo': debug}
+                              'echo': debug,
+                              'case_sensitive': True}
 
     engine = sqlalchemy.create_engine(db_url, **_init_engine_arguments)
     return engine
@@ -87,22 +88,31 @@ class DbEngine(object):
                                    expire_on_commit=expire_on_commit)
 
     @classmethod
+    def get_session_simple(cls):
+        return DbEngine.get_single().get_session(autocommit=False, expire_on_commit=True)
+
+    @classmethod
+    def get_single(cls):
+        if not hasattr(cls, '_inst'):
+            cls._inst = DbEngine.get_instance()
+        return cls._inst
+
+    @classmethod
     def get_instance(cls):
         """
         Get a instance of DBEngine
         :return: DBEngine instance
         """
         return cls(MYSQL_DB_URL % {'db_type': CONF.database.db_type,
-                                   'driver': CONF.database.driver,
-                                   'username': CONF.database.username,
-                                   'password': CONF.database.password,
-                                   'host': CONF.database.host,
-                                   'port': CONF.database.port,
-                                   'database': CONF.database.database},
-                   CONF.database.idle_timeout,
-                   CONF.database.max_pool_size,
-                   CONF.database.max_overflow,
-                   CONF.database.pool_timeout,
-                   CONF.database.encoding,
-                   CONF.database.debug)
-
+                                      'driver': CONF.database.driver,
+                                      'username': CONF.database.username,
+                                      'password': CONF.database.password,
+                                      'host': CONF.database.host,
+                                      'port': CONF.database.port,
+                                      'database': CONF.database.database},
+                      CONF.database.idle_timeout,
+                      CONF.database.max_pool_size,
+                      CONF.database.max_overflow,
+                      CONF.database.pool_timeout,
+                      CONF.database.encoding,
+                      CONF.database.debug)

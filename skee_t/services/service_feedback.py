@@ -41,9 +41,7 @@ class FeedbackService(BaseService):
         rst_code = 0
         rst_desc = 'success'
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
-            # Save current location and job information
+            session = DbEngine.get_session_simple()
             session.add(feedback)
             session.commit()
         except Exception as e:
@@ -65,8 +63,7 @@ class FeedbackService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             u_query = session.query(User)
             if user_id:
                 u_query = u_query.filter(User.uuid == user_id)

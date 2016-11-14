@@ -1,5 +1,6 @@
 #! -*- coding: UTF-8 -*-
-from sqlalchemy import Column, BigInteger, String, Integer, Boolean, Text, DateTime, Float, SmallInteger
+from sqlalchemy import Column, BigInteger, String, Integer, Boolean, Text, DateTime, Float, SmallInteger, \
+    UniqueConstraint
 from sqlalchemy import create_engine
 from sqlalchemy.sql.functions import now
 
@@ -27,8 +28,8 @@ class SkiResort(DB_BASE_MODEL, GenericModel):
     __tablename__ = 'ski_resorts'
 
     id = Column('id', BigInteger, primary_key=True, autoincrement=True)
-    uuid = Column('uuid', String(36), nullable=False, unique=True)
-    name = Column('name', String(255), nullable=False, doc='雪场名称')
+    uuid = Column('uuid', String(32), nullable=False, unique=True)
+    name = Column('name', String(255), nullable=False, doc='雪场名称', unique=True)
     city = Column('city', String(100), nullable=False, doc='雪场所在城市')
     address = Column('address', String(255), nullable=False, doc='雪场具体位置')
     spec_pic = Column('spec_pic', String(255), nullable=False, doc='雪场特色照片')
@@ -55,8 +56,8 @@ class User(DB_BASE_MODEL):
         将用户信息逻辑删除
     """
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
-    uuid = Column('uuid', String(36), nullable=False, unique=True)
-    open_id = Column('open_id', String(32), nullable=False, unique=True)
+    uuid = Column('uuid', String(32), nullable=False, unique=True)
+    open_id = Column('open_id', String(36), nullable=False, unique=True)
     phone_no = Column('phone_no', String(11), nullable=False)
     name = Column('name', String(50), nullable=False)
     head_image_path = Column('head_image_path', String(255), nullable=False, default='')
@@ -80,9 +81,9 @@ class UserLevelTran(DB_BASE_MODEL):
     __tablename__ = 'user_level_trans'
 
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
-    uuid = Column('uuid', String(36), nullable=False, unique=True)
-    user_uuid = Column('user_uuid', String(36), nullable=False)
-    activity_uuid = Column('activity_uuid', String(36), nullable=False)
+    uuid = Column('uuid', String(32), nullable=False, unique=True)
+    user_uuid = Column('user_uuid', String(32), nullable=False)
+    activity_uuid = Column('activity_uuid', String(32), nullable=False)
     org_level = Column('org_level', Integer, nullable=False, default=0)
     level = Column('level', Integer, nullable=False, default=0)
     entry_time = Column('entry_time', DateTime, nullable=False, default=now())
@@ -95,9 +96,9 @@ class UserEvent(DB_BASE_MODEL):
     __tablename__ = 'user_events'
 
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
-    uuid = Column('uuid', String(36), nullable=False, unique=True)
+    uuid = Column('uuid', String(3), nullable=False, unique=True)
     open_id = Column('open_id', String(36), nullable=False)
-    target_id = Column('target_id', String(36), nullable=False)
+    target_id = Column('target_id', String(32), nullable=False)
     action = Column('action', Integer, nullable=False, default=1, doc='1 查看详情')
     entry_time = Column('entry_time', DateTime, nullable=False, default=now())
 
@@ -106,7 +107,7 @@ class Activity(DB_BASE_MODEL, GenericModel):
     """
     活动信息类
     .. attribute:: state
-        课程状态。取值包括-1：终止；0：可报名；1：满额；2：已开始；3：已结束
+        课程状态。取值包括-1：终止；0：召集中；1：满额；2：进行中；3：已结束 4: 学员晋级
     .. attribute:: creator
         创建人，即领队
     .. attribute:: updater
@@ -117,10 +118,10 @@ class Activity(DB_BASE_MODEL, GenericModel):
         评价。计算自各个参与者评价的平均值，与星级对应。
     """
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
-    uuid = Column('uuid', String(36), nullable=False, unique=True)
+    uuid = Column('uuid', String(32), nullable=False, unique=True)
     type = Column('type', SmallInteger, nullable=False, default=1, doc='活动类型: 1教学; 2约伴; 3跟大队; 4班车')
     title = Column('title', String(255), nullable=False)
-    ski_resort_uuid = Column('ski_resort_uuid', String(36), nullable=False)
+    ski_resort_uuid = Column('ski_resort_uuid', String(32), nullable=False)
     contact = Column('contact', String(100), nullable=True)
     level_limit = Column('level_limit', Integer, nullable=False, default=1)
     venue = Column('venue', String(255), nullable=False, doc='集合地点')
@@ -139,7 +140,7 @@ class ActivityMember(DB_BASE_MODEL):
     """
     活动成员类
     .. attribute :: state
-        成员状态。取值包括：-1：报名后退出；0：已报名待批准；1：已批准待付款; 2: 已付款 3: 已拒绝；4:晋级
+        成员状态。取值包括：-2：报名后退出；-1: 队长拒绝； 0：已报名待批准；1：队长批准待付款; 2: 已付款 3:晋级 4:队长
     .. attribute :: estimate_type
         评价类型，0: 匿名 1: 公开
     .. attribute :: estimate_score
@@ -148,14 +149,15 @@ class ActivityMember(DB_BASE_MODEL):
     __tablename__ = 'activity_members'
 
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
-    activity_uuid = Column('activity_uuid', String(36), nullable=False)
-    user_uuid = Column('user_uuid', String(36), nullable=False)
+    activity_uuid = Column('activity_uuid', String(32), nullable=False)
+    user_uuid = Column('user_uuid', String(32), nullable=False)
     estimate_type = Column('estimate_type', SmallInteger, nullable=False, default=0)
     estimate_score = Column('estimate_score', SmallInteger, nullable=False, default=0)
     estimate_content = Column('estimate_content', Text, nullable=True)
     state = Column('state', SmallInteger, nullable=False, default=0)
     create_time = Column('create_time', DateTime, nullable=False, default=now())
     update_time = Column('update_time', DateTime, nullable=False, default=now())
+    UniqueConstraint('activity_uuid', 'user_uuid')
 
 
 class TeachingFee(DB_BASE_MODEL, GenericModel):
@@ -169,8 +171,8 @@ class TeachingFee(DB_BASE_MODEL, GenericModel):
     __tablename__ = 'teaching_fees'
 
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
-    uuid = Column('uuid', String(36), nullable=False, unique=True)
-    ski_resort_uuid = Column('ski_resort_uuid', String(36), nullable=False)
+    uuid = Column('uuid', String(32), nullable=False, unique=True)
+    ski_resort_uuid = Column('ski_resort_uuid', String(32), nullable=False)
     ski_type = Column('ski_type', SmallInteger, nullable=False, default=1)
     fee_desc = Column('fee_desc', Text, nullable=False)
 
@@ -186,7 +188,7 @@ class SpToken(DB_BASE_MODEL):
     __tablename__ = 'sp_tokens'
 
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
-    token = Column('token', String(36), nullable=False, unique=True)
+    token = Column('token', String(32), nullable=False, unique=True)
     phone_no = Column('phone_no', String(11), nullable=False)
     auth_code = Column('auth_code', String(6), nullable=False)
     template_code = Column('template_code', String(16), nullable=False)
@@ -212,6 +214,58 @@ class SpCount(DB_BASE_MODEL):
     last_time = Column('last_time', DateTime, nullable=False, default=now())
 
 
+class Order(DB_BASE_MODEL):
+    """
+    订单
+    .. attribute :: state
+        成员状态，显示是否成员正常参与教学活动。取值包括：0：初始；1：预支付；2：已成功; 3: 失败；
+    .. attribute :: estimate
+        参与评价，只有为完成状态的成员才能参与评价。整数，数值可与星级对应。
+    """
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+    order_no = Column('order_no', String(32), nullable=False, unique=True)
+    desc = Column('desc', String(32), nullable=False)
+    teach_id = Column('teach_id', String(32), nullable=False)
+    pay_user_id = Column('pay_user_id', String(32), nullable=False, doc='付款用户ID')
+    collect_user_id = Column('collect_user_id', String(32), nullable=False, doc='收款用户ID')
+    fee = Column('fee', Integer, nullable=True, default=0)
+    state = Column('state', SmallInteger, nullable=True, default=0)
+    pay_id = Column('pay_id', String(32), nullable=False, doc='支付流水号')
+    create_time = Column('create_time', DateTime(), default=now(), nullable=False)
+    update_time = Column('update_time', DateTime(), default=now(), nullable=False)
+    UniqueConstraint('teach_id', 'pay_user_id')
+
+
+class OrderPay(DB_BASE_MODEL):
+    """
+    支付
+    .. attribute :: state
+        成员状态，显示是否成员正常参与教学活动。取值包括：-1：报名后已退出；0：已报名；1：已完成；
+    .. attribute :: estimate
+        参与评价，只有为完成状态的成员才能参与评价。整数，数值可与星级对应。
+    """
+    __tablename__ = 'order_pays'
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+    uuid = Column('uuid', String(32), nullable=False, unique=True)
+    order_no = Column('order_no', String(32), nullable=False)
+    partner_pay_id = Column('partner_pay_id', String(32))
+    state = Column('state', SmallInteger, nullable=True, default=0, doc='0:初始 1:预支付 2:同步成功 3:同步失败 4:未知')
+    trade_type = Column('trade_type', String(16), default='WX-JSAPI',nullable=False)
+    nonce_str = Column('nonce_str', String(32), nullable=False)
+    sign_type = Column('sign_type', String(16), default='MD5', nullable=False)
+    attach = Column('attach', String(127), nullable=True)
+    user_ip = Column('user_ip', String(16), nullable=False)
+    openid = Column('openid', String(128), nullable=True)
+    return_code = Column('return_code', String(16), nullable=True)
+    return_msg = Column('return_msg', String(128), nullable=True)
+    result_code = Column('result_code', String(16), nullable=True)
+    err_code = Column('err_code', String(32), nullable=True)
+    err_code_des = Column('err_code_des', String(128), nullable=True)
+    prepay_id = Column('prepay_id', String(64), nullable=True)
+    create_time = Column('create_time', DateTime(), default=now(), nullable=False)
+    update_time = Column('update_time', DateTime(), default=now(), nullable=False)
+
+
 class Car(DB_BASE_MODEL, GenericModel):
     """
     班车信息类
@@ -228,8 +282,8 @@ class Car(DB_BASE_MODEL, GenericModel):
         乘车地点。必填项，不能为空，需要前端业务校验
     """
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
-    running_no = Column('running_no', String(36), nullable=True, unique=True)
-    ski_resort_uuid = Column('ski_resort_uuid', String(36), nullable=False)
+    running_no = Column('running_no', String(32), nullable=True, unique=True)
+    ski_resort_uuid = Column('ski_resort_uuid', String(32), nullable=False)
     licence = Column('licence', String(10), nullable=True, unique=True)
     fee = Column('fee', Float(11, 2), nullable=True, default=0.00)
     time = Column('time', DateTime, nullable=True, default=now())
@@ -250,8 +304,8 @@ class CarMember(DB_BASE_MODEL, GenericModel):
     __tablename__ = 'car_members'
 
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
-    running_no = Column('running_no', String(36), nullable=False, unique=True)
-    user_uuid = Column('user_uuid', String(36), nullable=False, unique=True)
+    running_no = Column('running_no', String(32), nullable=False, unique=True)
+    user_uuid = Column('user_uuid', String(32), nullable=False, unique=True)
     state = Column('state', SmallInteger, nullable=False, default=1)
 
 
@@ -263,7 +317,7 @@ class Feedback(DB_BASE_MODEL, GenericModel):
     """
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     state = Column('state', SmallInteger, nullable=False, default=0)
-    user_uuid = Column('user_uuid', String(36), nullable=False)
+    user_uuid = Column('user_uuid', String(32), nullable=False)
     contact = Column('contact', String(20), nullable=False)
     content = Column('content', Text, nullable=True)
 
@@ -281,6 +335,5 @@ class System(DB_BASE_MODEL):
     __tablename__ = 'system'
 
 
-# 根据class创建表
-engine = create_engine(DbEngine.get_instance().get_db_url(), echo=True)
+engine = create_engine(DbEngine.get_single().get_db_url(), echo=True, case_sensitive=True)
 DB_BASE_MODEL.metadata.create_all(engine)

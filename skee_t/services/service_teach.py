@@ -39,8 +39,7 @@ class MemberService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             session.add(activityMember)
             session.commit()
         except Exception as e:
@@ -64,8 +63,7 @@ class MemberService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             query_sr = session.query(ActivityMember.user_uuid.label('id'), ActivityMember.state,
                                      User.head_image_path, User.name, User.ski_level,) \
                 .filter(ActivityMember.user_uuid == User.uuid) \
@@ -99,8 +97,7 @@ class MemberService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             return session.query(func.count(ActivityMember.user_uuid).label('member_count')) \
                 .filter(ActivityMember.activity_uuid == teach_id).filter(ActivityMember.state.in_(states)).one()
         except (TypeError, Exception) as e:
@@ -119,8 +116,7 @@ class MemberService(BaseService):
         """
         session = None
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             session.query(ActivityMember) \
                 .filter(ActivityMember.activity_uuid == teach_id).filter(ActivityMember.user_uuid.in_(members)) \
                 .update({ActivityMember.state:state,
@@ -145,8 +141,7 @@ class MemberService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             session.query(ActivityMember) \
                 .filter(ActivityMember.activity_uuid == dict_args.get('teachId'))\
                 .filter(ActivityMember.user_uuid == dict_args.get('userId')) \
@@ -176,8 +171,7 @@ class MemberService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             est_query =  session.query(ActivityMember.user_uuid.label('user_id'), User.name.label('user_name'),
                                  ActivityMember.estimate_type.label('type'),
                                  ActivityMember.estimate_score.label('score'),

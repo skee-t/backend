@@ -50,8 +50,7 @@ class SkiResortService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             session.add(skiResort)
             session.commit()
         except Exception as e:
@@ -76,8 +75,7 @@ class SkiResortService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             query_sr = session.query(SkiResort.uuid.label('id'), SkiResort.name, SkiResort.city,
                                      SkiResort.address, SkiResort.spec_pic, SkiResort.trail_pic, SkiResort.has_bus)
 
@@ -106,8 +104,7 @@ class SkiResortService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
 
             sbq_join_count = session.query(func.count(ActivityMember.activity_uuid)) \
                 .filter(Activity.uuid == ActivityMember.activity_uuid) \
@@ -145,8 +142,7 @@ class SkiResortService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
 
             sbq_join_count = session.query(func.count(ActivityMember.activity_uuid)) \
                 .filter(Activity.uuid == ActivityMember.activity_uuid) \
@@ -187,8 +183,7 @@ class SkiResortService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             query_sr = session.query(SkiResort.uuid.label('id'), SkiResort.name, SkiResort.address, SkiResort.city,
                                      TeachingFee.fee_desc.label('teaching_fee'))\
                 .outerjoin(TeachingFee, TeachingFee.ski_resort_uuid == SkiResort.uuid)\

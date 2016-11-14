@@ -34,8 +34,7 @@ class SpService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             session.add(sp_token)
             if sp_count_flag == 0: # 不存在,新增加sp_count
                 session.add(SpCount(phone_no=sp_token.__getattribute__('phone_no')))
@@ -62,8 +61,7 @@ class SpService(BaseService):
         rst_code = 0
         rst_desc = 'success'
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             return session.query(SpCount).filter(SpCount.phone_no == phone_no).one()
         except NoResultFound:
             LOG.info("no-found-sp_count %s" % phone_no)
@@ -81,8 +79,7 @@ class SpService(BaseService):
         rst_code = 0
         rst_desc = 'success'
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             return session.query(SpToken).filter(SpToken.phone_no == phone_no).filter(SpToken.token == token).one()
         except NoResultFound:
             LOG.info("no-found-sp_token %s" % phone_no)
@@ -99,8 +96,7 @@ class SpService(BaseService):
         rst_code = 0
         rst_desc = 'success'
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             # 更新sp_token
             session.query(SpToken) \
                 .filter(SpToken.token == token).filter(SpToken.phone_no == phone_no) \

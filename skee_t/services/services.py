@@ -48,8 +48,7 @@ class UserService(BaseService):
         rst_code = 0
         rst_desc = 'success'
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             # Save current location and job information
             session.add(user)
             session.commit()
@@ -72,7 +71,7 @@ class UserService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
+            engine = DbEngine.get_single()
             session = engine.get_session(autocommit=False, expire_on_commit=True)
 
             u_query = session.query(User)
@@ -105,8 +104,7 @@ class UserService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             return session.query(Level)\
                 .filter(Level.type == type).filter(Level.level == level).one()
         except NoResultFound as e:
@@ -132,8 +130,7 @@ class UserService(BaseService):
         rst_desc = 'success'
 
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             users = session.query(User).filter(User.uuid.in_(members)).all()
 
             # 批量增加用户等级变化信息
@@ -171,8 +168,7 @@ class UserService(BaseService):
         rst_code = 0
         rst_desc = 'success'
         try:
-            engine = DbEngine.get_instance()
-            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            session = DbEngine.get_session_simple()
             # Save current location and job information
             session.add(userEvent)
             session.commit()

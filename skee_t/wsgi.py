@@ -3,6 +3,7 @@ __author__ = 'pluto'
 
 import datetime
 import json
+
 import routes
 import routes.middleware
 import webob
@@ -63,7 +64,7 @@ class Request(webob.Request):
 
     def best_match_content_type(self):
         """Determine the requested response content-type."""
-        supported = ('application/json',)
+        supported = ('application/json','application/xml',)
         bm = self.accept.best_match(supported)
         return bm or 'application/json'
 
@@ -103,7 +104,9 @@ class JSONRequestDeserializer(object):
             return json.loads(datastring, object_hook=self._sanitizer)
         except ValueError:
             msg = 'Malformed JSON in request body.'
-            raise webob.exc.HTTPBadRequest(explanation=msg)
+            # non process
+            return datastring
+            # raise webob.exc.HTTPBadRequest(explanation=msg)
 
     def default(self, request):
         if self.has_body(request):

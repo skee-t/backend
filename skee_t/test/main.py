@@ -5,11 +5,8 @@ from wsgiref.simple_server import make_server
 
 import os
 from paste.deploy import loadapp
-from sqlalchemy import create_engine
 
 from skee_t.conf import CONF
-from skee_t.db import DbEngine
-from skee_t.db.model_base import DB_BASE_MODEL
 
 author = 'pluto'
 
@@ -28,9 +25,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG,stream=sys.stderr)
     # logging.config.fileConfig(LOG_CONFIG_FILE)    # 采用配置文件
     CONF(default_config_files=[DB_CONFIG_FILE])
-
-    engine = create_engine(DbEngine.get_instance()._db_url, echo=True)
-    DB_BASE_MODEL.metadata.create_all(engine)
 
     config = 'config:%s' % WEB_CONFIG_FILE
     wsgi_app = loadapp(config, APP_NAME)
