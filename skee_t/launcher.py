@@ -1,10 +1,12 @@
 #! -*- coding: utf-8 -*-
-import abc
 import atexit
 import logging
-import os
 import socket
 import sys
+
+import abc
+import os
+
 from skee_t.conf import CONF
 
 __author__ = 'pluto'
@@ -68,8 +70,11 @@ class Launcher(object):
     def start(self):
         self.daemonize()
         LOG.info('skee_t starting...')
-        self._run()
-        LOG.info('skee_t has been started.')
+        try:
+            self._run()
+            LOG.info('skee_t has been started.')
+        except Exception:
+            LOG.exception("start error.")
         self._wait()
 
     @abc.abstractmethod
