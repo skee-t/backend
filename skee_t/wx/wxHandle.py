@@ -133,7 +133,7 @@ class ControllerV1(object):
 
             # 转向目标页面
             response = Response()
-            response.headers["Location"] = 'https://skihelp.cn/'+redirect+'?id='+wxWebAccessToken.open_id
+            response.headers["Location"] = 'http://skihelp.cn/'+redirect+'?id='+wxWebAccessToken.open_id
             response.status_int = 302
             LOG.info("redirect [%s] " % (response.headers["Location"]))
             return response
