@@ -10,9 +10,9 @@ from skee_t.db.models import WxWebAccessToken
 LOG = logging.getLogger(__name__)
 
 
-class WxWebAuthAccTokenProxy(object):
+class WxOpenIdProxy(object):
     @staticmethod
-    def get_web_access_token_remote(self, code):
+    def get_open_id(code):
         # https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code
         postUrl = ("https://api.weixin.qq.com/sns/oauth2/access_token?grant_type=authorization_code"
                    "&appid=%s&secret=%s&code=%s" % (CONF.wxp.appid, CONF.wxp.appsecret, code))

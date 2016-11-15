@@ -10,7 +10,7 @@ from skee_t.wx.basic import receive
 from skee_t.wx.basic import reply
 from skee_t.wx.basic.basic import WxBasic
 from skee_t.wx.proxy.menu import Menu
-from skee_t.wx.proxy.webAuthaccessToken import WxWebAuthAccTokenProxy
+from skee_t.wx.proxy.webAuthaccessToken import WxOpenIdProxy
 
 __author__ = 'rensikun'
 
@@ -128,12 +128,12 @@ class ControllerV1(object):
             redirect = request.params['t']
 
             # 通过code换取网页授权access_token
-            wxWebAccessToken = WxWebAuthAccTokenProxy.get_web_access_token_remote(code)
+            wxWebAccessToken = WxOpenIdProxy.get_web_access_token_remote(code)
             LOG.info("openid [%s] " % (wxWebAccessToken.open_id))
 
             # 转向目标页面
             response = Response()
-            response.headers["Location"] = 'http://skihelp.cn/'+redirect+'?id='+wxWebAccessToken.open_id
+            response.headers["Location"] = 'https://skihelp.cn/'+redirect+'?id='+wxWebAccessToken.open_id
             response.status_int = 302
             LOG.info("redirect [%s] " % (response.headers["Location"]))
             return response
