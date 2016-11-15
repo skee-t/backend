@@ -322,6 +322,40 @@ class Feedback(DB_BASE_MODEL, GenericModel):
     content = Column('content', Text, nullable=True)
 
 
+class WxAccessToken(DB_BASE_MODEL):
+    """
+    微信存储表
+    .. attribute :: state
+        0 不可用 1 可用 2 更新中
+    """
+    __tablename__ = 'wx_access_tokens'
+
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+    uuid = Column('uuid', String(32), nullable=False, unique=True)
+    state = Column('state', SmallInteger, nullable=False, default=1)
+    access_token = Column('access_token', String(512), nullable=False)
+    expires_in = Column('expires_in', Integer, nullable=False)
+    entry_time = Column('entry_time', DateTime(), default=now(), nullable=False)
+
+class WxWebAccessToken(DB_BASE_MODEL):
+    """
+    微信存储表
+    .. attribute :: state
+        0 不可用 1 可用 2 更新中
+    """
+    __tablename__ = 'wx_web_access_tokens'
+
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+    uuid = Column('uuid', String(32), nullable=False, unique=True)
+    state = Column('state', SmallInteger, nullable=False, default=1)
+    access_token = Column('access_token', String(512), nullable=False)
+    expires_in = Column('expires_in', Integer, nullable=False)
+    open_id = Column('open_id', String(36), nullable=False)
+    scope = Column('scope', String(36), nullable=False)
+    union_id = Column('union_id', String(36), nullable=False)
+    entry_time = Column('entry_time', DateTime(), default=now(), nullable=False)
+
+
 class System(DB_BASE_MODEL):
     """
     系统表

@@ -18,6 +18,7 @@ SP_OPTS = [
 
 WXP_OPTS = [
     cfg.StrOpt('appid', help='Whether send sms from sp or not'),
+    cfg.StrOpt('appsecret', help='Whether send sms from sp or not'),
     cfg.StrOpt('mch_id', help='send times limit'),
     cfg.StrOpt('device_info', help='send times limit'),
     cfg.StrOpt('trade_type', help='send times limit'),
