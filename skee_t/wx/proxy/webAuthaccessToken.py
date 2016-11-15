@@ -22,5 +22,4 @@ class WxOpenIdProxy(object):
         return WxWebAccessToken(access_token=urlResp['access_token'],
                                 expires_in=urlResp['expires_in'],
                                 scope=urlResp['scope'],
-                                union_id=urlResp['unionid'],
                                 open_id=urlResp['openid'])
