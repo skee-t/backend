@@ -124,11 +124,11 @@ class ControllerV1(object):
         LOG.info('Current received message is %s' % request.params)
         try:
             code = request.params['code']
-            state = request.params['state']
+            # state = request.params['state']
             redirect = request.params['t']
 
             # 通过code换取网页授权access_token
-            wxWebAccessToken = WxOpenIdProxy.get_web_access_token_remote(code)
+            wxWebAccessToken = WxOpenIdProxy.get_open_id(code)
             LOG.info("openid [%s] " % (wxWebAccessToken.open_id))
 
             # 转向目标页面
