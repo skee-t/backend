@@ -133,19 +133,8 @@ class ControllerV1(object):
 
             # 转向目标页面
             response = Response()
-
-            l1 = 'http://skihelp.cn/%s?id=%s' % (redirect, wxWebAccessToken.open_id)
-            l2 = 'http://skihelp.cn/teaching_list.html?id=o2pJcvz6msVs08t49EU8zsLjAaXo'
-            LOG.info("redirect-l1 [%s] " % (type(l1)))
-            LOG.info("redirect-l2 [%s] " % (type(l2)))
-            if l1 == l2:
-                LOG.info("redirect-22")
-            else:
-                LOG.info("redirect-33")
-
-            response.headers["Location"] = str(l1)
-            # response.headers["Location"] = 'http://skihelp.cn/teaching_list.html?id=o2pJcvz6msVs08t49EU8zsLjAaXo'
-
+            # unicode to str
+            response.headers["Location"] = str('http://skihelp.cn/%s?id=%s' % (redirect, wxWebAccessToken.open_id))
             response.status_int = 302
             LOG.info("redirect [%s] " % (response.headers["Location"]))
             return response
