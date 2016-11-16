@@ -99,7 +99,7 @@ class UserEvent(DB_BASE_MODEL):
     __tablename__ = 'user_events'
 
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
-    uuid = Column('uuid', String(3), nullable=False, unique=True)
+    uuid = Column('uuid', String(32), nullable=False, unique=True)
     open_id = Column('open_id', String(36), nullable=False)
     target_id = Column('target_id', String(32), nullable=False)
     action = Column('action', Integer, nullable=False, default=1, doc='1 查看详情')
