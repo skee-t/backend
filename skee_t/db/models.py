@@ -269,47 +269,47 @@ class OrderPay(DB_BASE_MODEL):
     update_time = Column('update_time', DateTime(), default=now(), nullable=False)
 
 
-class Car(DB_BASE_MODEL, GenericModel):
-    """
-    班车信息类
-    对应班车信息表（Cars）
-    .. attribute :: running_no
-        车次号。同一班车可也有多个车次。
-    .. attribute :: licence
-        车牌号
-    .. attribute :: state
-        班车状态。-1：取消；0：可报名；1：满额；2：已结束
-    .. attribute :: type
-        班车类型。0：单程；1：往返
-    .. attribute :: location
-        乘车地点。必填项，不能为空，需要前端业务校验
-    """
-    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
-    running_no = Column('running_no', String(32), nullable=True, unique=True)
-    ski_resort_uuid = Column('ski_resort_uuid', String(32), nullable=False)
-    licence = Column('licence', String(10), nullable=True, unique=True)
-    fee = Column('fee', Float(11, 2), nullable=True, default=0.00)
-    time = Column('time', DateTime, nullable=True, default=now())
-    quota = Column('quota', Integer, nullable=True, default=0)
-    interest = Column('interest', Integer, nullable=True, default=0)
-    state = Column('state', SmallInteger, nullable=True, default=0)
-    type = Column('type', SmallInteger, nullable=True, default=1)
-    location = Column('location', String(255), nullable=False)
-    description = Column('description', Text, nullable=True)
+# class Car(DB_BASE_MODEL, GenericModel):
+#     """
+#     班车信息类
+#     对应班车信息表（Cars）
+#     .. attribute :: running_no
+#         车次号。同一班车可也有多个车次。
+#     .. attribute :: licence
+#         车牌号
+#     .. attribute :: state
+#         班车状态。-1：取消；0：可报名；1：满额；2：已结束
+#     .. attribute :: type
+#         班车类型。0：单程；1：往返
+#     .. attribute :: location
+#         乘车地点。必填项，不能为空，需要前端业务校验
+#     """
+#     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+#     running_no = Column('running_no', String(32), nullable=True, unique=True)
+#     ski_resort_uuid = Column('ski_resort_uuid', String(32), nullable=False)
+#     licence = Column('licence', String(10), nullable=True, unique=True)
+#     fee = Column('fee', Float(11, 2), nullable=True, default=0.00)
+#     time = Column('time', DateTime, nullable=True, default=now())
+#     quota = Column('quota', Integer, nullable=True, default=0)
+#     interest = Column('interest', Integer, nullable=True, default=0)
+#     state = Column('state', SmallInteger, nullable=True, default=0)
+#     type = Column('type', SmallInteger, nullable=True, default=1)
+#     location = Column('location', String(255), nullable=False)
+#     description = Column('description', Text, nullable=True)
 
 
-class CarMember(DB_BASE_MODEL, GenericModel):
-    """
-    班车成员类
-    .. attribute :: running_no
-        车次号
-    """
-    __tablename__ = 'car_members'
-
-    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
-    running_no = Column('running_no', String(32), nullable=False, unique=True)
-    user_uuid = Column('user_uuid', String(32), nullable=False, unique=True)
-    state = Column('state', SmallInteger, nullable=False, default=1)
+# class CarMember(DB_BASE_MODEL, GenericModel):
+#     """
+#     班车成员类
+#     .. attribute :: running_no
+#         车次号
+#     """
+#     __tablename__ = 'car_members'
+#
+#     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+#     running_no = Column('running_no', String(32), nullable=False, unique=True)
+#     user_uuid = Column('user_uuid', String(32), nullable=False, unique=True)
+#     state = Column('state', SmallInteger, nullable=False, default=1)
 
 
 class Feedback(DB_BASE_MODEL, GenericModel):
