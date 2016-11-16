@@ -2,7 +2,6 @@
 import datetime
 import hashlib
 import random
-import urllib
 import uuid
 
 from skee_t.conf import CONF
@@ -56,4 +55,4 @@ class U:
         verification_code = ''.join(code_list)
         return verification_code
 
-print urllib.quote('https://skihelp.cn/b/wx/asb?t=teaching_list.html')
+# print urllib.quote('https://skihelp.cn/b/wx/asb?t=teaching_list.html')

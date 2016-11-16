@@ -1,6 +1,7 @@
 #! -*- coding: UTF-8 -*-
 import hashlib
 import logging
+import urllib
 
 from webob import Response
 
@@ -134,7 +135,7 @@ class ControllerV1(object):
             # 转向目标页面
             response = Response()
 
-            response.headers["Location"] = 'http://skihelp.cn/%s?id=o2pJcvz6msVs08t49EU8zsLjAaXo' % (redirect)
+            response.headers["Location"] = urllib.quote('http://skihelp.cn/%s?id=%s' % (redirect, wxWebAccessToken.open_id))
             # response.headers["Location"] = 'http://skihelp.cn/teaching_list.html?id=o2pJcvz6msVs08t49EU8zsLjAaXo'
 
             response.status_int = 302
