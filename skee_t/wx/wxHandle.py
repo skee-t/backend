@@ -143,7 +143,7 @@ class ControllerV1(object):
             else:
                 LOG.info("redirect-33")
 
-            response.headers["Location"] = l2
+            response.headers["Location"] = l1.decode()
             # response.headers["Location"] = 'http://skihelp.cn/teaching_list.html?id=o2pJcvz6msVs08t49EU8zsLjAaXo'
 
             response.status_int = 302
