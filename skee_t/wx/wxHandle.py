@@ -136,8 +136,8 @@ class ControllerV1(object):
 
             l1 = 'http://skihelp.cn/%s?id=%s' % (redirect, wxWebAccessToken.open_id)
             l2 = 'http://skihelp.cn/teaching_list.html?id=o2pJcvz6msVs08t49EU8zsLjAaXo'
-            LOG.info("redirect-l1 [%s] " % (l1))
-            LOG.info("redirect-l2 [%s] " % (l2))
+            LOG.info("redirect-l1 [%s] " % (type(l1)))
+            LOG.info("redirect-l2 [%s] " % (type(l2)))
             if l1 == l2:
                 LOG.info("redirect-22")
             else:
