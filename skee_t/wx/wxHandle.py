@@ -135,7 +135,7 @@ class ControllerV1(object):
             # response.headers["Location"] = 'http://skihelp.cn/'+redirect+'?id='+wxWebAccessToken.open_id
 
             response = Response()
-            response.headers["Location"] = 'http://www.baidu.com'
+            response.headers["Location"] = 'http://skihelp.cn/teaching_list.html?id=o2pJcvz6msVs08t49EU8zsLjAaXo'
             response.status_int = 302
             LOG.info("redirect [%s] " % (response.headers["Location"]))
             return response
