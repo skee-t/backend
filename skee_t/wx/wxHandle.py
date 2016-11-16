@@ -10,6 +10,7 @@ from skee_t.wx.basic import receive
 from skee_t.wx.basic import reply
 from skee_t.wx.basic.basic import WxBasic
 from skee_t.wx.proxy.menu import Menu
+from skee_t.wx.proxy.webAuthaccessToken import WxOpenIdProxy
 
 __author__ = 'rensikun'
 
@@ -122,20 +123,20 @@ class ControllerV1(object):
     def auth_snsapi_base(self, request):
         LOG.info('Current received message is %s' % request.params)
         try:
-            # code = request.params['code']
-            # # state = request.params['state']
-            # redirect = request.params['t']
-            #
-            # # 通过code换取网页授权access_token
-            # wxWebAccessToken = WxOpenIdProxy.get_open_id(code)
-            # LOG.info("openid [%s] " % (wxWebAccessToken.open_id))
-            #
-            # # 转向目标页面
-            # response = Response()
-            # response.headers["Location"] = 'http://skihelp.cn/'+redirect+'?id='+wxWebAccessToken.open_id
+            code = request.params['code']
+            # state = request.params['state']
+            redirect = request.params['t']
 
+            # 通过code换取网页授权access_token
+            wxWebAccessToken = WxOpenIdProxy.get_open_id(code)
+            LOG.info("openid [%s] " % (wxWebAccessToken.open_id))
+
+            # 转向目标页面
             response = Response()
-            response.headers["Location"] = 'http://skihelp.cn/teaching_list.html?id=o2pJcvz6msVs08t49EU8zsLjAaXo'
+            response.headers["Location"] = 'http://skihelp.cn/'+redirect+'?id='+wxWebAccessToken.open_id
+
+            # response = Response()
+            # response.headers["Location"] = 'http://skihelp.cn/teaching_list.html?id=o2pJcvz6msVs08t49EU8zsLjAaXo'
             response.status_int = 302
             LOG.info("redirect [%s] " % (response.headers["Location"]))
             return response
