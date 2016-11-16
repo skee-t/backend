@@ -63,6 +63,9 @@ class User(DB_BASE_MODEL):
     head_image_path = Column('head_image_path', String(255), nullable=False, default='')
     real_name = Column('real_name', String(50), nullable=True)
     sex = Column('sex', Integer, nullable=False, default=1)
+    country = Column('country', String(50), nullable=True, default='中国')
+    province = Column('province', String(50), nullable=True, default='北京')
+    city = Column('city', String(50), nullable=True, default='朝阳')
     ski_type = Column('ski_type', SmallInteger, nullable=False, default=1)
     ski_age = Column('ski_age', Integer, nullable=False, default=0)
     ski_level = Column('ski_level', Integer, nullable=False, default=0)
@@ -336,6 +339,37 @@ class WxAccessToken(DB_BASE_MODEL):
     access_token = Column('access_token', String(512), nullable=False)
     expires_in = Column('expires_in', Integer, nullable=False)
     entry_time = Column('entry_time', DateTime(), default=now(), nullable=False)
+
+
+# class WxUserInfo(DB_BASE_MODEL):
+#     """
+#     微信存储表
+#     .. attribute :: state
+#         0 不可用 1 可用 2 更新中
+#     """
+#     __tablename__ = 'wx_user_infos'
+#
+#     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+#     uuid = Column('uuid', String(32), nullable=False, unique=True)
+#     open_id = Column('open_id', String(36), nullable=False, unique=True)
+#     nickname = Column('nickname', String(50), nullable=False)
+#
+#     access_token = Column('access_token', String(512), nullable=False)
+#     expires_in = Column('expires_in', Integer, nullable=False)
+#     entry_time = Column('entry_time', DateTime(), default=now(), nullable=False)
+#     head_image_path = Column('head_image_path', String(255), nullable=False, default='')
+#     real_name = Column('real_name', String(50), nullable=True)
+#     sex = Column('sex', Integer, nullable=False, default=1)
+#     ski_type = Column('ski_type', SmallInteger, nullable=False, default=1)
+#     ski_age = Column('ski_age', Integer, nullable=False, default=0)
+#     ski_level = Column('ski_level', Integer, nullable=False, default=0)
+#     teach_level = Column('teach_level', Integer, nullable=False, default=0)
+#     history = Column('history', Text, nullable=False, default=CONF.default.user_image_path)
+#     create_time = Column('create_time', DateTime, nullable=False, default=now())
+#     update_time = Column('update_time', DateTime, nullable=False, default=now())
+#     disabled = Column('disabled', Boolean, nullable=False, default=0)
+#     deleted = Column('deleted', Boolean, nullable=False, default=0)
+
 
 class WxWebAccessToken(DB_BASE_MODEL):
     """

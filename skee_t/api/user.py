@@ -13,6 +13,8 @@ from skee_t.services.services import UserService
 from skee_t.utils.my_json import MyJson
 from skee_t.wsgi import Resource
 from skee_t.wsgi import Router
+from skee_t.wx.basic.basic import WxBasic
+from skee_t.wx.proxy.userInfo import UserInfoProxy
 
 __author__ = 'pluto'
 
@@ -136,15 +138,18 @@ class ControllerV1(object):
             return Response(body=MyJson.dumps(rsp_dict))
 
         # 增加用户
-        # request中包含open_id
-        # todo 通过openid从微信接口获取当前用户的用户名 头像和性别
         user_dict = dict()
-        user_dict['name'] = 'test-' + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        user_dict['headImagePath'] = 'http://wx.qlogo.cn/mmopen/g3MonUZtNHkdmzicIlibx6iaFqAc56vxL' \
-                                     'SUfpb6n5WKSYVY0ChQKkiaJSgQ1dZuTOgvLLrhJbERQQ4eMsv84eavHiaiceqxibJxCfHe/0'
-        user_dict['sex'] = 1
-
         user_dict.update(request.json_body)
+
+        # 通过openid从微信接口获取当前用户的用户名、头像和性别等等
+        acc_token = WxBasic().get_access_token()
+        wx_user_info = UserInfoProxy().get(acc_token, user_dict['openId'])
+        user_dict['name'] = wx_user_info['nickname']
+        user_dict['headImagePath'] = wx_user_info['headimgurl']
+        user_dict['sex'] = (1 if wx_user_info['sex'] == 1 else 0)
+        user_dict['country'] = wx_user_info['country']
+        user_dict['province'] = wx_user_info['province']
+        user_dict['city'] = wx_user_info['city']
 
         rst = UserService().create_user(user_dict)
         LOG.info('The result of create user information is %s' % rst)
