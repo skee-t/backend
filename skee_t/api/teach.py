@@ -4,6 +4,7 @@ import logging
 from sqlalchemy.util import KeyedTuple
 from webob import Response
 
+from skee_t.bizs.biz_msg import BizMsgV1
 from skee_t.bizs.biz_teach import BizTeachV1
 from skee_t.db.models import User, Level
 from skee_t.db.wrappers import ActivityWrapper, MemberWrapper, MemberEstimateWrapper
@@ -337,7 +338,6 @@ class ControllerV1(object):
         LOG.info('Current received message is %s' % req_json)
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
-        # todo 获取当前用户
         user = UserService().get_user(req_json.get('openId'))
         if not isinstance(user, User):
             rsp_dict['rspCode'] = user['rst_code']
@@ -367,6 +367,17 @@ class ControllerV1(object):
         if member_item['rst_code'] != 0:
             rsp_dict['rspCode'] = member_item['rst_code']
             rsp_dict['rspDesc'] = member_item['rst_desc']
+        else:
+            try:
+                BizMsgV1().create_with_send_sms(type=1,source_id=user.uuid,source_name=user.name,
+                                            target_id=activity_item.__getattribute__('leader_id'),
+                                            target_name=activity_item.__getattribute__('leader_name'),
+                                            target_phone=activity_item.__getattribute__('leader_phone'),
+                                            activity_id=req_json.get('teachId'))
+            except Exception as e:
+                rsp_dict['rspCode'] = 999999
+                rsp_dict['rspDesc'] = e.message
+
         return Response(body=MyJson.dumps(rsp_dict))
 
     def list_member_apply(self, request, teachId, leaderOpenId):

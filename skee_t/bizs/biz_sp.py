@@ -20,7 +20,7 @@ class BizSpV1(object):
     def __init__(self):
         pass
 
-    def send(self, phone_no):
+    def sendAuthCode(self, phone_no):
         LOG.info('BizSpV1 param is %s' % phone_no)
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])

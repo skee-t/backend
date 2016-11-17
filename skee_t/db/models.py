@@ -106,6 +106,22 @@ class UserEvent(DB_BASE_MODEL):
     entry_time = Column('entry_time', DateTime, nullable=False, default=now())
 
 
+class Msg(DB_BASE_MODEL):
+    """
+    消息
+    """
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+    uuid = Column('uuid', String(32), nullable=False, unique=True)
+    type = Column('type', SmallInteger, nullable=False, default=1,
+                  doc='类型: 0系统通知 1成员入队提醒; 2批准入队通知; 3评价队长提醒; 4成员评价通知; 5 学员评级提醒; 6 学员晋级通知')
+    state = Column('state', SmallInteger, nullable=False, default=0, doc='0初建 1已推送 2已读')
+    source_id = Column('source_id', String(32), nullable=False, doc='触发者')
+    target_id = Column('target_id', String(32), nullable=False, doc='目标者')
+    activity_id = Column('activity_id', String(32), nullable=False)
+    create_time = Column('create_time', DateTime, nullable=False, default=now())
+    update_time = Column('update_time', DateTime, nullable=False, default=now())
+
+
 class Activity(DB_BASE_MODEL, GenericModel):
     """
     活动信息类

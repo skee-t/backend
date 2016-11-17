@@ -1,11 +1,11 @@
 #! -*-coding:UTF-8 -*-
+import abc
 import datetime
 import decimal
 
-import abc
 from sqlalchemy.util import KeyedTuple
 
-from skee_t.db.models import SkiResort, Activity, User, ActivityMember
+from skee_t.db.models import SkiResort, Activity, User, ActivityMember, Msg
 
 __author__ = 'pluto'
 
@@ -149,6 +149,15 @@ class MemberEstimateWrapper(AbstractORMWrapper):
 
     def _getClass(self):
         return ActivityMember
+
+
+class MsgWrapper(AbstractORMWrapper):
+
+    def _getwrapattrs(self):
+        return ['id', 'type', 'create_time', 'src_user_name', 'src_head_image_path', 'activity_id', 'activity_title']
+
+    def _getClass(self):
+        return Msg
 
 def camel_to_underline(camel_format):
     """

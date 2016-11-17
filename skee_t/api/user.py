@@ -99,7 +99,7 @@ class ControllerV1(object):
     def send_phone_sms(self, request):
         req_json = request.json_body
         LOG.info('Current received message is %s' % req_json)
-        send_rst = BizSpV1().send(req_json.get('phoneNo'))
+        send_rst = BizSpV1().sendAuthCode(req_json.get('phoneNo'))
         LOG.info('The result of create user information is %s' % send_rst)
         return Response(body=MyJson.dumps(send_rst))
 

@@ -190,7 +190,7 @@ class ActivityService(BaseService):
                                      Activity.fee, Activity.quota, Activity.notice,
                                      Activity.ski_resort_uuid.label('ski_resort_id'),
                                      SkiResort.name.label('ski_resort_name'),SkiResort.trail_pic,
-                                     User.uuid.label('leader_id'), Activity.contact.label('leader_contact')
+                                     User.uuid.label('leader_id'), User.name.label('leader_name'), User.phone_no.label('leader_phone'), Activity.contact.label('leader_contact')
                                      ) \
                 .filter(User.uuid == Activity.creator) \
                 .filter(SkiResort.uuid == Activity.ski_resort_uuid) \
