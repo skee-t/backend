@@ -35,7 +35,7 @@ class UserService(BaseService):
         user = User(uuid=U.gen_uuid(),
                     open_id=dict_args.get('openId'),
                     phone_no=dict_args.get('phoneNo'),
-                    name=dict_args.get('name'),
+                    name=(U.filter_emoji(dict_args.get('name'))),
                     real_name=dict_args.get('realName'),
                     head_image_path=dict_args.get('headImagePath'),
                     sex=dict_args.get('sex'),
