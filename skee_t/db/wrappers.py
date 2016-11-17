@@ -85,16 +85,18 @@ class UserDetailWrapper(AbstractORMWrapper):
 class SkiHisWrapper(AbstractORMWrapper):
 
     def _getwrapattrs(self):
-        return ['meeting_time', # 'ski_resort_name',
-                'title']
+        return ['meeting_time', 'ski_resort_name', 'title']
 
     def _getClass(self):
         return str
 
     def _mergeattrs(self, model_obj):
-        self['skiHisStr'] = '%s %s %s' \
+        # self['skiHisStr'] = '%s %s %s' \
+        #                     % (model_obj.__getattribute__('meeting_time').strftime('%Y-%m-%d'),
+        #                        model_obj.__getattribute__('ski_resort_name'),
+        #                        model_obj.__getattribute__('title'))
+        self['skiHisStr'] = '%s %s' \
                             % (model_obj.__getattribute__('meeting_time').strftime('%Y-%m-%d'),
-                               model_obj.__getattribute__('ski_resort_name'),
                                model_obj.__getattribute__('title'))
 
 
