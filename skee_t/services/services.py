@@ -96,6 +96,31 @@ class UserService(BaseService):
             rst_desc = e.message
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
+    def get_users(self, userids):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            engine = DbEngine.get_single()
+            session = engine.get_session(autocommit=False, expire_on_commit=True)
+            return session.query(User).filter(User.uuid.in_(userids)).all()
+        except NoResultFound as e:
+            LOG.exception("get_user_auth_info error.")
+            rst_code = 100000
+            rst_desc = '用户不存在'
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
     def get_level(self, type = None, level=None):
         """
         创建用户方法

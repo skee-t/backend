@@ -7,7 +7,7 @@ from webob import Response
 from skee_t.bizs.biz_msg import BizMsgV1
 from skee_t.bizs.biz_teach import BizTeachV1
 from skee_t.db.models import User, Level
-from skee_t.db.wrappers import ActivityWrapper, MemberWrapper, MemberEstimateWrapper
+from skee_t.db.wrappers import ActivityWrapper, MemberWrapper, MemberEstimateWrapper, ActivityMemberWrapper
 from skee_t.services.service_activity import ActivityService
 from skee_t.services.service_skiResort import SkiResortService
 from skee_t.services.service_teach import MemberService
@@ -267,9 +267,9 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = user_info['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
 
-        rst = ActivityService().list_skiResort_activity(type=1, member_id_join=user_info.uuid, page_index=pageIndex)
+        rst = ActivityService().list_activity_member_join(type=1, member_id_join=user_info.uuid, page_index=pageIndex)
         if isinstance(rst, list):
-            rst = [ActivityWrapper(item) for item in rst]
+            rst = [ActivityMemberWrapper(item) for item in rst]
             rsp_dict['activitys'] = rst
         else:
             rsp_dict['rspCode'] = rst['rst_code']
@@ -382,10 +382,7 @@ class ControllerV1(object):
 
     def list_member_apply(self, request, teachId, leaderOpenId):
         LOG.info('Current received message is %s' % teachId)
-
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
-
-        # todo 获取当前用户
         user = UserService().get_user(leaderOpenId)
         if not isinstance(user, User):
             rsp_dict['rspCode'] = user['rst_code']
@@ -413,10 +410,9 @@ class ControllerV1(object):
     def member_approve(self, request):
         req_json = request.json_body
         LOG.info('Current received message is %s' % req_json)
-
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
-        # todo 获取当前用户
-        user = UserService().get_user(req_json.get('leaderOpenId'))
+        userService = UserService()
+        user = userService.get_user(req_json.get('leaderOpenId'))
         if not isinstance(user, User):
             rsp_dict['rspCode'] = user['rst_code']
             rsp_dict['rspDesc'] = user['rst_desc']
@@ -428,11 +424,18 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = '教学活动不存在'
             return Response(body=MyJson.dumps(rsp_dict))
 
+        # 获取待批准用户信息
+        member_users = userService.get_users(req_json.get('members'))
+        if not isinstance(member_users, list):
+            rsp_dict['rspCode'] = member_users['rst_code']
+            rsp_dict['rspDesc'] = member_users['rst_desc']
+            return Response(body=MyJson.dumps(rsp_dict))
+
         # 判断是否超员
         member_count = MemberService().member_count(req_json.get('teachId'),[4,3,2,1])
         if not isinstance(member_count, KeyedTuple):
             rsp_dict['rspCode'] = member_count['rst_code']
-            rsp_dict['rspDesc'] = member_count['rst_code']
+            rsp_dict['rspDesc'] = member_count['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
 
         if member_count.__getattribute__('member_count') + req_json.get('members').__len__() > 6:
@@ -445,7 +448,21 @@ class ControllerV1(object):
         if approve_rst:
             rsp_dict['rspCode'] = approve_rst['rst_code']
             rsp_dict['rspDesc'] = approve_rst['rst_desc']
+        else:
+            # 发送短信
+            # todo 后续改造为异步线程处理,以减少前端等待时间
+            for member_user in member_users:
+                try:
 
+                    BizMsgV1().create_with_send_sms(type=2,source_id=user.uuid,source_name=user.name,
+                                                    target_id=member_user.uuid,
+                                                    target_name=member_user.name,
+                                                    target_phone=member_user.phone_no,
+                                                    activity_id=req_json.get('teachId'))
+
+                except Exception as e:
+                    rsp_dict['rspCode'] = 999999
+                    rsp_dict['rspDesc'] = e.message
         return Response(body=MyJson.dumps(rsp_dict))
 
     def member_reject(self, request):
@@ -453,7 +470,6 @@ class ControllerV1(object):
         LOG.info('Current received message is %s' % req_json)
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
-        # todo 获取当前用户
         user = UserService().get_user(req_json.get('leaderOpenId'))
         if not isinstance(user, User):
             rsp_dict['rspCode'] = user['rst_code']

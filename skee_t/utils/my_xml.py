@@ -34,7 +34,6 @@ class MyXml:
         mydict['device_info'] = CONF.wxp.device_info
 
         mydict['nonce_str'] = U.gen_uuid()
-        mydict['sign'] = 'MD5'
         mydict['sign_type'] = 'MD5'
         mydict['body'] = '滑雪帮-教学费'
         mydict['notify_url'] = CONF.wxp.notify_url
@@ -49,13 +48,29 @@ class MyXml:
         return ET.tostring(xml, 'utf-8')
 
     @staticmethod
+    def gensimple(mydict):
+        # <xml>
+        # <return_code><![CDATA[SUCCESS]]></return_code>
+        # <return_msg><![CDATA[OK]]></return_msg>
+        # </xml>
+        xml = ET.Element('xml')
+        for attr in mydict:
+            ET.SubElement(xml, attr).text = mydict[attr]
+        return ET.tostring(xml, 'utf-8')
+
+    @staticmethod
     def parse(otherxml):
         tree = ET.fromstring(otherxml)
         mydict = dict()
+        sign = None
         for child_of_tree in tree:
             if child_of_tree.tag != 'sign':
                 mydict[child_of_tree.tag] = child_of_tree.text
+            else:
+                sign = child_of_tree.text
 
+        if not sign:
+            return mydict
         mydict['my_sign'] = U.sign_md5(mydict)
-        mydict['sign'] = tree.iterfind('sign')[0]
+        mydict['sign'] = sign
         return mydict

@@ -69,7 +69,7 @@ class ActivityService(BaseService):
 
     # @SkiResortListValidator
     def list_skiResort_activity(self, skiResort_uuid = None, type=None, leader_id = None,
-                                member_id_un_estimate = None, member_id_join = None, user_id_join = None,
+                                member_id_un_estimate = None,
                                 teach_id = None, page_index = None):
         """
         创建用户方法
@@ -114,14 +114,6 @@ class ActivityService(BaseService):
                                      ActivityMember.estimate_score == 0)))\
                     .filter(Activity.state >= 3)\
                     .filter(Activity.creator != member_id_un_estimate)
-            if member_id_join:
-                # 用户参与的活动(非领队)
-                query_sr = query_sr \
-                    .filter(exists().
-                            where(and_(ActivityMember.user_uuid == member_id_join,
-                                       ActivityMember.activity_uuid == Activity.uuid))) \
-                    .filter(Activity.creator != member_id_join)\
-                    .order_by(Activity.meeting_time.desc())
             else:
                 query_sr = query_sr.order_by(Activity.create_time.desc())
 
@@ -135,6 +127,88 @@ class ActivityService(BaseService):
             rst_code = 999999
             rst_desc = e.message
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    # 用户参与的活动(非领队) type=1, member_id_join=user_info.uuid, page_index=pageIndex
+    def list_activity_member_join(self, teach_id = None, type=None, member_id_join = None, page_index = None):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            session = DbEngine.get_session_simple()
+            sbq_join_count = session.query(func.count(ActivityMember.activity_uuid)) \
+                .filter(Activity.uuid == ActivityMember.activity_uuid).correlate(Activity).as_scalar()
+
+            sbq_interest_count = session.query(func.count(UserEvent.open_id.distinct())) \
+                .filter(UserEvent.target_id == Activity.uuid).correlate(Activity).as_scalar()
+
+            query_sr = session.query(User.uuid.label('leader_id'), User.name.label('leader_name'),
+                                     User.head_image_path.label('leader_head_image_path'),
+                                     Activity.uuid.label('id'), Activity.title, Activity.type, Activity.state,
+                                     Activity.fee, Activity.period, Activity.meeting_time, Activity.contact,
+                                     Activity.estimate,ActivityMember.state.label('member_state'),
+                                     sbq_join_count.label('join_count'),sbq_interest_count.label('interest_count')) \
+                .filter(User.uuid == Activity.creator)\
+                .filter(Activity.uuid == ActivityMember.activity_uuid)
+            if type:
+                query_sr = query_sr.filter(Activity.type == type)
+            if member_id_join:
+                # 用户参与的活动(非领队)
+                query_sr = query_sr.filter(ActivityMember.user_uuid == member_id_join) \
+                                    .filter(Activity.creator != member_id_join) \
+                                    .order_by(Activity.meeting_time.desc())
+            if teach_id:
+                query_sr = query_sr.filter(Activity.uuid == teach_id)
+                return query_sr.one()
+
+            return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    # 用户参与的活动(非领队) type=1, member_id_join=user_info.uuid, page_index=pageIndex
+    def activity_member(self, teach_id = None, type=None, member_id_join = None):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            session = DbEngine.get_session_simple()
+            query_sr = session.query(User.uuid.label('leader_id'), User.name.label('leader_name'),
+                                     Activity.uuid.label('id'), Activity.title, Activity.type, Activity.state,
+                                     Activity.fee, ActivityMember.state.label('member_state')) \
+                .filter(User.uuid == Activity.creator) \
+                .filter(Activity.uuid == ActivityMember.activity_uuid)
+            if type:
+                query_sr = query_sr.filter(Activity.type == type)
+            if member_id_join:
+                # 用户参与的活动(非领队)
+                query_sr = query_sr.filter(ActivityMember.user_uuid == member_id_join) \
+                    .filter(Activity.creator != member_id_join) \
+                    .order_by(Activity.meeting_time.desc())
+            if teach_id:
+                query_sr = query_sr.filter(Activity.uuid == teach_id)
+            return query_sr.one()
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
 
     # @SkiResortListValidator
     def get_activity_his(self, user_id_join, page_index):

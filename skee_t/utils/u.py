@@ -4,6 +4,7 @@ import hashlib
 import random
 import urllib
 import uuid
+import time
 
 import re
 import HTMLParser
@@ -100,3 +101,4 @@ class U:
 
 
 # print urllib.quote('蔚小春','utf-8')
+# print int(time.time())

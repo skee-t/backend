@@ -121,6 +121,29 @@ class ActivityWrapper(AbstractORMWrapper):
                                   )
 
 
+class ActivityMemberWrapper(ActivityWrapper):
+
+    def _getwrapattrs(self):
+        return ['id', 'title', 'type', 'state',
+                'meeting_time','estimate',
+                'leader_id', 'leader_name', 'leader_head_image_path',
+                'member_state']
+
+    def _getClass(self):
+        return ActivityMember
+
+
+class ActivityMemberSimpleWrapper(AbstractORMWrapper):
+
+    def _getwrapattrs(self):
+        return ['id', 'title', 'type', 'state', 'fee',
+                'leader_id', 'leader_name',
+                'member_state']
+
+    def _getClass(self):
+        return ActivityMember
+
+
 class ActivityDetailWrapper(AbstractORMWrapper):
 
     def _getwrapattrs(self):

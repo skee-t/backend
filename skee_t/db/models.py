@@ -237,9 +237,7 @@ class Order(DB_BASE_MODEL):
     """
     订单
     .. attribute :: state
-        成员状态，显示是否成员正常参与教学活动。取值包括：0：初始；1：预支付；2：已成功; 3: 失败；
-    .. attribute :: estimate
-        参与评价，只有为完成状态的成员才能参与评价。整数，数值可与星级对应。
+        订单状态。取值包括：0：初始；1：预支付; 2：成功; 3: 失败；
     """
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     order_no = Column('order_no', String(32), nullable=False, unique=True)
@@ -248,8 +246,8 @@ class Order(DB_BASE_MODEL):
     pay_user_id = Column('pay_user_id', String(32), nullable=False, doc='付款用户ID')
     collect_user_id = Column('collect_user_id', String(32), nullable=False, doc='收款用户ID')
     fee = Column('fee', Integer, nullable=True, default=0)
-    state = Column('state', SmallInteger, nullable=True, default=0)
-    pay_id = Column('pay_id', String(32), nullable=False, doc='支付流水号')
+    state = Column('state', SmallInteger, nullable=False, default=0)
+    pay_id = Column('pay_id', String(64), nullable=True, doc='支付流水号')
     create_time = Column('create_time', DateTime(), default=now(), nullable=False)
     update_time = Column('update_time', DateTime(), default=now(), nullable=False)
     UniqueConstraint('teach_id', 'pay_user_id')
@@ -268,7 +266,7 @@ class OrderPay(DB_BASE_MODEL):
     uuid = Column('uuid', String(32), nullable=False, unique=True)
     order_no = Column('order_no', String(32), nullable=False)
     partner_pay_id = Column('partner_pay_id', String(32))
-    state = Column('state', SmallInteger, nullable=True, default=0, doc='0:初始 1:预支付 2:同步成功 3:同步失败 4:未知')
+    state = Column('state', SmallInteger, nullable=True, default=0, doc='0:初始 1:预支付 2支付流水处理中 3:成功 4:失败 5:未知')
     trade_type = Column('trade_type', String(16), default='WX-JSAPI',nullable=False)
     nonce_str = Column('nonce_str', String(32), nullable=False)
     sign_type = Column('sign_type', String(16), default='MD5', nullable=False)
