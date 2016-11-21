@@ -104,16 +104,18 @@ class ControllerV1(object):
         ams = ActivityMemberSimpleWrapper(activity_member_rst)
 
         # 待返回 活动相关信息
-        rsp_dict['totalFee'] = ams['fee']+'00'
+        rsp_dict['totalFee'] = ams['fee']
         rsp_dict['activityTile'] = ams['title']
         rsp_dict['leaderName'] = ams['leaderName']
         rsp_dict['meetingTime'] = ams['meetingTime']
         rsp_dict['venue'] = ams['venue']
 
         # 2 创建订单 订单状态0
-        corder_rst = OrderService().create_order(ams['title']+'教学费', teach_id, pay_user_id=user_info.uuid,
-                                          collect_user_id=ams['leaderId'],
-                                          fee=rsp_dict['totalFee'])
+        corder_rst = OrderService().create_order(ams['title']+'教学费',
+                                                 teach_id,
+                                                 pay_user_id=user_info.uuid,
+                                                 collect_user_id=ams['leaderId'],
+                                                 fee=ams['fee']+'00')
         LOG.info('The result of create order information is %s' % corder_rst)
         if not isinstance(corder_rst, Order):
             rsp_dict['rspCode'] = corder_rst.get('rst_code')
