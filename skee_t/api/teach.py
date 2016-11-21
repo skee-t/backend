@@ -286,7 +286,7 @@ class ControllerV1(object):
                                                   browseOpenId=browseOpenId)
 
         # 判断当前浏览用户是否可以参加该活动
-        #  2 已被批准 1 可以加入 0 申请中等待批准
+        #  3 队长 2 已被批准 1 可以加入 0 申请中等待批准
         can_join = 1
         apply_num = 0
         user = UserService().get_user(browseOpenId)
@@ -295,8 +295,11 @@ class ControllerV1(object):
                 if member['id'] == user.uuid:
                     if member['state'] == 0:
                         can_join = 0
-                    elif member['state'] != 4:
+                    elif member['state'] == 4:
+                        can_join = 3
+                    else:
                         can_join = 2
+
 
         # 移除申请中队员
         for i in range(len(rsp_dict['members'])-1,-1,-1):         #倒序
