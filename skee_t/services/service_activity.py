@@ -189,7 +189,8 @@ class ActivityService(BaseService):
             session = DbEngine.get_session_simple()
             query_sr = session.query(User.uuid.label('leader_id'), User.name.label('leader_name'),
                                      Activity.uuid.label('id'), Activity.title, Activity.type, Activity.state,
-                                     Activity.fee, ActivityMember.state.label('member_state')) \
+                                     Activity.fee, ActivityMember.state.label('member_state'),
+                                     Activity.meeting_time, Activity.venue) \
                 .filter(User.uuid == Activity.creator) \
                 .filter(Activity.uuid == ActivityMember.activity_uuid)
             if type:

@@ -3,9 +3,10 @@
 import logging
 
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.sql.functions import now
 
 from skee_t.db import DbEngine
-from skee_t.db.models import Order, OrderPay
+from skee_t.db.models import Order
 from skee_t.services import BaseService
 from skee_t.utils.u import U
 
@@ -37,17 +38,10 @@ class OrderService(BaseService):
         # 订单状态 0：初始；1：预支付；2：成功; 3: 失败；
         try:
             session = DbEngine.get_session_simple()
-            order_exists = session.query(Order).filter(Order.teach_id ==teach_id, Order.pay_user_id==pay_user_id).one()
-            if order_exists.state == 2:
-                rst_code = 200000
-                rst_desc = '已支付成功'
-            else:
-                order_pay_exists = session.query(OrderPay).filter(OrderPay.uuid==order_exists.pay_id).one()
-                if order_pay_exists.state == 2:
-                    rst_code = 200001
-                    rst_desc = '支付流水处理中'
-            LOG.exception("order_exists. order_no is %s" % order_exists.order_no)
-            return {'rst_code':rst_code, 'rst_desc':rst_desc, 'order_no':order_exists.order_no}
+            order_exists = session.query(Order).filter(Order.teach_id ==teach_id,
+                                                       Order.pay_user_id==pay_user_id).one()
+            LOG.warn("order_exists. order_no is %s" % order_exists.order_no)
+            return order_exists
         except NoResultFound as e:
             # 走后续创建订单逻辑
             LOG.exception("order_exists not.")
@@ -64,11 +58,13 @@ class OrderService(BaseService):
                       teach_id=teach_id,
                       pay_user_id=pay_user_id,
                       collect_user_id=collect_user_id,
-                      fee=fee
+                      fee=fee,
+                      create_time=now()
                       )
         try:
             session.add(order)
             session.commit()
+            return order
         except Exception as e:
             LOG.exception("Create Order error.")
             order_no = None
@@ -76,7 +72,7 @@ class OrderService(BaseService):
             rst_desc = e.message
             if session is not None:
                 session.rollback()
-        return {'rst_code':rst_code, 'rst_desc':rst_desc, 'order_no':order_no}
+            return {'rst_code':rst_code, 'rst_desc':rst_desc, 'order_no':order_no}
 
     def get_order(self, order_no):
         session = None

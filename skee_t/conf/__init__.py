@@ -25,6 +25,7 @@ WXP_OPTS = [
     cfg.StrOpt('notify_url', help='send times limit'),
     cfg.StrOpt('key', help='send times limit'),
     cfg.StrOpt('i_unifiedorder', help='send times limit'),
+    cfg.StrOpt('i_orderquery', help='send times limit'),
 ]
 
 DB_OPTS = [

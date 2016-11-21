@@ -138,7 +138,7 @@ class ActivityMemberSimpleWrapper(AbstractORMWrapper):
     def _getwrapattrs(self):
         return ['id', 'title', 'type', 'state', 'fee',
                 'leader_id', 'leader_name',
-                'member_state']
+                'member_state', 'meeting_time', 'venue']
 
     def _getClass(self):
         return ActivityMember

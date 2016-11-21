@@ -2,6 +2,8 @@
 
 import logging
 
+from sqlalchemy.orm.exc import NoResultFound
+
 from skee_t.db import DbEngine
 from skee_t.db.models import User, Order, OrderPay, ActivityMember
 from skee_t.services import BaseService
@@ -20,7 +22,7 @@ class PayService(BaseService):
     def __init__(self):
         pass
 
-    def create_pay(self, uuid, order_no, nonce_str, attach, user_ip, openid):
+    def create_pay_order(self, uuid, order_no, nonce_str, attach, user_ip, openid):
         """
         创建订单方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -29,7 +31,6 @@ class PayService(BaseService):
         session = None
         rst_code = 0
         rst_desc = 'success'
-
         order_pay = OrderPay(uuid=uuid,
                              order_no=order_no,
                              nonce_str=nonce_str,
@@ -39,7 +40,12 @@ class PayService(BaseService):
                       )
         try:
             session = DbEngine.get_session_simple()
+            # 1 创建支付流水
             session.add(order_pay)
+            # 2 更新订单支付流水号
+            order = session.query(Order) \
+                .filter(Order.order_no == order_no).one()
+            order.pay_id = uuid
             session.commit()
         except Exception as e:
             LOG.exception("Create Order error.")
@@ -140,6 +146,9 @@ class PayService(BaseService):
             session = DbEngine.get_session_simple()
             return session.query(OrderPay) \
                 .filter(OrderPay.uuid == pay_id).one()
+        except NoResultFound as e:
+            LOG.exception("getpay_by_payid non-one.")
+            return None
         except (TypeError, Exception) as e:
             LOG.exception("get_order error.")
             # 数据库异常
@@ -157,6 +166,20 @@ class PayService(BaseService):
                 .filter(User.open_id == OrderPay.openid) \
                 .filter(Order.order_no == OrderPay.order_no) \
                 .filter(Order.pay_id == OrderPay.uuid) \
+                .one()
+        except (TypeError, Exception) as e:
+            LOG.exception("get_order error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+            return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    def getpay_by_order(self, order_no):
+        try:
+            session = DbEngine.get_session_simple()
+            return session.query(OrderPay.uuid, OrderPay.openid, OrderPay.user_ip, OrderPay.attach, Order.fee) \
+                .filter(OrderPay.order_no == order_no) \
+                .filter(OrderPay.uuid == Order.pay_id) \
                 .one()
         except (TypeError, Exception) as e:
             LOG.exception("get_order error.")
@@ -230,7 +253,8 @@ class PayService(BaseService):
             order_pay.err_code = err_code
             order_pay.err_code_des = err_code_des
             order_pay.state = 4
-            order_pay.partner_pay_id = transaction_id
+            if transaction_id:
+                order_pay.partner_pay_id = transaction_id
 
             # 2 更新订单状态
             order = session.query(Order) \

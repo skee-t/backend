@@ -31,13 +31,8 @@ class MyXml:
         # </xml>
         mydict['appid'] = CONF.wxp.appid
         mydict['mch_id'] = CONF.wxp.mch_id
-        mydict['device_info'] = CONF.wxp.device_info
-
         mydict['nonce_str'] = U.gen_uuid()
         mydict['sign_type'] = 'MD5'
-        mydict['body'] = '滑雪帮-教学费'
-        mydict['notify_url'] = CONF.wxp.notify_url
-        mydict['trade_type'] = CONF.wxp.trade_type
 
         # 签名
         mydict['sign'] = U.sign_md5(mydict)

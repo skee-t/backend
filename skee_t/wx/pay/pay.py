@@ -6,7 +6,7 @@ from sqlalchemy.util import KeyedTuple
 from webob import Response
 
 from skee_t.conf import CONF
-from skee_t.db.models import User, OrderPay
+from skee_t.db.models import User, OrderPay, Order
 from skee_t.db.wrappers import ActivityMemberSimpleWrapper
 from skee_t.services.service_activity import ActivityService
 from skee_t.services.services import UserService
@@ -16,6 +16,7 @@ from skee_t.utils.my_xml import MyXml
 from skee_t.utils.u import U
 from skee_t.wsgi import Resource
 from skee_t.wsgi import Router
+from skee_t.wx.pay.biz_pay import BizPayV1
 from skee_t.wx.pay.service_order import OrderService
 from skee_t.wx.pay.service_pay import PayService
 from skee_t.wx.proxy.pay import PayProxy
@@ -40,6 +41,11 @@ class PayApi_V1(Router):
         mapper.connect('/order',
                        controller=Resource(controller_v1),
                        action='create_order',
+                       conditions={'method': ['POST']})
+
+        mapper.connect('/prepay',
+                       controller=Resource(controller_v1),
+                       action='prepay',
                        conditions={'method': ['POST']})
 
         # 前端同步通知 订单状态 0：初始；1：支付处理中；2：成功; 3: 失败；
@@ -78,7 +84,7 @@ class ControllerV1(object):
         LOG.info('Current received message is %s' % request.json_body)
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
         open_id = request.json_body['openId']
-        teach_Id = request.json_body['teachId']
+        teach_id = request.json_body['teachId']
 
         # 0 获取当前用户信息
         user_info = UserService().get_user(open_id=open_id)
@@ -89,7 +95,7 @@ class ControllerV1(object):
 
         # 1 获取小队详情
         activity_member_rst = ActivityService().activity_member(type=1,
-                                                     teach_id=teach_Id,
+                                                     teach_id=teach_id,
                                                      member_id_join=user_info.uuid
                                                   )
         if not isinstance(activity_member_rst, KeyedTuple):
@@ -97,49 +103,117 @@ class ControllerV1(object):
 
         ams = ActivityMemberSimpleWrapper(activity_member_rst)
 
-        # 2 创建订单 订单状态0
-        desc = ams['title']+'教学费'
-        total_fee = ams['fee']+'00'
-        rst = OrderService().create_order(desc, teach_Id, pay_user_id=user_info.uuid,
-                                          collect_user_id=ams['leaderId'],
-                                          fee=total_fee)
-        LOG.info('The result of create user information is %s' % rst)
-        if rst['rst_code'] == 0:
-            rsp_dict['orderNo'] = rst['order_no']
-        else:
-            # todo 1-预支付 是否需要限制
-            # 支付已成功 支付流水处理中 其他错误
-            rsp_dict = {'rspCode':rst.get('rst_code'),'rspDesc':rst.get('rst_desc')}
-            return Response(body=MyJson.dumps(rsp_dict))
+        # 待返回 活动相关信息
+        rsp_dict['totalFee'] = ams['fee']+'00'
+        rsp_dict['activityTile'] = ams['title']
+        rsp_dict['leaderName'] = ams['leaderName']
+        rsp_dict['meeting_time'] = ams['meetingTime']
+        rsp_dict['venue'] = ams['venue']
 
-        # 3 微信统一下单
-        # 3.1 写订单支付信息 订单支付流水状态0
+        # 2 创建订单 订单状态0
+        corder_rst = OrderService().create_order(ams['title']+'教学费', teach_id, pay_user_id=user_info.uuid,
+                                          collect_user_id=ams['leaderId'],
+                                          fee=rsp_dict['totalFee'])
+        LOG.info('The result of create order information is %s' % corder_rst)
+        if not isinstance(corder_rst, Order):
+            rsp_dict['rspCode'] = corder_rst.get('rst_code')
+            rsp_dict['rspDesc'] = corder_rst.get('rst_desc')
+            return Response(body=MyJson.dumps(rsp_dict))
+        else:
+            rsp_dict['orderNo'] = corder_rst.order_no
+            rsp_dict['orderTime'] = corder_rst.create_time.strftime('%Y-%m-%d %H:%M:%S')
+            rsp_dict['orderState'] = corder_rst.state
+            if corder_rst.state == 2:
+                LOG.info('order already success')
+                rsp_dict['rspCode'] = 200000
+                rsp_dict['rspDesc'] = '已支付成功'
+                return Response(body=MyJson.dumps(rsp_dict))
+
         pay_service = PayService()
+        # 3 查询微信支付流水状态
+        if corder_rst.pay_id:
+            orderPay = pay_service.getpay_by_payid(corder_rst.pay_id)
+            if not orderPay:
+                pass
+            if not isinstance(orderPay, OrderPay):
+                rsp_dict['rspCode'] = orderPay.get('rst_code')
+                rsp_dict['rspDesc'] = orderPay.get('rst_desc')
+                return Response(body=MyJson.dumps(rsp_dict))
+            else:
+                # 0:初始 1:预支付 2支付流水处理中 3:成功 4:失败 5:未知
+                if orderPay.state == 3:
+                    LOG.info('order already success')
+                    rsp_dict['rspCode'] = 200000
+                    rsp_dict['rspDesc'] = '已支付成功'
+                    return Response(body=MyJson.dumps(rsp_dict))
+                elif orderPay.state == 0:
+                    LOG.info('pay already exists')
+                    return Response(body=MyJson.dumps(rsp_dict))
+                elif orderPay.state in (1, 2, 5):
+                    try:
+                        query_rst = BizPayV1().query(transaction_id=orderPay.partner_pay_id,
+                                                     pay_id=orderPay.uuid,
+                                                     order_no=corder_rst.order_no,
+                                                     activity_uuid=teach_id,
+                                                     user_uuid=user_info.uuid)
+                        if query_rst['rspCode'] != 0:
+                            rsp_dict['rspCode'] = query_rst.get('rspCode')
+                            rsp_dict['rspDesc'] = query_rst.get('rspDesc')
+                            return Response(body=MyJson.dumps(rsp_dict))
+                    except MyException as e:
+                        rsp_dict['rspCode'] = e.code
+                        rsp_dict['rspDesc'] = e.desc
+                        return Response(body=MyJson.dumps(rsp_dict))
+
+
+        # 3.1 写订单支付信息 订单支付流水状态0
         attach = 'www.huaxuebang.pro'
         user_ip = request._headers.get('Proxy-Client-IP','192.168.0.100')
         pay_id = U.gen_uuid()
-        # 支付流水状态 0
-        cpay_rst = pay_service.create_pay(pay_id, rst['order_no'], U.gen_uuid(), attach, user_ip, open_id)
+        # 支付流水状态 0  支付流水处理中
+        # 并将支付流水号记录在订单信息中
+        cpay_rst = pay_service.create_pay_order(pay_id, corder_rst.order_no, U.gen_uuid(), attach, user_ip, open_id)
         if cpay_rst:
             rsp_dict['rspCode'] = cpay_rst.get('rst_code')
             rsp_dict['rspDesc'] = cpay_rst.get('rst_desc')
             return Response(body=MyJson.dumps(rsp_dict))
 
+        LOG.info('The result information is %s' % rsp_dict)
+        return Response(body=MyJson.dumps(rsp_dict))
+
+    def prepay(self, request):
+        req_json = request.json_body
+        LOG.info('Current received message is %s' % req_json)
+        rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
+
+        # 3 微信统一下单
+        pay_service = PayService()
+        order_pay = pay_service.getpay_by_order(req_json['orderNo'])
+        if not isinstance(order_pay, KeyedTuple):
+            rsp_dict['rspCode'] = order_pay.get('rst_code')
+            rsp_dict['rspDesc'] = order_pay.get('rst_desc')
+            return Response(body=MyJson.dumps(rsp_dict))
+
         # 2 向微信下单 成功后获取到prepay_id[预支付交易会话标识]
         try:
-            rsp_wx_dict = PayProxy.prepay(open_id=open_id, user_ip=user_ip, attach=attach, order_no=pay_id, total_fee=total_fee)
+            rsp_wx_dict = PayProxy.prepay(open_id=order_pay.__getattribute__('openid'),
+                                          user_ip=order_pay.__getattribute__('user_ip'),
+                                          attach=order_pay.__getattribute__('attach'),
+                                          out_trade_no=order_pay.__getattribute__('uuid'),
+                                          total_fee=str(order_pay.__getattribute__('fee')))
         except MyException as e:
             rsp_dict['rspCode'] = e.code
             rsp_dict['rspDesc'] = e.desc
 
         # 3 更新订单支付信息 1[预支付]  修改平台订单状态为1[预支付]
         upay_rst = pay_service.update_pay_with_order(
-                                rst['order_no'], 1, # order
-                                pay_id, 1, # order pay
-                               rsp_wx_dict['return_code'],rsp_wx_dict['return_msg'],
-                               rsp_wx_dict['result_code'],
-                               rsp_dict['rspCode'],rsp_dict['rspDesc'],
-                               rsp_wx_dict['prepay_id'])
+            req_json['orderNo'], 1, # order
+            order_pay.__getattribute__('uuid'), 1, # order pay
+            rsp_wx_dict['return_code'],rsp_wx_dict['return_msg'],
+            rsp_wx_dict['result_code'],
+            rsp_dict['rspCode'],rsp_dict['rspDesc'],
+            rsp_wx_dict['prepay_id'])
+
         if rsp_dict['rspCode'] != 0:
             return Response(body=MyJson.dumps(rsp_dict))
         if upay_rst['rst_code'] != 0:
