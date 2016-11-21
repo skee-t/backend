@@ -6,6 +6,7 @@ from webob import Response
 
 from skee_t.bizs.biz_msg import BizMsgV1
 from skee_t.bizs.biz_teach import BizTeachV1
+from skee_t.db import DbEngine
 from skee_t.db.models import User, Level
 from skee_t.db.wrappers import ActivityWrapper, MemberWrapper, MemberEstimateWrapper, ActivityMemberWrapper
 from skee_t.services.service_activity import ActivityService
@@ -498,6 +499,7 @@ class ControllerV1(object):
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
+        userService = UserService()
         user = UserService().get_user(req_json.get('leaderOpenId'))
         if not isinstance(user, User):
             rsp_dict['rspCode'] = user['rst_code']
@@ -512,26 +514,57 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = '教学活动不存在或者状态不正确'
             return Response(body=MyJson.dumps(rsp_dict))
 
+        # 获取待晋级用户信息
+        member_users = userService.get_users(req_json.get('members'))
+        if not isinstance(member_users, list):
+            rsp_dict['rspCode'] = member_users['rst_code']
+            rsp_dict['rspDesc'] = member_users['rst_desc']
+            return Response(body=MyJson.dumps(rsp_dict))
+
+        session = DbEngine.get_session_simple()
         # 更新活动成员状态
-        approve_rst = MemberService().member_update(req_json.get('teachId'), req_json.get('members'), 3)
+        approve_rst = MemberService().member_update(req_json.get('teachId'), req_json.get('members'), 3, session)
         if approve_rst:
             rsp_dict['rspCode'] = approve_rst['rst_code']
             rsp_dict['rspDesc'] = approve_rst['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
 
         # 更新用户状态 增加用户等级变化信息
-        update_rst = UserService().level_update(req_json.get('teachId'), req_json.get('members'))
+        update_rst = UserService().level_update(req_json.get('teachId'), req_json.get('members'), session)
         if update_rst:
             rsp_dict['rspCode'] = update_rst['rst_code']
             rsp_dict['rspDesc'] = update_rst['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
 
         # 更新活动状态(由3结束->4学员已晋级)
-        update_rst = activityService.update(req_json.get('teachId'), 3, 4, user.uuid)
+        update_rst = activityService.update(req_json.get('teachId'), 3, 4, user.uuid, session)
         if update_rst:
             rsp_dict['rspCode'] = update_rst['rst_code']
             rsp_dict['rspDesc'] = update_rst['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
+        # 统一commit
+        try:
+            session.commit()
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rsp_dict['rspCode'] = 999999
+            rsp_dict['rspDesc'] = e.message
+            return Response(body=MyJson.dumps(rsp_dict))
+
+        # 发送短信
+        # todo 后续改造为异步线程处理,以减少前端等待时间
+        for member_user in member_users:
+            try:
+                BizMsgV1().create_with_send_sms(type=6,source_id=user.uuid,source_name=user.name,
+                                                target_id=member_user.uuid,
+                                                target_name=member_user.name,
+                                                target_phone=member_user.phone_no,
+                                                activity_id=req_json.get('teachId'))
+
+            except Exception as e:
+                rsp_dict['rspCode'] = 999999
+                rsp_dict['rspDesc'] = e.message
 
         return Response(body=MyJson.dumps(rsp_dict))
 

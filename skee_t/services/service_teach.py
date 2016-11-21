@@ -108,22 +108,25 @@ class MemberService(BaseService):
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
     # @SkiResortListValidator
-    def member_update(self, teach_id, members, state):
+    def member_update(self, teach_id, members, state, session_com = None):
         """
         创建用户方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
         :return:
         """
-        session = None
         try:
-            session = DbEngine.get_session_simple()
+            if not session_com:
+                session = DbEngine.get_session_simple()
+            else:
+                session = session_com
             session.query(ActivityMember) \
                 .filter(ActivityMember.activity_uuid == teach_id).filter(ActivityMember.user_uuid.in_(members)) \
                 .update({ActivityMember.state:state,
                          ActivityMember.update_time:now()}
                         ,synchronize_session=False
                         )
-            session.commit()
+            if not session_com:
+                session.commit()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
             # 数据库异常

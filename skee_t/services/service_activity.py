@@ -320,7 +320,7 @@ class ActivityService(BaseService):
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
     # @SkiResortListValidator
-    def update(self, teach_id, org_state, new_state, updater):
+    def update(self, teach_id, org_state, new_state, updater, session_com = None):
         """
         创建用户方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -328,7 +328,10 @@ class ActivityService(BaseService):
         """
         session = None
         try:
-            session = DbEngine.get_session_simple()
+            if not session_com:
+                session = DbEngine.get_session_simple()
+            else:
+                session = session_com
             session.query(Activity) \
                 .filter(Activity.uuid == teach_id).filter(Activity.state == org_state) \
                 .update({Activity.state:new_state,
@@ -336,7 +339,8 @@ class ActivityService(BaseService):
                          Activity.update_time:now()}
                         ,synchronize_session=False
                         )
-            session.commit()
+            if not session_com:
+                session.commit()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
             # 数据库异常

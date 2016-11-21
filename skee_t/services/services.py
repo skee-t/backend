@@ -147,7 +147,7 @@ class UserService(BaseService):
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
     # @SkiResortListValidator
-    def level_update(self, activity_id, members):
+    def level_update(self, activity_id, members, session_com = None):
         """
         创建用户方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -158,7 +158,10 @@ class UserService(BaseService):
         rst_desc = 'success'
 
         try:
-            session = DbEngine.get_session_simple()
+            if not session_com:
+                session = DbEngine.get_session_simple()
+            else:
+                session = session_com
             users = session.query(User).filter(User.uuid.in_(members)).all()
 
             # 批量增加用户等级变化信息
@@ -174,7 +177,8 @@ class UserService(BaseService):
                 synchronize_session=False
                 )
 
-            session.commit()
+            if not session_com:
+                session.commit()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
             # 数据库异常
