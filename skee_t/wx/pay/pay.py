@@ -104,7 +104,7 @@ class ControllerV1(object):
         ams = ActivityMemberSimpleWrapper(activity_member_rst)
 
         # 待返回 活动相关信息
-        rsp_dict['totalFee'] = ams['fee']
+        rsp_dict['totalFee'] = ams['fee'] # 单位 元
         rsp_dict['activityTile'] = ams['title']
         rsp_dict['leaderName'] = ams['leaderName']
         rsp_dict['meetingTime'] = ams['meetingTime']

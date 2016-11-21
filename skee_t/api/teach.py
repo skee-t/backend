@@ -295,7 +295,7 @@ class ControllerV1(object):
                 if member['id'] == user.uuid:
                     if member['state'] == 0:
                         can_join = 0
-                    else:
+                    elif member['state'] != 4:
                         can_join = 2
 
         # 移除申请中队员
