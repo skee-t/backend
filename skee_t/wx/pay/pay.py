@@ -107,7 +107,7 @@ class ControllerV1(object):
         rsp_dict['totalFee'] = ams['fee']+'00'
         rsp_dict['activityTile'] = ams['title']
         rsp_dict['leaderName'] = ams['leaderName']
-        rsp_dict['meeting_time'] = ams['meetingTime']
+        rsp_dict['meetingTime'] = ams['meetingTime']
         rsp_dict['venue'] = ams['venue']
 
         # 2 创建订单 订单状态0
