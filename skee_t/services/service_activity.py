@@ -345,3 +345,30 @@ class ActivityService(BaseService):
             LOG.exception("List SkiResort information error.")
             # 数据库异常
             return {'rst_code': 999999, 'rst_desc': e.message}
+
+    # @SkiResortListValidator
+    def get_activity_leader(self, activity_id):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        try:
+            session = DbEngine.get_session_simple()
+            query_sr = session.query(Activity.uuid.label('id'),
+                                     User.uuid.label('leader_id'),
+                                     User.name.label('leader_name'),
+                                     User.phone_no.label('leader_phone')
+                                     ) \
+                .filter(User.uuid == Activity.creator) \
+                .filter(Activity.uuid == activity_id)
+            return query_sr.one()
+        except NoResultFound as e:
+            LOG.exception("List activity information error.")
+            return None
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}

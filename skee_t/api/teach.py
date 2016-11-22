@@ -286,21 +286,26 @@ class ControllerV1(object):
                                                   memberStates=[0,1,2,3,4],
                                                   browseOpenId=browseOpenId)
 
+        if rsp_dict['rspCode'] != 0:
+            return Response(body=MyJson.dumps(rsp_dict))
+
         # 判断当前浏览用户是否可以参加该活动
         #  3 队长 2 已被批准 1 可以加入 0 申请中等待批准
         can_join = 1
         apply_num = 0
-        user = UserService().get_user(browseOpenId)
-        if isinstance(user, User):
-            for member in rsp_dict['members']:
-                if member['id'] == user.uuid:
-                    if member['state'] == 0:
-                        can_join = 0
-                    elif member['state'] == 4:
-                        can_join = 3
-                    else:
-                        can_join = 2
-
+        if rsp_dict['state'] != 0:
+            can_join = -1
+        else:
+            user = UserService().get_user(browseOpenId)
+            if isinstance(user, User):
+                for member in rsp_dict['members']:
+                    if member['id'] == user.uuid:
+                        if member['state'] == 0:
+                            can_join = 0
+                        elif member['state'] == 4:
+                            can_join = 3
+                        else:
+                            can_join = 2
 
         # 移除申请中队员
         for i in range(len(rsp_dict['members'])-1,-1,-1):         #倒序
@@ -582,12 +587,30 @@ class ControllerV1(object):
 
         req_json['userId'] = user.uuid
 
+        # 获取活动领队信息
+        activity_leader = ActivityService().get_activity_leader(req_json.get('teachId'))
+        if not isinstance(activity_leader, KeyedTuple):
+            rsp_dict['rspCode'] = activity_leader['rst_code']
+            rsp_dict['rspDesc'] = activity_leader['rst_desc']
+            return Response(body=MyJson.dumps(rsp_dict))
+
         # 更新成员评价
         approve_rst = MemberService().member_estimate(req_json)
         if approve_rst['rst_code'] != 0:
             rsp_dict['rspCode'] = approve_rst['rst_code']
             rsp_dict['rspDesc'] = approve_rst['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
+
+        # 推送用户评价通知
+        try:
+            BizMsgV1().create_with_send_sms(type=4,source_id=user.uuid,source_name=user.name,
+                                            target_id=activity_leader.__getattribute__('leader_id'),
+                                            target_name=activity_leader.__getattribute__('leader_name'),
+                                            target_phone=activity_leader.__getattribute__('leader_phone'),
+                                            activity_id=req_json.get('teachId'))
+        except Exception as e:
+            rsp_dict['rspCode'] = 999999
+            rsp_dict['rspDesc'] = e.message
 
         return Response(body=MyJson.dumps(rsp_dict))
 
