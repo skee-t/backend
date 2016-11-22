@@ -110,10 +110,10 @@ class ControllerV1(object):
                     if recMsg.Event == 'subscribe':
                         property = SysService.getByKey('wx-subscribe')
                         if isinstance(property, Property):
-                            content = str(property.value)
+                            content = property.value
                         else:
                             content = "欢迎您关注滑雪帮"
-                        replyMsg = reply.TextMsg(toUser, fromUser, content)
+                        replyMsg = reply.TextMsg(toUser, fromUser, content.decode('utf-8'))
                         return replyMsg.send()
                 else:
                     return reply.Msg().send()
