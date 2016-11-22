@@ -404,6 +404,21 @@ class WxWebAccessToken(DB_BASE_MODEL):
     entry_time = Column('entry_time', DateTime(), default=now(), nullable=False)
 
 
+class Property(DB_BASE_MODEL):
+    """
+    系统表
+    定义系统参数
+    .. attribute :: params
+        系统参数集合，Json字符串的形式直接存储。可包含：客服电话，客服邮箱等系统信息。
+    """
+    id = Column('id', Integer, autoincrement=True, primary_key=True)
+    key = Column('key', String(36), nullable=False)
+    value = Column('value', Text, nullable=False)
+    create_time = Column('create_time', DateTime(), default=now(), nullable=False)
+    creator = Column('creator', String(50), nullable=False)
+
+    __tablename__ = 'properties'
+
 class System(DB_BASE_MODEL):
     """
     系统表

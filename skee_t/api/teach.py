@@ -569,7 +569,6 @@ class ControllerV1(object):
         return Response(body=MyJson.dumps(rsp_dict))
 
     def member_estimate(self, request):
-        # todo 获取当前用户
         req_json = request.json_body
         LOG.info('Current received message is %s' % req_json)
 
@@ -582,7 +581,6 @@ class ControllerV1(object):
             return Response(body=MyJson.dumps(rsp_dict))
 
         req_json['userId'] = user.uuid
-
 
         # 更新成员评价
         approve_rst = MemberService().member_estimate(req_json)

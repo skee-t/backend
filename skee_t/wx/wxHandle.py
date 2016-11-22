@@ -4,6 +4,8 @@ import logging
 
 from webob import Response
 
+from skee_t.db.models import Property
+from skee_t.services.service_system import SysService
 from skee_t.wsgi import Resource
 from skee_t.wsgi import Router
 from skee_t.wx.basic import receive
@@ -88,10 +90,11 @@ class ControllerV1(object):
             return Argument
 
     def post_handle(self, request):
-        LOG.info('Current received message is %s' % request.json_body)
+        xmlRequest = request.json_body
+        LOG.info('Current received message is %s' % xmlRequest)
         try:
             # 非 json
-            recMsg = receive.parse_xml(request.json_body)
+            recMsg = receive.parse_xml(xmlRequest)
             if isinstance(recMsg, receive.Msg):
                 toUser = recMsg.FromUserName
                 fromUser = recMsg.ToUserName
@@ -103,6 +106,15 @@ class ControllerV1(object):
                     mediaId = recMsg.MediaId
                     replyMsg = reply.ImageMsg(toUser, fromUser, mediaId)
                     return replyMsg.send()
+                if recMsg.MsgType == 'event':
+                    if recMsg.Event == 'subscribe':
+                        property = SysService.getByKey('wx-subscribe')
+                        if isinstance(property, Property):
+                            content = property.value
+                        else:
+                            content = "欢迎您关注滑雪帮"
+                        replyMsg = reply.TextMsg(toUser, fromUser, content)
+                        return replyMsg.send()
                 else:
                     return reply.Msg().send()
             else:

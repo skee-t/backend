@@ -37,7 +37,7 @@ class TaskApi_V1(Router):
                        action='member_wait_pro',
                        conditions={'method': ['GET']})
 
-        # 待晋级(每5小时执行一次)
+        # 待评价(每5小时执行一次)
         mapper.connect('/activity/mc',
                        controller=Resource(controller_v1),
                        action='teacher_wait_comment',
