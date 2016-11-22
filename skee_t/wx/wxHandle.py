@@ -114,7 +114,7 @@ class ControllerV1(object):
                         else:
                             content = "欢迎您关注滑雪帮"
                         replyMsg = reply.TextMsg(toUser, fromUser, content.decode('utf-8'))
-                        return replyMsg.send()
+                        return Response(body=replyMsg.send())
                 else:
                     return reply.Msg().send()
             else:
