@@ -115,7 +115,7 @@ class ActivityService(BaseService):
                     .filter(Activity.state >= 3)\
                     .filter(Activity.creator != member_id_un_estimate)
             else:
-                query_sr = query_sr.order_by(Activity.create_time.desc())
+                query_sr = query_sr.order_by(Activity.type, Activity.create_time.desc())
 
             return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
         except NoResultFound as e:

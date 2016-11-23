@@ -56,7 +56,7 @@ class ControllerV1(object):
         req_json = request.json_body
         LOG.info('Current received message is %s' % req_json)
         service = ActivityService()
-        req_json['type'] = 4
+        req_json['type'] = 0
         req_json['creator'] = '428fcb9b-e958-4109-98f7-bc9b76789079'
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
@@ -79,7 +79,7 @@ class ControllerV1(object):
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
-        rst = service.get_activity(activityId, 4)
+        rst = service.get_activity(activityId, 0)
         if not isinstance(rst, KeyedTuple):
             rsp_dict['rspCode'] = 100000
             rsp_dict['rspDesc'] = '班车信息不存在'

@@ -138,7 +138,7 @@ class Activity(DB_BASE_MODEL, GenericModel):
     """
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     uuid = Column('uuid', String(32), nullable=False, unique=True)
-    type = Column('type', SmallInteger, nullable=False, default=1, doc='活动类型: 1教学; 2约伴; 3跟大队; 4班车')
+    type = Column('type', SmallInteger, nullable=False, default=1, doc='活动类型: 0班车 1教学; 2约伴; 3跟大队;')
     title = Column('title', String(255), nullable=False)
     ski_resort_uuid = Column('ski_resort_uuid', String(32), nullable=False)
     contact = Column('contact', String(100), nullable=True)
