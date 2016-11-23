@@ -53,6 +53,10 @@ class SkiResortWrapper(AbstractORMWrapper):
                                % (model_obj.__getattribute__('join_count'),
                                   model_obj.__getattribute__('interest_count')
                                   )
+        self['address'] = '%s %s' \
+                          % (model_obj.__getattribute__('city'),
+                             model_obj.__getattribute__('address')
+                             )
 
 
 class SkiResortSimpleWrapper(AbstractORMWrapper):
