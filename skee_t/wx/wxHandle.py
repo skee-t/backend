@@ -98,14 +98,14 @@ class ControllerV1(object):
             if isinstance(recMsg, receive.Msg):
                 toUser = recMsg.FromUserName
                 fromUser = recMsg.ToUserName
-                if recMsg.MsgType == 'text':
-                    content = "test"
-                    replyMsg = reply.TextMsg(toUser, fromUser, content)
-                    return replyMsg.send()
-                if recMsg.MsgType == 'image':
-                    mediaId = recMsg.MediaId
-                    replyMsg = reply.ImageMsg(toUser, fromUser, mediaId)
-                    return replyMsg.send()
+                # if recMsg.MsgType == 'text':
+                #     content = "test"
+                #     replyMsg = reply.TextMsg(toUser, fromUser, content)
+                #     return replyMsg.send()
+                # if recMsg.MsgType == 'image':
+                #     mediaId = recMsg.MediaId
+                #     replyMsg = reply.ImageMsg(toUser, fromUser, mediaId)
+                #     return replyMsg.send()
                 if recMsg.MsgType == 'event':
                     if recMsg.Event == 'subscribe':
                         property = SysService.getByKey('wx-subscribe')
@@ -116,7 +116,9 @@ class ControllerV1(object):
                         replyMsg = reply.TextMsg(toUser, fromUser, content.decode('utf-8'))
                         return Response(body=replyMsg.send())
                 else:
-                    return reply.Msg().send()
+                    # 转发至多客服系统
+                    replyMsg = reply.CustomerMsg(toUser, fromUser)
+                    return Response(body=replyMsg.send())
             else:
                 print "non-process"
                 return reply.Msg().send()
