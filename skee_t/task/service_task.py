@@ -39,7 +39,8 @@ class TaskService(BaseService):
         try:
             session = DbEngine.get_session_simple()
             session.query(Activity).filter(Activity.state.in_(src_states))\
-                .filter(Activity.meeting_time <= now())\
+                .filter(Activity.meeting_time <= now()) \
+                .filter(Activity.type != 0) \
                 .update({Activity.state: dst_state,
                         Activity.updater:'task',
                         Activity.update_time: now()}
