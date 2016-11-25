@@ -94,6 +94,7 @@ class ControllerV1(object):
             LOG.info("rsp  %s " % back_dict)
             return Response(body=MyJson.dumps(back_dict))
         except Exception, Argument:
+            LOG.exception("wechatjs.")
             return Argument
 
     def get_handle(self, request):
