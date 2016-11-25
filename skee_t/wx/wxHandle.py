@@ -82,13 +82,13 @@ class ControllerV1(object):
             back_dict = dict()
             jsapi_ticket = WxJSBasic().get_jsapi_ticket()
             LOG.info("ticket [%s] " % (jsapi_ticket))
-            back_dict['nonceStr'] = U.gen_uuid()
+            back_dict['noncestr'] = U.gen_uuid()
             back_dict['jsapi_ticket'] = jsapi_ticket
-            back_dict['timeStamp'] = str(int(time.time()))
+            back_dict['timestamp'] = str(int(time.time()))
             back_dict['url'] = req_json['url']
             back_dict['signature'] = U.sign_sha1(back_dict)
 
-            back_dict['appId'] = CONF.wxp.appid
+            back_dict['appid'] = CONF.wxp.appid
             back_dict['rspCode'] = 0
             back_dict['rspDesc'] = 'success'
 
