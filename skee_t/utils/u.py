@@ -111,9 +111,9 @@ class U:
 # print int(time.time())
 
 # mydict = dict()
-# mydict['noncestr'] = 'Wm3WZYTPz0wzccnW'
-# mydict['jsapi_ticket'] = 'sM4AOVdWfPE4DxkXGEs8VMCPGGVi4C3VM0P37wVUCFvkVAy_90u5h9nbSlYy3-Sl-HhTdfl2fzFy1AOcHKP7qg'
-# mydict['timestamp'] = '1414587457'
-# mydict['url'] = 'http://mp.weixin.qq.com?params=value'
-#
+# mydict['noncestr'] = 'a817def4b93a4e439b90b1be122992cd'
+# mydict['jsapi_ticket'] = 'kgt8ON7yVITDhtdwci0qeTkfCiEgL8-LsAub_8j6XhInnyFEjq5dxbaO3lPqU9VIKMZpHOvdx16AauOCN-Lr3g'
+# mydict['timestamp'] = '1480049549'
+# mydict['url'] = 'http://skihelp.cn/teaminfo.html?tid=52e15c24560e4bb8af3953e2c043d04d&id=o2pJcvz6msVs08t49EU8zsLjAaXo'
+# #
 # print U.sign_sha1(mydict)

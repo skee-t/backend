@@ -85,6 +85,8 @@ class ControllerV1(object):
             sign_dict['noncestr'] = U.gen_uuid()
             sign_dict['jsapi_ticket'] = jsapi_ticket
             sign_dict['timestamp'] = str(int(time.time()))
+            LOG.info('wechatjs_url:'+req_json['url'])
+
             sign_dict['url'] = req_json['url']
 
             # sign_dict['noncestr'] = '29e611607c9c40c7a5b7ae3bd885f1a9'
