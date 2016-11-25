@@ -107,7 +107,7 @@ class U:
         return result
 
 
-# print urllib.quote('蔚小春','utf-8')
+# print urllib.quote('teaminfo.html?tid=')
 # print int(time.time())
 
 # mydict = dict()

@@ -88,10 +88,6 @@ class ControllerV1(object):
             sign_dict['timestamp'] = str(int(time.time()))
             sign_dict['url'] = unquote(req_json['url'])
 
-            # sign_dict['noncestr'] = '29e611607c9c40c7a5b7ae3bd885f1a9'
-            # sign_dict['jsapi_ticket'] = 'kgt8ON7yVITDhtdwci0qeTkfCiEgL8-LsAub_8j6XhInnyFEjq5dxbaO3lPqU9VIKMZpHOvdx16AauOCN-Lr'
-            # sign_dict['timestamp'] = '1480053013'
-
             rst_dict = dict()
             rst_dict['signature'] = U.sign_sha1(sign_dict)
             rst_dict['noncestr'] = sign_dict['noncestr']
@@ -191,7 +187,10 @@ class ControllerV1(object):
             # 转向目标页面
             response = Response()
             # unicode to str
-            response.headers["Location"] = str('http://skihelp.cn/%s?id=%s' % (redirect, wxWebAccessToken.open_id))
+            response.headers["Location"] = str('http://skihelp.cn/%s%s%s'
+                                               % (redirect,
+                                                  ('&' if '?' in redirect else '?'),
+                                                  'id='+wxWebAccessToken.open_id))
             response.status_int = 302
             LOG.info("redirect [%s] " % (response.headers["Location"]))
             return response
@@ -235,5 +234,6 @@ class ControllerV1(object):
             return Response(body=rst)
         except Exception, Argment:
             return Argment
+
 
 
