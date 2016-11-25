@@ -77,6 +77,7 @@ class ControllerV1(object):
 
     def wechatjs(self, request):
         LOG.info('wechatjs')
+        req_json = request.json_body
         try:
             back_dict = dict()
             jsapi_ticket = WxJSBasic().get_jsapi_ticket()
@@ -84,7 +85,7 @@ class ControllerV1(object):
             back_dict['nonceStr'] = U.gen_uuid()
             back_dict['jsapi_ticket'] = jsapi_ticket
             back_dict['timeStamp'] = str(int(time.time()))
-            back_dict['url'] = request.json_body['url']
+            back_dict['url'] = req_json['url']
             back_dict['signature'] = U.sign_sha1(back_dict)
 
             back_dict['appId'] = CONF.wxp.appid
