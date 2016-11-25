@@ -79,21 +79,29 @@ class ControllerV1(object):
         LOG.info('wechatjs')
         req_json = request.json_body
         try:
-            back_dict = dict()
+            sign_dict = dict()
             jsapi_ticket = WxJSBasic().get_jsapi_ticket()
             LOG.info("ticket [%s] " % (jsapi_ticket))
-            back_dict['noncestr'] = U.gen_uuid()
-            back_dict['jsapi_ticket'] = jsapi_ticket
-            back_dict['timestamp'] = str(int(time.time()))
-            back_dict['url'] = req_json['url']
-            back_dict['signature'] = U.sign_sha1(back_dict)
+            sign_dict['noncestr'] = U.gen_uuid()
+            sign_dict['jsapi_ticket'] = jsapi_ticket
+            sign_dict['timestamp'] = str(int(time.time()))
+            sign_dict['url'] = req_json['url']
 
-            back_dict['appid'] = CONF.wxp.appid
-            back_dict['rspCode'] = 0
-            back_dict['rspDesc'] = 'success'
+            # sign_dict['noncestr'] = '29e611607c9c40c7a5b7ae3bd885f1a9'
+            # sign_dict['jsapi_ticket'] = 'kgt8ON7yVITDhtdwci0qeTkfCiEgL8-LsAub_8j6XhInnyFEjq5dxbaO3lPqU9VIKMZpHOvdx16AauOCN-Lr'
+            # sign_dict['timestamp'] = '1480053013'
 
-            LOG.info("rsp  %s " % back_dict)
-            return Response(body=MyJson.dumps(back_dict))
+            rst_dict = dict()
+            rst_dict['signature'] = U.sign_sha1(sign_dict)
+            rst_dict['noncestr'] = sign_dict['noncestr']
+            rst_dict['timestamp'] = sign_dict['timestamp']
+
+            rst_dict['appid'] = CONF.wxp.appid
+            rst_dict['rspCode'] = 0
+            rst_dict['rspDesc'] = 'success'
+
+            LOG.info("rsp  %s " % rst_dict)
+            return Response(body=MyJson.dumps(rst_dict))
         except Exception, Argument:
             LOG.exception("wechatjs.")
             return Argument
