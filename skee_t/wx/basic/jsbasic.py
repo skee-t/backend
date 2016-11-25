@@ -41,7 +41,7 @@ class WxJSBasic(Singleton):
         if isinstance(queryRst, WxJSAPIToken):
             self.__expireTime = queryRst.entry_time + datetime.timedelta(seconds=(queryRst.expires_in-200))
             if self.__expireTime > datetime.datetime.now():
-                self.__ticket = queryRst.access_token
+                self.__ticket = queryRst.__ticket
                 self.uuid = queryRst.uuid
             else:
                 wxJsapiTokenService().update(queryRst.uuid, 0)
