@@ -55,6 +55,38 @@ class TaskService(BaseService):
                 session.rollback()
             return {'rst_code':rst_code, 'rst_desc':rst_desc}
 
+    def change_activity_finish(self, src_states, dst_state):
+        """
+        创建活动
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+        # ten_weeks_ago = current_time - datetime.timedelta(hours=2)
+
+        try:
+            session = DbEngine.get_session_simple()
+
+            current_time = datetime.datetime.now()
+            session.query(Activity).filter(Activity.state.in_(src_states)) \
+                .filter(Activity.meeting_time > current_time - datetime.timedelta(hours=Activity.period)) \
+                .filter(Activity.type != 0) \
+                .update({Activity.state: dst_state,
+                         Activity.updater:'task',
+                         Activity.update_time: now()}
+                        ,synchronize_session=False)
+            session.commit()
+        except Exception as e:
+            LOG.exception("start_activity error.")
+            # 数据库异常
+            rst_code = '999999'
+            rst_desc = e.message
+            if session is not None:
+                session.rollback()
+            return {'rst_code':rst_code, 'rst_desc':rst_desc}
+
     def list_act_wait_pro(self, type=None, page_index = None):
         """
         教学活动结束4小时内,推送评级提醒
