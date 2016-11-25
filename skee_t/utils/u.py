@@ -36,6 +36,13 @@ class U:
         return mx6s.hexdigest().upper()
 
     @staticmethod
+    def sign_sha1(mydict):
+        str_sign_temp = '&'.join([key+"="+mydict[key] for key in sorted(mydict.keys())])
+        sha1 = hashlib.sha1()
+        sha1.update(str_sign_temp)
+        return sha1.hexdigest()
+
+    @staticmethod
     def gen_auth_code_num():
         code_list = []
         for i in range(6):
@@ -102,3 +109,11 @@ class U:
 
 # print urllib.quote('蔚小春','utf-8')
 # print int(time.time())
+
+# mydict = dict()
+# mydict['noncestr'] = 'Wm3WZYTPz0wzccnW'
+# mydict['jsapi_ticket'] = 'sM4AOVdWfPE4DxkXGEs8VMCPGGVi4C3VM0P37wVUCFvkVAy_90u5h9nbSlYy3-Sl-HhTdfl2fzFy1AOcHKP7qg'
+# mydict['timestamp'] = '1414587457'
+# mydict['url'] = 'http://mp.weixin.qq.com?params=value'
+#
+# print U.sign_sha1(mydict)

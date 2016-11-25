@@ -1,16 +1,21 @@
 #! -*- coding: UTF-8 -*-
 import hashlib
 import logging
+import time
 
 from webob import Response
 
+from skee_t.conf import CONF
 from skee_t.db.models import Property
 from skee_t.services.service_system import SysService
+from skee_t.utils.my_json import MyJson
+from skee_t.utils.u import U
 from skee_t.wsgi import Resource
 from skee_t.wsgi import Router
 from skee_t.wx.basic import receive
 from skee_t.wx.basic import reply
 from skee_t.wx.basic.basic import WxBasic
+from skee_t.wx.basic.jsbasic import WxJSBasic
 from skee_t.wx.proxy.menu import Menu
 from skee_t.wx.proxy.webAuthaccessToken import WxOpenIdProxy
 
@@ -41,6 +46,12 @@ class WxHandle_V1(Router):
                        controller=Resource(controller_v1),
                        action='auth_snsapi_base',
                        conditions={'method': ['GET']})
+
+        mapper.connect('/wechatjs',
+                       controller=Resource(controller_v1),
+                       action='wechatjs',
+                       conditions={'method': ['POST']})
+
         mapper.connect('/menu',
                        controller=Resource(controller_v1),
                        action='menu_create',
@@ -63,6 +74,27 @@ class ControllerV1(object):
 
     def __init__(self):
         pass
+
+    def wechatjs(self, request):
+        LOG.info('wechatjs')
+        try:
+            back_dict = dict()
+            jsapi_ticket = WxJSBasic().get_jsapi_ticket()
+            LOG.info("ticket [%s] " % (jsapi_ticket))
+            back_dict['nonceStr'] = U.gen_uuid()
+            back_dict['jsapi_ticket'] = jsapi_ticket
+            back_dict['timeStamp'] = str(int(time.time()))
+            back_dict['url'] = request.json_body['url']
+            back_dict['signature'] = U.sign_sha1(back_dict)
+
+            back_dict['appId'] = CONF.wxp.appid
+            back_dict['rspCode'] = 0
+            back_dict['rspDesc'] = 'success'
+
+            LOG.info("rsp  %s " % back_dict)
+            return Response(body=MyJson.dumps(back_dict))
+        except Exception, Argument:
+            return Argument
 
     def get_handle(self, request):
         LOG.info('Current received message is %s' % request.params)

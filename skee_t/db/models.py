@@ -355,6 +355,21 @@ class WxAccessToken(DB_BASE_MODEL):
     entry_time = Column('entry_time', DateTime(), default=now(), nullable=False)
 
 
+class WxJSAPIToken(DB_BASE_MODEL):
+    """
+    微信存储表
+    .. attribute :: state
+        0 不可用 1 可用 2 更新中
+    """
+    __tablename__ = 'wx_jsapi_tickets'
+
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+    uuid = Column('uuid', String(32), nullable=False, unique=True)
+    state = Column('state', SmallInteger, nullable=False, default=1)
+    ticket = Column('ticket', String(512), nullable=False)
+    expires_in = Column('expires_in', Integer, nullable=False)
+    entry_time = Column('entry_time', DateTime(), default=now(), nullable=False)
+
 # class WxUserInfo(DB_BASE_MODEL):
 #     """
 #     微信存储表
