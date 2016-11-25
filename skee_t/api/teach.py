@@ -162,7 +162,7 @@ class ControllerV1(object):
 
     def detail_teach(self, request, teachId):
         # todo 获取当前用户所在城市
-        print 'detail_teach teachId:%s' % teachId
+        LOG.info( 'detail_teach teachId:%s' % teachId)
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
@@ -180,7 +180,7 @@ class ControllerV1(object):
 
     def list_teach(self, request, leaderId=None, pageIndex=None):
         #todo 获取当前用户所在城市
-        print 'list_activity_teach page_index:%s' % pageIndex
+        LOG.info( 'list_activity_teach page_index:%s' % pageIndex)
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
@@ -196,7 +196,7 @@ class ControllerV1(object):
         return Response(body=MyJson.dumps(rsp_dict))
 
     def un_estimate(self, request, openId, pageIndex):
-        print 'un_estimate page_index:%s' % pageIndex
+        LOG.info('un_estimate page_index:%s' % pageIndex)
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
@@ -220,7 +220,7 @@ class ControllerV1(object):
 
 
     def list_teach_somebody(self, request, openId, pageIndex):
-        print 'list_activity_myteach page_index:%s' % pageIndex
+        LOG.info('list_activity_myteach page_index:%s' % pageIndex)
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
         user_service = UserService()
@@ -250,7 +250,7 @@ class ControllerV1(object):
         return Response(body=MyJson.dumps(rsp_dict))
 
     def list_learn_somebody(self, request, openId, pageIndex):
-        print 'list_learn_somebody page_index:%s' % pageIndex
+        LOG.info('list_learn_somebody page_index:%s' % pageIndex)
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
         # 获取当前用户信息
         user_service = UserService()
@@ -615,7 +615,7 @@ class ControllerV1(object):
         return Response(body=MyJson.dumps(rsp_dict))
 
     def list_estimate(self, request, teachId, openId=None):
-        print 'list_estimate page_index:%s' % teachId
+        LOG.info( 'list_estimate page_index:%s' % teachId)
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
         # 通过openId获取用户信息
         userId = None
