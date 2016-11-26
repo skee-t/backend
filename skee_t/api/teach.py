@@ -680,32 +680,7 @@ class ControllerV1(object):
     def list_estimate_all(self, request, teacherId, pageIndex):
         LOG.info( 'list_estimate_all page_index:%s' % pageIndex)
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
-        # 通过openId获取用户信息
-        user_service = UserService()
-        user = user_service.get_user(user_id=teacherId)
-        if not isinstance(user, User):
-            rsp_dict['rspCode'] = user['rst_code']
-            rsp_dict['rspDesc'] = user['rst_desc']
-            return Response(body=MyJson.dumps(rsp_dict))
-
-        level_info = user_service.get_level(0, user.teach_level)
-        if isinstance(level_info, Level):
-            rsp_dict['teachLevel'] = level_info.level_desc
-        else:
-            rsp_dict['teachLevel'] = user.teach_level
-        rsp_dict['skiType'] = user.ski_type
-        rsp_dict['skiLevel'] = user.ski_level
-        rsp_dict['teacherName'] = user.name
-        rsp_dict['teacherHeadImagePath'] = user.head_image_path
-
-        memberService = MemberService()
-        teach_count = memberService.teach_count(user.uuid)
-        if not isinstance(teach_count, KeyedTuple):
-            rsp_dict['rspCode'] = teach_count['rst_code']
-            rsp_dict['rspDesc'] = teach_count['rst_code']
-            return Response(body=MyJson.dumps(rsp_dict))
-        rsp_dict['teachCount'] = teach_count.__getattribute__('teach_count')
-        rst = memberService.list_estimate(teacher_id=user.uuid, page_index=pageIndex)
+        rst = MemberService().list_estimate(teacher_id=teacherId, page_index=pageIndex)
         if isinstance(rst, list):
             rst = [MemberEstimateWrapper(item) for item in rst]
             rsp_dict['estimates'] = rst
