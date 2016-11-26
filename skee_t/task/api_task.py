@@ -65,7 +65,7 @@ class ControllerV1(object):
         LOG.info('[task]activity_end...s')
         service = TaskService()
         # 从进行中 修改为 已结束
-        ats = service.change_activity_finish([2], 3);
+        ats = service.change_activity_finish();
         LOG.info('The result of create user information is %s' % ats)
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])

@@ -6,6 +6,8 @@ import logging
 from sqlalchemy import exists
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.elements import and_
+
+# from sqlalchemy.sql.expression import func, text
 from sqlalchemy.sql.functions import now
 
 from skee_t.db import DbEngine
@@ -38,7 +40,7 @@ class TaskService(BaseService):
 
         try:
             session = DbEngine.get_session_simple()
-            session.query(Activity).filter(Activity.state.in_(src_states))\
+            count = session.query(Activity).filter(Activity.state.in_(src_states))\
                 .filter(Activity.meeting_time <= now()) \
                 .filter(Activity.type != 0) \
                 .update({Activity.state: dst_state,
@@ -46,6 +48,7 @@ class TaskService(BaseService):
                         Activity.update_time: now()}
                        ,synchronize_session=False)
             session.commit()
+            LOG.info("change_activity count:%d" % count.rowcount)
         except Exception as e:
             LOG.exception("start_activity error.")
             # 数据库异常
@@ -55,7 +58,7 @@ class TaskService(BaseService):
                 session.rollback()
             return {'rst_code':rst_code, 'rst_desc':rst_desc}
 
-    def change_activity_finish(self, src_states, dst_state):
+    def change_activity_finish(self):
         """
         创建活动
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -64,22 +67,15 @@ class TaskService(BaseService):
         session = None
         rst_code = 0
         rst_desc = 'success'
-        # ten_weeks_ago = current_time - datetime.timedelta(hours=2)
-
         try:
             session = DbEngine.get_session_simple()
-
-            current_time = datetime.datetime.now()
-            session.query(Activity).filter(Activity.state.in_(src_states)) \
-                .filter(Activity.meeting_time > current_time - datetime.timedelta(hours=Activity.period)) \
-                .filter(Activity.type != 0) \
-                .update({Activity.state: dst_state,
-                         Activity.updater:'task',
-                         Activity.update_time: now()}
-                        ,synchronize_session=False)
+            count = session.execute('update activitys set state=3,updater=:updater,update_time=now() '
+                                    'where date_add(meeting_time, interval period hour) <= now() and state=2',
+                            {'updater': 'task'});
             session.commit()
+            LOG.info("change_activity_finish count:%d" % count.rowcount)
         except Exception as e:
-            LOG.exception("start_activity error.")
+            LOG.exception("change_activity_finish error.")
             # 数据库异常
             rst_code = '999999'
             rst_desc = e.message
