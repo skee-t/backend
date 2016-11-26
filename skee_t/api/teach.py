@@ -16,6 +16,8 @@ from skee_t.services.services import UserService
 from skee_t.utils.my_json import MyJson
 from skee_t.wsgi import Resource
 from skee_t.wsgi import Router
+from skee_t.wx.basic.basic import WxBasic
+from skee_t.wx.proxy.userInfo import UserInfoProxy
 
 __author__ = 'rensikun'
 
@@ -289,14 +291,26 @@ class ControllerV1(object):
         if rsp_dict['rspCode'] != 0:
             return Response(body=MyJson.dumps(rsp_dict))
 
+        # 判断当前用户的关注状况
+        # 三种用户 1 关注且有账户 2 关注但无账户 3 未关注且无账户
+        cur_user_id = ''
+        cur_subscribe = 1
+        user = UserService().get_user(browseOpenId)
+        if isinstance(user, User):
+            cur_user_id = user.uuid
+        else:
+            # todo 之前可以缓存在表中,该用户注册时直接拿过来用,不再向微信要
+            acc_token = WxBasic().get_access_token()
+            wx_user_info = UserInfoProxy().get(acc_token, browseOpenId)
+            if 'subscribe' in wx_user_info:
+                cur_subscribe = wx_user_info['subscribe']
+
         # 判断当前浏览用户是否可以参加该活动
         #  3 队长 2 已被批准 1 可以加入 0 申请中等待批准
         can_join = 1
-        apply_num = 0
         if rsp_dict['state'] != 0:
             can_join = -1
         else:
-            user = UserService().get_user(browseOpenId)
             if isinstance(user, User):
                 for member in rsp_dict['members']:
                     if member['id'] == user.uuid:
@@ -307,12 +321,15 @@ class ControllerV1(object):
                         else:
                             can_join = 2
 
-        # 移除申请中队员
+        # 移除申请中队员,并统计申请人数
+        apply_num = 0
         for i in range(len(rsp_dict['members'])-1,-1,-1):         #倒序
             if rsp_dict['members'][i]['state'] == 0:
                 apply_num += 1
                 del rsp_dict['members'][i]
 
+        rsp_dict['curUser'] = cur_user_id
+        rsp_dict['curSubscribe'] = cur_subscribe
         rsp_dict['canJoin'] = can_join
         rsp_dict['applyNum'] = apply_num
         LOG.info('The result of create user information is %s' % rsp_dict)
