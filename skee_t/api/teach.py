@@ -335,10 +335,10 @@ class ControllerV1(object):
                 del rsp_dict['members'][i]
 
         rsp_dict['curUser'] = cur_user_id
-        rsp_dict['curSubscribe'] = 0
-        rsp_dict['canJoin'] = 1
-        # rsp_dict['curSubscribe'] = cur_subscribe
-        # rsp_dict['canJoin'] = can_join
+        # rsp_dict['curSubscribe'] = 0
+        # rsp_dict['canJoin'] = 1
+        rsp_dict['curSubscribe'] = cur_subscribe
+        rsp_dict['canJoin'] = can_join
         rsp_dict['applyNum'] = apply_num
         LOG.info('The result of create user information is %s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))
