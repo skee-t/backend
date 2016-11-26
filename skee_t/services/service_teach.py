@@ -5,7 +5,7 @@ import logging
 from sqlalchemy.sql.functions import now, func
 
 from skee_t.db import DbEngine
-from skee_t.db.models import User, ActivityMember
+from skee_t.db.models import User, ActivityMember, Activity
 from skee_t.services import BaseService
 
 __author__ = 'rensikun'
@@ -163,7 +163,7 @@ class MemberService(BaseService):
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
     # @SkiResortListValidator
-    def list_estimate(self, teach_id, user_id = None):
+    def list_estimate(self, teach_id = None, teacher_id = None, user_id = None, page_index = None):
         """
         创建用户方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -175,16 +175,48 @@ class MemberService(BaseService):
 
         try:
             session = DbEngine.get_session_simple()
-            est_query =  session.query(ActivityMember.user_uuid.label('user_id'), User.name.label('user_name'),
-                                 ActivityMember.estimate_type.label('type'),
-                                 ActivityMember.estimate_score.label('score'),
-                                 ActivityMember.estimate_content.label('content'))\
+            est_query = session.query(ActivityMember.user_uuid.label('user_id'),
+                                      User.name.label('user_name'),
+                                      ActivityMember.estimate_type.label('type'),
+                                      ActivityMember.estimate_score.label('score'),
+                                      ActivityMember.estimate_content.label('content'),
+                                      ActivityMember.update_time.label('est_time'))\
                 .filter(ActivityMember.user_uuid == User.uuid)\
-                .filter(ActivityMember.activity_uuid == teach_id)\
-                .filter(ActivityMember.estimate_score != 0)
+                .filter(ActivityMember.estimate_score != 0) \
+                .filter(Activity.state > 2)\
+                .filter(ActivityMember.activity_uuid == Activity.uuid)
+            if teach_id:
+                est_query = est_query.filter(ActivityMember.activity_uuid == teach_id)
             if user_id:
                 est_query = est_query.filter(User.uuid == user_id)
-            return   est_query.all()
+            if teacher_id:
+                est_query = est_query.filter(Activity.creator == teacher_id)
+            # 统一按照更新时间倒序排列
+            est_query = est_query.order_by(ActivityMember.update_time.desc())
+            if page_index:
+                est_query = est_query.offset((int(page_index)-1)*5).limit(int(page_index)*5)
+            return est_query.all()
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    # @SkiResortListValidator
+    def teach_count(self, teacher_id):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+        try:
+            session = DbEngine.get_session_simple()
+            return session.query(func.count(Activity.uuid).label('teach_count')) \
+                .filter(Activity.creator == teacher_id).filter(Activity.state > 2).one()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
             # 数据库异常

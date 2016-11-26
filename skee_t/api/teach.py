@@ -120,6 +120,12 @@ class TeachApi_V1(Router):
                        action='list_estimate',
                        conditions={'method': ['GET']})
 
+        # 活动所有评价
+        mapper.connect('/estimatea/{teacherId}/{pageIndex}',
+                       controller=Resource(controller_v1),
+                       action='list_estimate_all',
+                       conditions={'method': ['GET']})
+
 
 class ControllerV1(object):
 
@@ -329,8 +335,10 @@ class ControllerV1(object):
                 del rsp_dict['members'][i]
 
         rsp_dict['curUser'] = cur_user_id
-        rsp_dict['curSubscribe'] = cur_subscribe
-        rsp_dict['canJoin'] = can_join
+        rsp_dict['curSubscribe'] = 0
+        rsp_dict['canJoin'] = 1
+        # rsp_dict['curSubscribe'] = cur_subscribe
+        # rsp_dict['canJoin'] = can_join
         rsp_dict['applyNum'] = apply_num
         LOG.info('The result of create user information is %s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))
@@ -620,7 +628,14 @@ class ControllerV1(object):
 
         # 推送用户评价通知
         try:
-            BizMsgV1().create_with_send_sms(type=4,source_id=user.uuid,source_name=user.name,
+            # 区分匿名与非匿名
+            if req_json.get('type') == '1':
+                source_id='admin_msg'
+                source_name='小帮'
+            else:
+                source_id=user.uuid
+                source_name=user.name
+            BizMsgV1().create_with_send_sms(type=4,source_id=source_id,source_name=source_name,
                                             target_id=activity_leader.__getattribute__('leader_id'),
                                             target_name=activity_leader.__getattribute__('leader_name'),
                                             target_phone=activity_leader.__getattribute__('leader_phone'),
@@ -653,6 +668,44 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = teach_info['rst_desc']
 
         rst = MemberService().list_estimate(teach_id=teachId, user_id=userId)
+        if isinstance(rst, list):
+            rst = [MemberEstimateWrapper(item) for item in rst]
+            rsp_dict['estimates'] = rst
+        else:
+            rsp_dict['rspCode'] = rst['rst_code']
+            rsp_dict['rspDesc'] = rst['rst_desc']
+
+        return Response(body=MyJson.dumps(rsp_dict))
+
+    def list_estimate_all(self, request, teacherId, pageIndex):
+        LOG.info( 'list_estimate_all page_index:%s' % pageIndex)
+        rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
+        # 通过openId获取用户信息
+        user_service = UserService()
+        user = user_service.get_user(user_id=teacherId)
+        if not isinstance(user, User):
+            rsp_dict['rspCode'] = user['rst_code']
+            rsp_dict['rspDesc'] = user['rst_desc']
+            return Response(body=MyJson.dumps(rsp_dict))
+
+        level_info = user_service.get_level(0, user.teach_level)
+        if isinstance(level_info, Level):
+            rsp_dict['teachLevel'] = level_info.level_desc
+        else:
+            rsp_dict['teachLevel'] = user.teach_level
+        rsp_dict['skiType'] = user.ski_type
+        rsp_dict['skiLevel'] = user.ski_level
+        rsp_dict['teacherName'] = user.name
+        rsp_dict['teacherHeadImagePath'] = user.head_image_path
+
+        memberService = MemberService()
+        teach_count = memberService.teach_count(user.uuid)
+        if not isinstance(teach_count, KeyedTuple):
+            rsp_dict['rspCode'] = teach_count['rst_code']
+            rsp_dict['rspDesc'] = teach_count['rst_code']
+            return Response(body=MyJson.dumps(rsp_dict))
+        rsp_dict['teachCount'] = teach_count.__getattribute__('teach_count')
+        rst = memberService.list_estimate(teacher_id=user.uuid, page_index=pageIndex)
         if isinstance(rst, list):
             rst = [MemberEstimateWrapper(item) for item in rst]
             rsp_dict['estimates'] = rst
