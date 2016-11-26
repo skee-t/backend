@@ -93,7 +93,6 @@ class ControllerV1(object):
         # todo 通过openid从微信结果获取位置
         return self.list_ski_resort(request, '河北市', pageIndex)
 
-
     def list_ski_resort_often(self, request, openid, pageIndex):
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
@@ -113,7 +112,6 @@ class ControllerV1(object):
 
         LOG.info('The result of create user information is %s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))
-
 
     def list_ski_resort_simple(self, request, skiType, skiResortId=None, pageIndex=None):
         print 'page_index:%s' % pageIndex

@@ -160,7 +160,8 @@ class SkiResortService(BaseService):
             query_sr = query_sr \
                 .filter(SkiResort.uuid == Activity.ski_resort_uuid) \
                 .filter(exists().where(and_(ActivityMember.user_uuid == user_id,
-                                            ActivityMember.activity_uuid == Activity.uuid))) \
+                                            ActivityMember.activity_uuid == Activity.uuid)))\
+                .group_by(SkiResort.uuid)\
                 .order_by(func.max(Activity.create_time).desc())
 
             return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
