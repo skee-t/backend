@@ -48,7 +48,7 @@ class TaskService(BaseService):
                         Activity.update_time: now()}
                        ,synchronize_session=False)
             session.commit()
-            LOG.info("change_activity count:%d" % count.rowcount)
+            LOG.info("change_activity count:%d" % count)
         except Exception as e:
             LOG.exception("start_activity error.")
             # 数据库异常
