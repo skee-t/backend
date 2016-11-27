@@ -80,6 +80,8 @@ class ControllerV1(object):
         service = TaskService()
         # 活动状态(3：已结束)
         # 结束时间(4小时内)
+        # 队伍中有人付款(2:付款待教学)
+        # 未通知过(不存在消息里)
         acts = service.list_act_wait_pro(type=1, page_index=1);
         LOG.info('list_act_wait_pro is %s' % acts)
         if isinstance(acts, list):

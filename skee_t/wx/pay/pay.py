@@ -167,7 +167,6 @@ class ControllerV1(object):
                         rsp_dict['rspDesc'] = e.desc
                         return Response(body=MyJson.dumps(rsp_dict))
 
-
         # 3.1 写订单支付信息 订单支付流水状态0
         attach = 'www.huaxuebang.pro'
         user_ip = request._headers.get('Proxy-Client-IP','192.168.0.100')

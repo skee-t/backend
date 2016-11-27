@@ -101,6 +101,8 @@ class TaskService(BaseService):
                 .filter(Activity.state == 3) \
                 .filter(Activity.update_time >= datetime.datetime.now() - datetime.timedelta(hours=4)) \
                 .filter(Activity.type == type) \
+                .filter(exists().where(
+                    and_(ActivityMember.activity_uuid == Activity.uuid, ActivityMember.state == 2))) \
                 .filter(~exists().where(
                     and_(Msg.target_id == User.uuid, Msg.activity_id == Activity.uuid, Msg.type == 5))) \
                 .order_by(Activity.meeting_time.desc())
