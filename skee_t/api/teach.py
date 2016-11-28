@@ -1,4 +1,5 @@
 #! -*- coding: UTF-8 -*-
+import datetime
 import logging
 
 from sqlalchemy.util import KeyedTuple
@@ -540,8 +541,15 @@ class ControllerV1(object):
         # 活动类型:1-教学,状态:3-已结束
         activity_item = activityService.get_activity(req_json.get('teachId'), 1, user.uuid, state=3)
         if not activity_item:
-            rsp_dict['rspCode'] = '100001'
+            rsp_dict['rspCode'] = 100001
             rsp_dict['rspDesc'] = '教学活动不存在或者状态不正确'
+            return Response(body=MyJson.dumps(rsp_dict))
+
+        # 判断活动时间是否还允许晋级(活动结束48小时内)
+        if activity_item.__getattribute__('update_time') \
+                + datetime.timedelta(hours=48) < datetime.datetime.now():
+            rsp_dict['rspCode'] = 100001
+            rsp_dict['rspDesc'] = '教学活动结束已超过48小时，不可再晋级学员'
             return Response(body=MyJson.dumps(rsp_dict))
 
         # 获取待晋级用户信息
@@ -566,12 +574,12 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = update_rst['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
 
-        # 更新活动状态(由3结束->4学员已晋级)
-        update_rst = activityService.update(req_json.get('teachId'), 3, 4, user.uuid, session)
-        if update_rst:
-            rsp_dict['rspCode'] = update_rst['rst_code']
-            rsp_dict['rspDesc'] = update_rst['rst_desc']
-            return Response(body=MyJson.dumps(rsp_dict))
+        # 更新活动状态(由3结束->4学员已晋级) 20161128 学员晋级不再更新活动状态
+        # update_rst = activityService.update(req_json.get('teachId'), 3, 4, user.uuid, session)
+        # if update_rst:
+        #     rsp_dict['rspCode'] = update_rst['rst_code']
+        #     rsp_dict['rspDesc'] = update_rst['rst_desc']
+        #     return Response(body=MyJson.dumps(rsp_dict))
         # 统一commit
         try:
             session.commit()

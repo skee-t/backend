@@ -38,7 +38,6 @@ class BizTeachV1(object):
             rsp_dict.update(rst)
 
         # -2：报名后退出；-1: 队长拒绝； 0：已报名待批准；1：队长批准待付款; 2: 已付款 3:晋级 4:队长
-        # 0：已报名待批准；1：已批准待付款; 2: 已付款; 3: 晋级; 4: 队长
         members = MemberService().list_member(teachId, memberStates, leaderId)
         if isinstance(members, list):
             rsp_dict['members'] = [MemberWrapper(item) for item in members]

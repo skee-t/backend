@@ -262,7 +262,7 @@ class ActivityService(BaseService):
             session = DbEngine.get_session_simple()
             query_sr = session.query(Activity.uuid.label('id'), Activity.title, Activity.type, Activity.state,
                                      Activity.level_limit, Activity.meeting_time, Activity.venue, Activity.period,
-                                     Activity.fee, Activity.quota, Activity.notice,
+                                     Activity.fee, Activity.quota, Activity.notice, Activity.update_time,
                                      Activity.ski_resort_uuid.label('ski_resort_id'),
                                      SkiResort.name.label('ski_resort_name'),SkiResort.trail_pic,
                                      User.uuid.label('leader_id'), User.name.label('leader_name'), User.phone_no.label('leader_phone'), Activity.contact.label('leader_contact')

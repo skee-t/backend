@@ -1,8 +1,8 @@
 #! -*-coding:UTF-8 -*-
-import abc
 import datetime
 import decimal
 
+import abc
 from sqlalchemy.util import KeyedTuple
 
 from skee_t.db.models import SkiResort, Activity, User, ActivityMember, Msg
@@ -152,7 +152,8 @@ class ActivityDetailWrapper(AbstractORMWrapper):
 
     def _getwrapattrs(self):
         return [
-            'id', 'title', 'type', 'state', 'level_limit', 'meeting_time', 'venue', 'period', 'fee', 'quota', 'notice',
+            'id', 'title', 'type', 'state', 'level_limit', 'meeting_time',
+            'venue', 'period', 'fee', 'quota', 'notice', 'update_time',
             'ski_resort_id', 'ski_resort_name', 'trail_pic',
             'leader_id', 'leader_contact', ]
 
