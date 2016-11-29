@@ -118,7 +118,7 @@ class BizPayV1(object):
         order_service = OrderService()
         order = order_service.get_order(order_no)
 
-        if order.pay_id != user.uuid:
+        if order.collect_id != user.uuid:
             LOG.warn('order_user_wrong ' + open_id)
             rsp_dict['rspCode'] = 999999
             rsp_dict['rspDesc'] = '信息检验错误,请确保是本人支付'

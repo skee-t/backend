@@ -6,7 +6,7 @@ from sqlalchemy.util import KeyedTuple
 from webob import Response
 
 from skee_t.conf import CONF
-from skee_t.db.models import User, OrderPay, Order
+from skee_t.db.models import User, OrderCollect, Order
 from skee_t.db.wrappers import ActivityMemberSimpleWrapper
 from skee_t.services.service_activity import ActivityService
 from skee_t.services.services import UserService
@@ -133,28 +133,28 @@ class ControllerV1(object):
 
         pay_service = PayService()
         # 3 查询微信支付流水状态
-        if corder_rst.pay_id:
-            orderPay = pay_service.getpay_by_payid(corder_rst.pay_id)
-            if not orderPay:
+        if corder_rst.collect_id:
+            orderCollect = pay_service.getpay_by_payid(corder_rst.collect_id)
+            if not orderCollect:
                 pass
-            if not isinstance(orderPay, OrderPay):
-                rsp_dict['rspCode'] = orderPay.get('rst_code')
-                rsp_dict['rspDesc'] = orderPay.get('rst_desc')
+            if not isinstance(orderCollect, OrderCollect):
+                rsp_dict['rspCode'] = orderCollect.get('rst_code')
+                rsp_dict['rspDesc'] = orderCollect.get('rst_desc')
                 return Response(body=MyJson.dumps(rsp_dict))
             else:
                 # 0:初始 1:预支付 2支付流水处理中 3:成功 4:失败 5:未知
-                if orderPay.state == 3:
+                if orderCollect.state == 3:
                     LOG.info('order already success')
                     rsp_dict['rspCode'] = 200000
                     rsp_dict['rspDesc'] = '已支付成功'
                     return Response(body=MyJson.dumps(rsp_dict))
-                elif orderPay.state == 0:
+                elif orderCollect.state == 0:
                     LOG.info('pay already exists')
                     return Response(body=MyJson.dumps(rsp_dict))
-                elif orderPay.state in (1, 2, 5):
+                elif orderCollect.state in (1, 2, 5):
                     try:
-                        query_rst = BizPayV1().query(transaction_id=orderPay.partner_pay_id,
-                                                     pay_id=orderPay.uuid,
+                        query_rst = BizPayV1().query(transaction_id=orderCollect.partner_collect_id,
+                                                     pay_id=orderCollect.uuid,
                                                      order_no=corder_rst.order_no,
                                                      activity_uuid=teach_id,
                                                      user_uuid=user_info.uuid)
@@ -258,13 +258,13 @@ class ControllerV1(object):
         rsp_dict = dict([('return_code', 'SUCCESS'), ('return_msg', 'OK')])
         pay_service = PayService()
         # 1 确认prepay_id是否有效
-        orderpay_rst = pay_service.getpay_by_prepayid(prepay_id)
-        if not isinstance(orderpay_rst, OrderPay):
-            rsp_dict['rspCode'] = orderpay_rst.get('rst_code')
-            rsp_dict['rspDesc'] = orderpay_rst.get('rst_desc')
+        ordercollect_rst = pay_service.getpay_by_prepayid(prepay_id)
+        if not isinstance(ordercollect_rst, OrderCollect):
+            rsp_dict['rspCode'] = ordercollect_rst.get('rst_code')
+            rsp_dict['rspDesc'] = ordercollect_rst.get('rst_desc')
             return Response(body=MyJson.dumps(rsp_dict))
         # 2 支付订单流水不为 1-预支付
-        if orderpay_rst.state != 1:
+        if ordercollect_rst.state != 1:
             rsp_dict['rspCode'] = 300000
             rsp_dict['rspDesc'] = '状态错误'
             return Response(body=MyJson.dumps(rsp_dict))

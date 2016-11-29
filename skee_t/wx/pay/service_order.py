@@ -98,7 +98,7 @@ class OrderService(BaseService):
             session = DbEngine.get_session_simple()
             session.query(Order) \
                 .filter(Order.order_no == order_no) \
-                .update({Order.state:state, Order.pay_id:pay_id}, synchronize_session=False)
+                .update({Order.state:state, Order.collect_id:pay_id}, synchronize_session=False)
             session.commit
         except NoResultFound as e:
             LOG.exception("order_not_exists error.")

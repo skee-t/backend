@@ -5,7 +5,7 @@ import logging
 from sqlalchemy.orm.exc import NoResultFound
 
 from skee_t.db import DbEngine
-from skee_t.db.models import User, Order, OrderPay, ActivityMember
+from skee_t.db.models import User, Order, OrderCollect, ActivityMember
 from skee_t.services import BaseService
 
 __author__ = 'rensikun'
@@ -31,17 +31,17 @@ class PayService(BaseService):
         session = None
         rst_code = 0
         rst_desc = 'success'
-        order_pay = OrderPay(uuid=uuid,
-                             order_no=order_no,
-                             nonce_str=nonce_str,
-                             attach=attach,
-                             user_ip=user_ip,
-                             openid=openid,
-                      )
+        order_collect = OrderCollect(uuid=uuid,
+                                 order_no=order_no,
+                                 nonce_str=nonce_str,
+                                 attach=attach,
+                                 user_ip=user_ip,
+                                 openid=openid,
+                                 )
         try:
             session = DbEngine.get_session_simple()
             # 1 创建支付流水
-            session.add(order_pay)
+            session.add(order_collect)
             # 2 更新订单支付流水号
             order = session.query(Order) \
                 .filter(Order.order_no == order_no).one()
@@ -64,22 +64,22 @@ class PayService(BaseService):
 
         try:
             session = DbEngine.get_session_simple()
-            order_pay = session.query(OrderPay) \
-                .filter(OrderPay.uuid == pay_id).one()
+            order_collect = session.query(OrderCollect) \
+                .filter(OrderCollect.uuid == pay_id).one()
             if return_code:
-                order_pay.return_code = return_code
+                order_collect.return_code = return_code
             if return_msg:
-                order_pay.return_msg = return_msg
+                order_collect.return_msg = return_msg
             if result_code:
-                order_pay.result_code = result_code
+                order_collect.result_code = result_code
             if err_code:
-                order_pay.err_code = err_code
+                order_collect.err_code = err_code
             if err_code_des:
-                order_pay.err_code_des = err_code_des
+                order_collect.err_code_des = err_code_des
             if prepay_id:
-                order_pay.prepay_id = prepay_id
+                order_collect.prepay_id = prepay_id
             if state:
-                order_pay.state = state
+                order_collect.state = state
             session.commit()
         except (TypeError, Exception) as e:
             LOG.exception("get_order error.")
@@ -98,22 +98,22 @@ class PayService(BaseService):
         try:
             session = DbEngine.get_session_simple()
             # 更新订单支付流水
-            order_pay = session.query(OrderPay) \
-                .filter(OrderPay.uuid == pay_id).one()
+            order_collect = session.query(OrderCollect) \
+                .filter(OrderCollect.uuid == pay_id).one()
             if return_code:
-                order_pay.return_code = return_code
+                order_collect.return_code = return_code
             if return_msg:
-                order_pay.return_msg = return_msg
+                order_collect.return_msg = return_msg
             if result_code:
-                order_pay.result_code = result_code
+                order_collect.result_code = result_code
             if err_code:
-                order_pay.err_code = err_code
+                order_collect.err_code = err_code
             if err_code_des:
-                order_pay.err_code_des = err_code_des
+                order_collect.err_code_des = err_code_des
             if prepay_id:
-                order_pay.prepay_id = prepay_id
+                order_collect.prepay_id = prepay_id
             if state:
-                order_pay.state = state
+                order_collect.state = state
             # 更新订单
             order = session.query(Order) \
                 .filter(Order.order_no == order_no).one()
@@ -132,8 +132,8 @@ class PayService(BaseService):
         try:
             session = DbEngine.get_session_simple()
             # 更新订单支付
-            return session.query(OrderPay) \
-                .filter(OrderPay.prepay_id == prepay_id).one()
+            return session.query(OrderCollect) \
+                .filter(OrderCollect.prepay_id == prepay_id).one()
         except (TypeError, Exception) as e:
             LOG.exception("get_order error.")
             # 数据库异常
@@ -144,8 +144,8 @@ class PayService(BaseService):
     def getpay_by_payid(self, pay_id = None):
         try:
             session = DbEngine.get_session_simple()
-            return session.query(OrderPay) \
-                .filter(OrderPay.uuid == pay_id).one()
+            return session.query(OrderCollect) \
+                .filter(OrderCollect.uuid == pay_id).one()
         except NoResultFound as e:
             LOG.exception("getpay_by_payid non-one.")
             return None
@@ -159,13 +159,13 @@ class PayService(BaseService):
     def getpay_by_userpayid(self, open_id = None, pay_id = None):
         try:
             session = DbEngine.get_session_simple()
-            return session.query(OrderPay.state,Order.state.label('order_state'), Order.order_no
-                                 ,Order.teach_id, Order.pay_user_id) \
-                .filter(OrderPay.uuid == pay_id) \
-                .filter(OrderPay.openid == open_id) \
-                .filter(User.open_id == OrderPay.openid) \
-                .filter(Order.order_no == OrderPay.order_no) \
-                .filter(Order.pay_id == OrderPay.uuid) \
+            return session.query(OrderCollect.state, Order.state.label('order_state'), Order.order_no
+                                 , Order.teach_id, Order.pay_user_id) \
+                .filter(OrderCollect.uuid == pay_id) \
+                .filter(OrderCollect.openid == open_id) \
+                .filter(User.open_id == OrderCollect.openid) \
+                .filter(Order.order_no == OrderCollect.order_no) \
+                .filter(Order.collect_id == OrderCollect.uuid) \
                 .one()
         except (TypeError, Exception) as e:
             LOG.exception("get_order error.")
@@ -177,9 +177,9 @@ class PayService(BaseService):
     def getpay_by_order(self, order_no):
         try:
             session = DbEngine.get_session_simple()
-            return session.query(OrderPay.uuid, OrderPay.openid, OrderPay.user_ip, OrderPay.attach, Order.fee) \
-                .filter(OrderPay.order_no == order_no) \
-                .filter(OrderPay.uuid == Order.pay_id) \
+            return session.query(OrderCollect.uuid, OrderCollect.openid, OrderCollect.user_ip, OrderCollect.attach, Order.fee) \
+                .filter(OrderCollect.order_no == order_no) \
+                .filter(OrderCollect.uuid == Order.collect_id) \
                 .one()
         except (TypeError, Exception) as e:
             LOG.exception("get_order error.")
@@ -194,8 +194,8 @@ class PayService(BaseService):
         rst_desc = 'success'
         try:
             session = DbEngine.get_session_simple()
-            order_pay = session.query(OrderPay) \
-                .filter(OrderPay.prepay_id == prepay_id).one()
+            order_pay = session.query(OrderCollect) \
+                .filter(OrderCollect.prepay_id == prepay_id).one()
             if return_code:
                 order_pay.return_code = return_code
             if return_msg:
@@ -215,8 +215,8 @@ class PayService(BaseService):
         try:
             session = DbEngine.get_session_simple()
             # 1 更新流水状态
-            order_pay = session.query(OrderPay) \
-                .filter(OrderPay.uuid == pay_id).one()
+            order_pay = session.query(OrderCollect) \
+                .filter(OrderCollect.uuid == pay_id).one()
             order_pay.return_code = 'SUCCESS'
             order_pay.state = 3
             order_pay.partner_pay_id = transaction_id
@@ -247,14 +247,14 @@ class PayService(BaseService):
         try:
             session = DbEngine.get_session_simple()
             # 1 更新流水状态
-            order_pay = session.query(OrderPay) \
-                .filter(OrderPay.uuid == pay_id).one()
-            order_pay.return_code = 'FAIL'
-            order_pay.err_code = err_code
-            order_pay.err_code_des = err_code_des
-            order_pay.state = 4
+            order_collect = session.query(OrderCollect) \
+                .filter(OrderCollect.uuid == pay_id).one()
+            order_collect.return_code = 'FAIL'
+            order_collect.err_code = err_code
+            order_collect.err_code_des = err_code_des
+            order_collect.state = 4
             if transaction_id:
-                order_pay.partner_pay_id = transaction_id
+                order_collect.partner_pay_id = transaction_id
 
             # 2 更新订单状态
             order = session.query(Order) \

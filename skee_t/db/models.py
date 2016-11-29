@@ -247,13 +247,13 @@ class Order(DB_BASE_MODEL):
     collect_user_id = Column('collect_user_id', String(32), nullable=False, doc='收款用户ID')
     fee = Column('fee', Integer, nullable=True, default=0)
     state = Column('state', SmallInteger, nullable=False, default=0)
-    pay_id = Column('pay_id', String(64), nullable=True, doc='支付流水号')
+    collect_id = Column('collect_id', String(64), nullable=True, doc='支付流水号')
     create_time = Column('create_time', DateTime(), default=now(), nullable=False)
     update_time = Column('update_time', DateTime(), default=now(), nullable=False)
     UniqueConstraint('teach_id', 'pay_user_id')
 
 
-class OrderPay(DB_BASE_MODEL):
+class OrderCollect(DB_BASE_MODEL):
     """
     支付
     .. attribute :: state
@@ -261,11 +261,11 @@ class OrderPay(DB_BASE_MODEL):
     .. attribute :: estimate
         参与评价，只有为完成状态的成员才能参与评价。整数，数值可与星级对应。
     """
-    __tablename__ = 'order_pays'
+    __tablename__ = 'order_collects'
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     uuid = Column('uuid', String(32), nullable=False, unique=True)
     order_no = Column('order_no', String(32), nullable=False)
-    partner_pay_id = Column('partner_pay_id', String(32))
+    partner_collect_id = Column('partner_collect_id', String(32))
     state = Column('state', SmallInteger, nullable=True, default=0, doc='0:初始 1:预支付 2支付流水处理中 3:成功 4:失败 5:未知')
     trade_type = Column('trade_type', String(16), default='WX-JSAPI',nullable=False)
     nonce_str = Column('nonce_str', String(32), nullable=False)
@@ -279,6 +279,33 @@ class OrderPay(DB_BASE_MODEL):
     err_code = Column('err_code', String(32), nullable=True)
     err_code_des = Column('err_code_des', String(128), nullable=True)
     prepay_id = Column('prepay_id', String(64), nullable=True)
+    create_time = Column('create_time', DateTime(), default=now(), nullable=False)
+    update_time = Column('update_time', DateTime(), default=now(), nullable=False)
+
+
+class OrderPay(DB_BASE_MODEL):
+    """
+    支付
+    .. attribute :: state
+        成员状态，显示是否成员正常参与教学活动。取值包括：-1：报名后已退出；0：已报名；1：已完成；
+    .. attribute :: estimate
+        参与评价，只有为完成状态的成员才能参与评价。整数，数值可与星级对应。
+    """
+    __tablename__ = 'order_pays'
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+    uuid = Column('uuid', String(32), nullable=False, unique=True)
+    partner_pay_id = Column('partner_pay_id', String(32))
+    state = Column('state', SmallInteger, nullable=True, default=0, doc='0:初始 1:预支付 2支付流水处理中 3:成功 4:失败 5:未知')
+    nonce_str = Column('nonce_str', String(32), nullable=False)
+    sign_type = Column('sign_type', String(16), default='MD5', nullable=False)
+    user_ip = Column('user_ip', String(16), nullable=False)
+    openid = Column('openid', String(128), nullable=True)
+    check_name = Column('check_name', String(16), nullable=True)
+    return_code = Column('return_code', String(16), nullable=True)
+    return_msg = Column('return_msg', String(128), nullable=True)
+    result_code = Column('result_code', String(16), nullable=True)
+    err_code = Column('err_code', String(32), nullable=True)
+    err_code_des = Column('err_code_des', String(128), nullable=True)
     create_time = Column('create_time', DateTime(), default=now(), nullable=False)
     update_time = Column('update_time', DateTime(), default=now(), nullable=False)
 
