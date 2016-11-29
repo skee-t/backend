@@ -45,7 +45,7 @@ class PayService(BaseService):
             # 2 更新订单支付流水号
             order = session.query(Order) \
                 .filter(Order.order_no == order_no).one()
-            order.pay_id = uuid
+            order.collect_id = uuid
             session.commit()
         except Exception as e:
             LOG.exception("Create Order error.")
