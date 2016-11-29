@@ -215,11 +215,11 @@ class PayService(BaseService):
         try:
             session = DbEngine.get_session_simple()
             # 1 更新流水状态
-            order_pay = session.query(OrderCollect) \
+            order_collect = session.query(OrderCollect) \
                 .filter(OrderCollect.uuid == pay_id).one()
-            order_pay.return_code = 'SUCCESS'
-            order_pay.state = 3
-            order_pay.partner_pay_id = transaction_id
+            order_collect.return_code = 'SUCCESS'
+            order_collect.state = 3
+            order_collect.partner_collect_id = transaction_id
 
             # 2 更新订单状态
             order = session.query(Order) \
@@ -254,7 +254,7 @@ class PayService(BaseService):
             order_collect.err_code_des = err_code_des
             order_collect.state = 4
             if transaction_id:
-                order_collect.partner_pay_id = transaction_id
+                order_collect.partner_collect_id = transaction_id
 
             # 2 更新订单状态
             order = session.query(Order) \
