@@ -113,8 +113,8 @@ class ControllerV1(object):
         # 2 创建订单 订单状态0
         corder_rst = OrderService().create_order(ams['title']+'教学费',
                                                  teach_id,
-                                                 pay_user_id=user_info.uuid,
-                                                 collect_user_id=ams['leaderId'],
+                                                 pay_user_id=ams['leaderId'],  # 订单代付的对象
+                                                 collect_user_id=user_info.uuid,  # 订单代收的对象
                                                  fee=ams['fee']+'00')
         LOG.info('The result of create order information is %s' % corder_rst)
         if not isinstance(corder_rst, Order):
