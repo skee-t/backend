@@ -1,5 +1,6 @@
 #! -*- coding: UTF-8 -*-
 import logging
+import time
 
 from webob import Response
 
@@ -235,8 +236,16 @@ class ControllerV1(object):
             return Response(body=MyJson.dumps(rsp_dict))
 
         payService = PayService()
+        user_pre = None
         for order_pay in order_pays:
             rsp_wx_dict = None
+            if user_pre and user_pre == order_pay.openid:
+                LOG.info('same pay for user-wait for 16 seconds')
+                time.sleep(16)
+            else:
+                LOG.info('different pay for user-wait for 1 seconds')
+                user_pre = order_pay.openid
+                time.sleep(1)
             try:
                 rsp_wx_dict = PayProxy.pay(order_pay.openid, order_pay.user_ip,
                                            order_pay.uuid, order_pay.desc, str(order_pay.amount))
