@@ -11,7 +11,7 @@ from sqlalchemy.sql.elements import and_
 from sqlalchemy.sql.functions import now
 
 from skee_t.db import DbEngine
-from skee_t.db.models import Activity, User, ActivityMember, Msg
+from skee_t.db.models import Activity, User, ActivityMember, Msg, Order, OrderPay
 from skee_t.services import BaseService
 
 __author__ = 'rensikun'
@@ -137,13 +137,73 @@ class TaskService(BaseService):
                 .filter(User.uuid == ActivityMember.user_uuid) \
                 .filter(ActivityMember.activity_uuid == Activity.uuid) \
                 .filter(ActivityMember.state.in_([2, 3])) \
-                .filter(Activity.state.in_([3,4])) \
+                .filter(Activity.state == 3) \
                 .filter(Activity.update_time >= datetime.datetime.now() - datetime.timedelta(hours=8)) \
                 .filter(Activity.type == type) \
                 .filter(~exists().where(
                     and_(Msg.target_id == User.uuid, Msg.activity_id == Activity.uuid, Msg.type == 3))) \
                 .order_by(Activity.meeting_time.desc())
             return query_sr.offset((int(page_index)-1)*50).limit(int(page_index)*50).all()
+        except NoResultFound as e:
+            LOG.exception("List activity information error.")
+            return {'rst_code': 100000, 'rst_desc': '未找到活动'}
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    # @SkiResortListValidator
+    def list_order_wait_payfor_teacher(self, type, page_index, page_size):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            session = DbEngine.get_session_simple()
+            query_sr = session.query(User.open_id, Activity.title, Activity.fee,
+                                     Activity.uuid.label('activity_id'),
+                                     Order.order_no) \
+                .filter(User.uuid == Activity.creator) \
+                .filter(Activity.state == 3, Activity.type == type) \
+                .filter(Activity.update_time.between(datetime.datetime.now() - datetime.timedelta(hours=36),
+                                                     datetime.datetime.now() - datetime.timedelta(hours=24))) \
+                .filter(Order.teach_id == Activity.uuid, Order.state == 2) \
+                .order_by(Activity.meeting_time,Activity.uuid,Order.update_time)
+            return query_sr.offset((page_index-1)*page_size).limit(page_index*page_size).all()
+        except NoResultFound as e:
+            LOG.exception("List activity information error.")
+            return {'rst_code': 100000, 'rst_desc': '未找到活动'}
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    # @SkiResortListValidator
+    def list_pay_wait_for_teacher(self, type, page_index, page_size):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            session = DbEngine.get_session_simple()
+            query_sr = session.query(OrderPay) \
+                .filter(OrderPay.state == 0) \
+                .order_by(OrderPay.create_time)
+            return query_sr.offset((page_index-1)*page_size).limit(page_index*page_size).all()
         except NoResultFound as e:
             LOG.exception("List activity information error.")
             return {'rst_code': 100000, 'rst_desc': '未找到活动'}

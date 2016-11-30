@@ -14,7 +14,7 @@ __author__ = 'rensikun'
 LOG = logging.getLogger(__name__)
 
 
-class PayService(BaseService):
+class CollectService(BaseService):
     """
 
     """
@@ -22,7 +22,7 @@ class PayService(BaseService):
     def __init__(self):
         pass
 
-    def create_pay_order(self, uuid, order_no, nonce_str, attach, user_ip, openid):
+    def create_order(self, uuid, order_no, nonce_str, attach, user_ip, openid):
         """
         创建订单方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -32,11 +32,11 @@ class PayService(BaseService):
         rst_code = 0
         rst_desc = 'success'
         order_collect = OrderCollect(uuid=uuid,
-                                 order_no=order_no,
-                                 nonce_str=nonce_str,
-                                 attach=attach,
-                                 user_ip=user_ip,
-                                 openid=openid,
+                                     order_no=order_no,
+                                     nonce_str=nonce_str,
+                                     attach=attach,
+                                     user_ip=user_ip,
+                                     openid=openid,
                                  )
         try:
             session = DbEngine.get_session_simple()

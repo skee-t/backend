@@ -16,10 +16,10 @@ from skee_t.utils.my_xml import MyXml
 from skee_t.utils.u import U
 from skee_t.wsgi import Resource
 from skee_t.wsgi import Router
-from skee_t.wx.pay.biz_pay import BizPayV1
+from skee_t.wx.pay.biz_collect import BizPayV1
+from skee_t.wx.pay.service_collect import CollectService
 from skee_t.wx.pay.service_order import OrderService
-from skee_t.wx.pay.service_pay import PayService
-from skee_t.wx.proxy.pay import PayProxy
+from skee_t.wx.proxy.collect import CollectProxy
 
 __author__ = 'rensikun'
 
@@ -131,7 +131,7 @@ class ControllerV1(object):
                 rsp_dict['rspDesc'] = '已支付成功'
                 return Response(body=MyJson.dumps(rsp_dict))
 
-        pay_service = PayService()
+        pay_service = CollectService()
         # 3 查询微信支付流水状态
         if corder_rst.collect_id:
             orderCollect = pay_service.getpay_by_payid(corder_rst.collect_id)
@@ -173,7 +173,7 @@ class ControllerV1(object):
         pay_id = U.gen_uuid()
         # 支付流水状态 0  支付流水处理中
         # 并将支付流水号记录在订单信息中
-        cpay_rst = pay_service.create_pay_order(pay_id, corder_rst.order_no, U.gen_uuid(), attach, user_ip, open_id)
+        cpay_rst = pay_service.create_order(pay_id, corder_rst.order_no, U.gen_uuid(), attach, user_ip, open_id)
         if cpay_rst:
             rsp_dict['rspCode'] = cpay_rst.get('rst_code')
             rsp_dict['rspDesc'] = cpay_rst.get('rst_desc')
@@ -188,7 +188,7 @@ class ControllerV1(object):
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
         # 3 微信统一下单
-        pay_service = PayService()
+        pay_service = CollectService()
         order_pay = pay_service.getpay_by_order(req_json['orderNo'])
         if not isinstance(order_pay, KeyedTuple):
             rsp_dict['rspCode'] = order_pay.get('rst_code')
@@ -197,11 +197,11 @@ class ControllerV1(object):
 
         # 2 向微信下单 成功后获取到prepay_id[预支付交易会话标识]
         try:
-            rsp_wx_dict = PayProxy.prepay(open_id=order_pay.__getattribute__('openid'),
-                                          user_ip=order_pay.__getattribute__('user_ip'),
-                                          attach=order_pay.__getattribute__('attach'),
-                                          out_trade_no=order_pay.__getattribute__('uuid'),
-                                          total_fee=str(order_pay.__getattribute__('fee')))
+            rsp_wx_dict = CollectProxy.prepay(open_id=order_pay.__getattribute__('openid'),
+                                              user_ip=order_pay.__getattribute__('user_ip'),
+                                              attach=order_pay.__getattribute__('attach'),
+                                              out_trade_no=order_pay.__getattribute__('uuid'),
+                                              total_fee=str(order_pay.__getattribute__('fee')))
         except MyException as e:
             rsp_dict['rspCode'] = e.code
             rsp_dict['rspDesc'] = e.desc
@@ -256,7 +256,7 @@ class ControllerV1(object):
         wcpay_rst = req_json['wcpayRst']
 
         rsp_dict = dict([('return_code', 'SUCCESS'), ('return_msg', 'OK')])
-        pay_service = PayService()
+        pay_service = CollectService()
         # 1 确认prepay_id是否有效
         ordercollect_rst = pay_service.getpay_by_prepayid(prepay_id)
         if not isinstance(ordercollect_rst, OrderCollect):
@@ -299,7 +299,7 @@ class ControllerV1(object):
             return Response(body=MyXml.gensimple(rsp_dict))
 
         # 2 验证openid和out_trade_no有效性 及获取state,order_state,order_no,teach_id,pay_user_id
-        pay_service = PayService()
+        pay_service = CollectService()
         orderpay_rst = pay_service.getpay_by_userpayid(open_id=rsp_wx_dict['openid'], pay_id=rsp_wx_dict['out_trade_no'])
         if not isinstance(orderpay_rst, KeyedTuple):
             rsp_dict['return_code'] = 'FAIL'

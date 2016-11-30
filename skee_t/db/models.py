@@ -237,7 +237,7 @@ class Order(DB_BASE_MODEL):
     """
     订单
     .. attribute :: state
-        订单状态。取值包括：0：初始；1：预支付; 2：成功; 3: 失败；
+        订单状态。取值包括：0：初始；1：预支付；2：平台代收成功; 3: 平台代收失败；4：平台代付成功 5：平台代付失败 -1：退款
     """
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     order_no = Column('order_no', String(32), nullable=False, unique=True)
@@ -247,7 +247,8 @@ class Order(DB_BASE_MODEL):
     collect_user_id = Column('collect_user_id', String(32), nullable=False, doc='收款用户ID')
     fee = Column('fee', Integer, nullable=True, default=0)
     state = Column('state', SmallInteger, nullable=False, default=0)
-    collect_id = Column('collect_id', String(64), nullable=True, doc='支付流水号')
+    collect_id = Column('collect_id', String(64), nullable=True, doc='代收流水号')
+    pay_id = Column('pay_id', String(64), nullable=True, doc='代付流水号')
     create_time = Column('create_time', DateTime(), default=now(), nullable=False)
     update_time = Column('update_time', DateTime(), default=now(), nullable=False)
     UniqueConstraint('teach_id', 'pay_user_id')
@@ -295,12 +296,15 @@ class OrderPay(DB_BASE_MODEL):
     id = Column('id', BigInteger, autoincrement=True, primary_key=True)
     uuid = Column('uuid', String(32), nullable=False, unique=True)
     partner_pay_id = Column('partner_pay_id', String(32))
-    state = Column('state', SmallInteger, nullable=True, default=0, doc='0:初始 1:预支付 2支付流水处理中 3:成功 4:失败 5:未知')
+    amount = Column('amount', Integer, nullable=True, default=0)
+    state = Column('state', SmallInteger, nullable=True, default=0, doc='0:初始 1:成功 2:失败 3:未知')
+    desc = Column('desc', String(128), nullable=True)
     nonce_str = Column('nonce_str', String(32), nullable=False)
     sign_type = Column('sign_type', String(16), default='MD5', nullable=False)
     user_ip = Column('user_ip', String(16), nullable=False)
     openid = Column('openid', String(128), nullable=True)
     check_name = Column('check_name', String(16), nullable=True)
+    pay_time = Column('pay_time', DateTime(), nullable=True)
     return_code = Column('return_code', String(16), nullable=True)
     return_msg = Column('return_msg', String(128), nullable=True)
     result_code = Column('result_code', String(16), nullable=True)

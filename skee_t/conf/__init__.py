@@ -26,6 +26,10 @@ WXP_OPTS = [
     cfg.StrOpt('key', help='send times limit'),
     cfg.StrOpt('i_unifiedorder', help='send times limit'),
     cfg.StrOpt('i_orderquery', help='send times limit'),
+    cfg.StrOpt('i_pay', help='send times limit'),
+    cfg.StrOpt('i_payqeruy', help='send times limit'),
+    cfg.StrOpt('pay_crt', help='send times limit'),
+    cfg.StrOpt('pay_key', help='send times limit'),
 ]
 
 DB_OPTS = [

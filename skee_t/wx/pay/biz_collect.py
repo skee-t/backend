@@ -9,9 +9,9 @@ from skee_t.db.models import User
 from skee_t.services.services import UserService
 from skee_t.utils.my_exception import MyException
 from skee_t.utils.my_xml import MyXml
+from skee_t.wx.pay.service_collect import CollectService
 from skee_t.wx.pay.service_order import OrderService
-from skee_t.wx.pay.service_pay import PayService
-from skee_t.wx.proxy.pay import PayProxy
+from skee_t.wx.proxy.collect import CollectProxy
 
 __author__ = 'rensikun'
 
@@ -59,7 +59,7 @@ class BizPayV1(object):
     '''
     def query(self, transaction_id, pay_id, order_no, activity_uuid, user_uuid):
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
-        queryRst = PayProxy.query(transaction_id=transaction_id, out_trade_no=pay_id)
+        queryRst = CollectProxy.query(transaction_id=transaction_id, out_trade_no=pay_id)
         if queryRst['result_code'] != 'SUCCESS':
             if queryRst['err_code'] == 'ORDERNOTEXIST':
                 pass
@@ -76,7 +76,7 @@ class BizPayV1(object):
             # USERPAYING--用户支付中
             # PAYERROR--支付失败(其他原因，如银行返回失败)
             urst = None
-            pay_service = PayService()
+            pay_service = CollectService()
             if queryRst['trade_state'] == 'SUCCESS':
                 # 3.1更新流水及订单成功
                 #    更改成员状态为已付款
