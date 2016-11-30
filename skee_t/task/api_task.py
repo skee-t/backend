@@ -183,13 +183,13 @@ class ControllerV1(object):
                 elif acts[index-1].__getattribute__('activity_id') != acts[index].__getattribute__('activity_id'):
                     do_biz = True
                     open_id = acts[index-1].__getattribute__('open_id')
-                    amount = acts[index-1].__getattribute__('fee')*order_no_list.__len__()
+                    amount = acts[index-1].__getattribute__('fee')*order_no_list.__len__()*100
                     title = acts[index-1].__getattribute__('title')
                 elif index+1 == len(acts) and len(acts) < 15:
                     do_biz = True
                     order_no_list.append(acts[index].__getattribute__('order_no'))
                     open_id = acts[index].__getattribute__('open_id')
-                    amount = acts[index].__getattribute__('fee')*order_no_list.__len__()
+                    amount = acts[index].__getattribute__('fee')*order_no_list.__len__()*100
                     title = acts[index].__getattribute__('title')
 
                 if do_biz:
