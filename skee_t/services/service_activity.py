@@ -112,7 +112,8 @@ class ActivityService(BaseService):
                     .filter(exists().where(
                                 and_(ActivityMember.activity_uuid == Activity.uuid,
                                      ActivityMember.user_uuid == member_id_un_estimate,
-                                     ActivityMember.estimate_score == 0)))\
+                                     ActivityMember.estimate_score == 0,
+                                     ActivityMember.state.notin_([-1,-2]))))\
                     .filter(Activity.state >= 3)\
                     .filter(Activity.creator != member_id_un_estimate)
             else:

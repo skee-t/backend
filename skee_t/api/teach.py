@@ -472,7 +472,10 @@ class ControllerV1(object):
             rsp_dict['hasRefund'] = 1
 
         # 1 退出活动(ActivityMember.state:-2)
-        quit_rst = MemberService().member_update(teach_id=req_json.get('teachId'),members=[user.uuid], state=-2)
+        quit_rst = MemberService().member_update(teach_id=req_json.get('teachId'),
+                                                 members=[user.uuid],
+                                                 src_state=activity_item.__getattribute__('member_state'),
+                                                 state=-2)
         if quit_rst:
             rsp_dict['rspCode'] = quit_rst['rst_code']
             rsp_dict['rspDesc'] = quit_rst['rst_code']
@@ -554,8 +557,8 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = '小队成员数超过6人，请三思~'
             return Response(body=MyJson.dumps(rsp_dict))
 
-        # 批准入队
-        approve_rst = MemberService().member_update(req_json.get('teachId'), req_json.get('members'), 1)
+        # 批准入队(从0到1)
+        approve_rst = MemberService().member_update(req_json.get('teachId'), req_json.get('members'), 0, 1)
         if approve_rst:
             rsp_dict['rspCode'] = approve_rst['rst_code']
             rsp_dict['rspDesc'] = approve_rst['rst_desc']
@@ -598,8 +601,8 @@ class ControllerV1(object):
             rsp_dict['rspCode'] = '100001'
             rsp_dict['rspDesc'] = '教学活动不存在'
             return Response(body=MyJson.dumps(rsp_dict))
-
-        approve_rst = MemberService().member_update(req_json.get('teachId'), req_json.get('members'), -1)
+        # 从0到-1
+        approve_rst = MemberService().member_update(req_json.get('teachId'), req_json.get('members'), 0, -1)
         if approve_rst:
             rsp_dict['rspCode'] = approve_rst['rst_code']
             rsp_dict['rspDesc'] = approve_rst['rst_desc']
@@ -642,8 +645,8 @@ class ControllerV1(object):
             return Response(body=MyJson.dumps(rsp_dict))
 
         session = DbEngine.get_session_simple()
-        # 更新活动成员状态
-        approve_rst = MemberService().member_update(req_json.get('teachId'), req_json.get('members'), 3, session)
+        # 更新活动成员状态(从2到3)
+        approve_rst = MemberService().member_update(req_json.get('teachId'), req_json.get('members'), 2, 3, session)
         if approve_rst:
             rsp_dict['rspCode'] = approve_rst['rst_code']
             rsp_dict['rspDesc'] = approve_rst['rst_desc']

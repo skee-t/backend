@@ -1,7 +1,9 @@
 #! -*- coding: UTF-8 -*-
 
 import logging
+from datetime import datetime
 
+from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.functions import now, func
 
 from skee_t.db import DbEngine
@@ -28,18 +30,40 @@ class MemberService(BaseService):
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
         :return:
         """
-        activityMember = ActivityMember(
-                                        activity_uuid = activity_uuid,
-                                        user_uuid = user_uuid,
-                                        state = state,
-                                    )
-
-        session = None
         rst_code = 0
         rst_desc = 'success'
-
+        session = DbEngine.get_session_simple()
+        # 0 检查是否有退出记录
         try:
-            session = DbEngine.get_session_simple()
+            activityMember = session.query(ActivityMember) \
+                            .filter(ActivityMember.activity_uuid==activity_uuid,
+                            ActivityMember.user_uuid==user_uuid).one()
+            if activityMember.state == -2:
+                session.query(ActivityMember) \
+                    .filter(ActivityMember.activity_uuid==activity_uuid,
+                            ActivityMember.user_uuid==user_uuid)\
+                    .update({ActivityMember.state:0, ActivityMember.update_time:datetime.now()},
+                            synchronize_session=False)
+                session.commit()
+            return {'rst_code':rst_code, 'rst_desc':rst_desc}
+        except NoResultFound as e:
+            LOG.info("activityMember not exists.")
+        except Exception as e:
+            LOG.exception("Create SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+            if session is not None:
+                session.rollback()
+            return {'rst_code':rst_code, 'rst_desc':rst_desc}
+
+        # 增加活动成员信息
+        try:
+            activityMember = ActivityMember(
+                activity_uuid = activity_uuid,
+                user_uuid = user_uuid,
+                state = state,
+            )
             session.add(activityMember)
             session.commit()
         except Exception as e:
@@ -108,7 +132,7 @@ class MemberService(BaseService):
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
     # @SkiResortListValidator
-    def member_update(self, teach_id, members, state, session_com = None):
+    def member_update(self, teach_id, members, src_state, state, session_com = None):
         """
         创建用户方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -120,7 +144,8 @@ class MemberService(BaseService):
             else:
                 session = session_com
             session.query(ActivityMember) \
-                .filter(ActivityMember.activity_uuid == teach_id).filter(ActivityMember.user_uuid.in_(members)) \
+                .filter(ActivityMember.activity_uuid == teach_id,ActivityMember.state == src_state)\
+                .filter(ActivityMember.user_uuid.in_(members)) \
                 .update({ActivityMember.state:state,
                          ActivityMember.update_time:now()}
                         ,synchronize_session=False
