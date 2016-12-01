@@ -8,7 +8,7 @@ from webob import Response
 from skee_t.bizs.biz_msg import BizMsgV1
 from skee_t.bizs.biz_teach import BizTeachV1
 from skee_t.db import DbEngine
-from skee_t.db.models import User, Level, ActivityMember
+from skee_t.db.models import User, Level
 from skee_t.db.wrappers import ActivityWrapper, MemberWrapper, MemberEstimateWrapper, ActivityMemberWrapper
 from skee_t.services.service_activity import ActivityService
 from skee_t.services.service_skiResort import SkiResortService
@@ -441,6 +441,9 @@ class ControllerV1(object):
             rsp_dict['rspCode'] = 100001
             rsp_dict['rspDesc'] = '当前活动状态异常'
             return Response(body=MyJson.dumps(rsp_dict))
+
+        # 用户无退款流程
+        rsp_dict['hasRefund'] = 0
         if activity_item.__getattribute__('member_state') == 2:
             # 0 先预退款
             try:
@@ -453,6 +456,8 @@ class ControllerV1(object):
                     rsp_dict['rspCode'] = e.code
                     rsp_dict['rspDesc'] = e.desc
                     return Response(body=MyJson.dumps(rsp_dict))
+            # 用户有退款流程
+            rsp_dict['hasRefund'] = 1
 
         # 1 退出活动(ActivityMember.state:-2)
         quit_rst = MemberService().member_update(teach_id=req_json.get('teachId'),members=[user.uuid], state=-2)
