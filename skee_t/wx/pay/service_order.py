@@ -39,7 +39,7 @@ class OrderService(BaseService):
         try:
             session = DbEngine.get_session_simple()
             order_exists = session.query(Order).filter(Order.teach_id ==teach_id,
-                                                       Order.pay_user_id==pay_user_id).one()
+                                                       Order.collect_user_id==collect_user_id).one()
             LOG.warn("order_exists. order_no is %s" % order_exists.order_no)
             return order_exists
         except NoResultFound as e:
@@ -99,13 +99,13 @@ class OrderService(BaseService):
             rst_desc = e.message
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
-    def update_order(self, order_no, state, pay_id):
+    def update_order(self, order_no, state, collect_id):
         session = None
         try:
             session = DbEngine.get_session_simple()
             session.query(Order) \
                 .filter(Order.order_no == order_no) \
-                .update({Order.state:state, Order.collect_id:pay_id}, synchronize_session=False)
+                .update({Order.state:state, Order.collect_id:collect_id}, synchronize_session=False)
             session.commit
         except NoResultFound as e:
             LOG.exception("order_not_exists error.")

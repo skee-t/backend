@@ -322,7 +322,7 @@ class ControllerV1(object):
                                                             order_no=orderpay_rst.__getattribute__('order_no'),
                                                             transaction_id=rsp_wx_dict['transaction_id'],
                                                             activity_uuid=orderpay_rst.__getattribute__('teach_id'),
-                                                            user_uuid=orderpay_rst.__getattribute__('pay_user_id'))
+                                                            user_uuid=orderpay_rst.__getattribute__('collect_user_id'))
 
         else:
             # 3.2 更新流水及订单失败
