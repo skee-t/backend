@@ -88,7 +88,7 @@ class CollectService(BaseService):
             rst_desc = e.message
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
-    def update_pay_with_order(self, order_no, order_state, pay_id, state = None,
+    def update_pay_with_order(self, order_no, order_state, collect_id, state = None,
                               return_code = None, return_msg= None, result_code= None,
                    err_code= None, err_code_des= None, prepay_id= None):
         session = None
@@ -99,7 +99,7 @@ class CollectService(BaseService):
             session = DbEngine.get_session_simple()
             # 更新订单支付流水
             order_collect = session.query(OrderCollect) \
-                .filter(OrderCollect.uuid == pay_id).one()
+                .filter(OrderCollect.uuid == collect_id).one()
             if return_code:
                 order_collect.return_code = return_code
             if return_msg:
@@ -118,7 +118,7 @@ class CollectService(BaseService):
             order = session.query(Order) \
                 .filter(Order.order_no == order_no).one()
             order.state = order_state
-            order.pay_id = pay_id
+            order.collect_id = collect_id
 
             session.commit()
         except (TypeError, Exception) as e:
@@ -141,11 +141,11 @@ class CollectService(BaseService):
             rst_desc = e.message
             return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
-    def getpay_by_payid(self, pay_id = None):
+    def getpay_by_collectid(self, collect_id):
         try:
             session = DbEngine.get_session_simple()
             return session.query(OrderCollect) \
-                .filter(OrderCollect.uuid == pay_id).one()
+                .filter(OrderCollect.uuid == collect_id).one()
         except NoResultFound as e:
             LOG.exception("getpay_by_payid non-one.")
             return None

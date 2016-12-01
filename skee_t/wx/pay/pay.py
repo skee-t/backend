@@ -134,7 +134,7 @@ class ControllerV1(object):
         pay_service = CollectService()
         # 3 查询微信支付流水状态
         if corder_rst.collect_id:
-            orderCollect = pay_service.getpay_by_payid(corder_rst.collect_id)
+            orderCollect = pay_service.getpay_by_collectid(corder_rst.collect_id)
             if not orderCollect:
                 pass
             if not isinstance(orderCollect, OrderCollect):
