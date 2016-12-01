@@ -83,7 +83,8 @@ class ActivityService(BaseService):
         try:
             session = DbEngine.get_session_simple()
             sbq_join_count = session.query(func.count(ActivityMember.activity_uuid))\
-                .filter(Activity.uuid == ActivityMember.activity_uuid).correlate(Activity).as_scalar()
+                .filter(Activity.uuid == ActivityMember.activity_uuid, ActivityMember.state >= 0)\
+                .correlate(Activity).as_scalar()
 
             sbq_interest_count = session.query(func.count(UserEvent.open_id.distinct())) \
                 .filter(UserEvent.target_id == Activity.uuid).correlate(Activity).as_scalar()
@@ -142,7 +143,7 @@ class ActivityService(BaseService):
         try:
             session = DbEngine.get_session_simple()
             sbq_join_count = session.query(func.count(ActivityMember.activity_uuid)) \
-                .filter(Activity.uuid == ActivityMember.activity_uuid).correlate(Activity).as_scalar()
+                .filter(Activity.uuid == ActivityMember.activity_uuid, ActivityMember.state >= 0).correlate(Activity).as_scalar()
 
             sbq_interest_count = session.query(func.count(UserEvent.open_id.distinct())) \
                 .filter(UserEvent.target_id == Activity.uuid).correlate(Activity).as_scalar()
@@ -265,7 +266,9 @@ class ActivityService(BaseService):
                                      Activity.fee, Activity.quota, Activity.notice, Activity.update_time,
                                      Activity.ski_resort_uuid.label('ski_resort_id'),
                                      SkiResort.name.label('ski_resort_name'),SkiResort.trail_pic,
-                                     User.uuid.label('leader_id'), User.name.label('leader_name'), User.phone_no.label('leader_phone'), Activity.contact.label('leader_contact')
+                                     User.uuid.label('leader_id'), User.name.label('leader_name'),
+                                     User.open_id.label('leader_open_id'),
+                                     User.phone_no.label('leader_phone'), Activity.contact.label('leader_contact')
                                      ) \
                 .filter(User.uuid == Activity.creator) \
                 .filter(SkiResort.uuid == Activity.ski_resort_uuid) \
