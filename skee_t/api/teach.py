@@ -8,16 +8,18 @@ from webob import Response
 from skee_t.bizs.biz_msg import BizMsgV1
 from skee_t.bizs.biz_teach import BizTeachV1
 from skee_t.db import DbEngine
-from skee_t.db.models import User, Level
+from skee_t.db.models import User, Level, ActivityMember
 from skee_t.db.wrappers import ActivityWrapper, MemberWrapper, MemberEstimateWrapper, ActivityMemberWrapper
 from skee_t.services.service_activity import ActivityService
 from skee_t.services.service_skiResort import SkiResortService
 from skee_t.services.service_teach import MemberService
 from skee_t.services.services import UserService
+from skee_t.utils.my_exception import MyException
 from skee_t.utils.my_json import MyJson
 from skee_t.wsgi import Resource
 from skee_t.wsgi import Router
 from skee_t.wx.basic.basic import WxBasic
+from skee_t.wx.pay.biz_refund import BizRefundV1
 from skee_t.wx.proxy.userInfo import UserInfoProxy
 
 __author__ = 'rensikun'
@@ -66,6 +68,10 @@ class TeachApi_V1(Router):
         mapper.connect('/memberApply',
                        controller=Resource(controller_v1),
                        action='member_apply',
+                       conditions={'method': ['POST']})
+        mapper.connect('/memberQuit',
+                       controller=Resource(controller_v1),
+                       action='member_quit',
                        conditions={'method': ['POST']})
         # 申请人列表
         mapper.connect('/memberApply/{teachId}/{leaderOpenId}',
@@ -209,7 +215,6 @@ class ControllerV1(object):
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
-        # todo 获取当前用户
         user = UserService().get_user(openId)
         if not isinstance(user, User):
             rsp_dict['rspCode'] = user['rst_code']
@@ -412,6 +417,60 @@ class ControllerV1(object):
             except Exception as e:
                 rsp_dict['rspCode'] = 999999
                 rsp_dict['rspDesc'] = e.message
+
+        return Response(body=MyJson.dumps(rsp_dict))
+
+    def member_quit(self, request):
+        req_json = request.json_body
+        LOG.info('Current received message is %s' % req_json)
+
+        rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
+        user = UserService().get_user(req_json.get('openId'))
+        if not isinstance(user, User):
+            rsp_dict['rspCode'] = user['rst_code']
+            rsp_dict['rspDesc'] = user['rst_desc']
+            return Response(body=MyJson.dumps(rsp_dict))
+
+        # 教学活动(0:召集中,1:满额) 学员(0：已报名待批准；1：队长批准待付款; 2: 已付款)
+        activity_item = ActivityService().get_activity_member(activity_id=req_json.get('teachId')
+                                                              , type=1
+                                                              , member_id=user.uuid
+                                                              , activity_states=[0, 1]
+                                                              , member_states=[0, 1, 2])
+        if not isinstance(activity_item, KeyedTuple):
+            rsp_dict['rspCode'] = 100001
+            rsp_dict['rspDesc'] = '当前活动状态异常'
+            return Response(body=MyJson.dumps(rsp_dict))
+        if activity_item.__getattribute__('member_state') == 2:
+            # 0 先预退款
+            try:
+                BizRefundV1().refund_pre(teach_id=req_json.get('teachId'), collect_user_id=user.uuid)
+            except MyException as e:
+                if e.code == 100000:
+                    LOG.info('order refund success')
+                else:
+                    LOG.exception("order refund error.")
+                    rsp_dict['rspCode'] = e.code
+                    rsp_dict['rspDesc'] = e.desc
+                    return Response(body=MyJson.dumps(rsp_dict))
+
+        # 1 退出活动(ActivityMember.state:-2)
+        quit_rst = MemberService().member_update(teach_id=req_json.get('teachId'),members=[user.uuid], state=-2)
+        if quit_rst:
+            rsp_dict['rspCode'] = quit_rst['rst_code']
+            rsp_dict['rspDesc'] = quit_rst['rst_code']
+            return Response(body=MyJson.dumps(rsp_dict))
+        # 2 发送[成员退出]微信消息
+        try:
+            BizMsgV1().notify_wx_temp_msg(type=7,source_id=user.uuid,source_name=user.name,
+                                          target_open_id=activity_item.__getattribute__('leader_open_id'),
+                                          target_id=activity_item.__getattribute__('leader_id'),
+                                          target_name=activity_item.__getattribute__('leader_name'),
+                                          activity_id=req_json.get('teachId'),
+                                          activity_title=activity_item.__getattribute__('title'))
+        except Exception as e:
+            rsp_dict['rspCode'] = 999999
+            rsp_dict['rspDesc'] = e.message
 
         return Response(body=MyJson.dumps(rsp_dict))
 

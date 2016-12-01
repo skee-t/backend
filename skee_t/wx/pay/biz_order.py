@@ -26,7 +26,7 @@ class BizOrderV1(object):
             return rsp_dict
 
         order_service = OrderService()
-        order = order_service.get_order(order_no)
+        order = order_service.get_order(order_no=order_no)
 
         if order.collect_id != user.uuid:
             LOG.warn('order_user_wrong ' + open_id)

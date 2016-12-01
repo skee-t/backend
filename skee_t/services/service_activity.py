@@ -372,3 +372,37 @@ class ActivityService(BaseService):
             rst_code = 999999
             rst_desc = e.message
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+
+    # @SkiResortListValidator
+    def get_activity_member(self, activity_id, type, member_id, activity_states, member_states):
+        """
+        获取活动制定成员信息
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            session = DbEngine.get_session_simple()
+            query_sr = session.query(Activity.title, ActivityMember.state.label('member_state'),
+                                     Activity.creator.label('leader_id'),
+                                     User.name.label('leader_name'),
+                                     User.open_id.label('leader_open_id')) \
+                .filter(Activity.uuid == ActivityMember.activity_uuid) \
+                .filter(Activity.creator == User.uuid) \
+                .filter(Activity.type == type, Activity.uuid == activity_id, Activity.state.in_(activity_states)) \
+                .filter(ActivityMember.user_uuid == member_id, ActivityMember.state.in_(member_states))
+            return query_sr.one()
+        except NoResultFound as e:
+            LOG.exception("get_activity_member error.")
+            rst_code = 100000
+            rst_desc = '为找到相关信息'
+        except (TypeError, Exception) as e:
+            LOG.exception("get_activity_member error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}

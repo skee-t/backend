@@ -203,7 +203,7 @@ class MemberService(BaseService):
             rst_desc = e.message
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
-    # @SkiResortListValidator
+    # 获取教练的教学次数
     def teach_count(self, teacher_id):
         """
         创建用户方法

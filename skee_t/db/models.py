@@ -284,6 +284,31 @@ class OrderCollect(DB_BASE_MODEL):
     update_time = Column('update_time', DateTime(), default=now(), nullable=False)
 
 
+class OrderRefund(DB_BASE_MODEL):
+    """
+    退款
+    .. attribute :: state
+        成员状态，显示是否成员正常参与教学活动。取值包括：-1：报名后已退出；0：已报名；1：已完成；
+    .. attribute :: estimate
+        参与评价，只有为完成状态的成员才能参与评价。整数，数值可与星级对应。
+    """
+    __tablename__ = 'order_refunds'
+    id = Column('id', BigInteger, autoincrement=True, primary_key=True)
+    uuid = Column('uuid', String(32), nullable=False, unique=True)
+    collect_id = Column('collect_id', String(32), nullable=False)
+    amount = Column('amount', Integer, nullable=True, default=0)
+    partner_refund_id = Column('partner_refund_id', String(32))
+    state = Column('state', SmallInteger, nullable=True, default=0, doc='0:初始 1:退款申请接收成功 2:退款申请接收失败 3:退款成功 4:退款失败')
+    nonce_str = Column('nonce_str', String(32), nullable=False)
+    sign_type = Column('sign_type', String(16), default='MD5', nullable=False)
+    return_code = Column('return_code', String(16), nullable=True)
+    return_msg = Column('return_msg', String(128), nullable=True)
+    result_code = Column('result_code', String(16), nullable=True)
+    err_code = Column('err_code', String(32), nullable=True)
+    err_code_des = Column('err_code_des', String(128), nullable=True)
+    create_time = Column('create_time', DateTime(), default=now(), nullable=False)
+    update_time = Column('update_time', DateTime(), default=now(), nullable=False)
+
 class OrderPay(DB_BASE_MODEL):
     """
     支付

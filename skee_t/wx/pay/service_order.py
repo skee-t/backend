@@ -74,17 +74,24 @@ class OrderService(BaseService):
                 session.rollback()
             return {'rst_code':rst_code, 'rst_desc':rst_desc, 'order_no':order_no}
 
-    def get_order(self, order_no):
+    def get_order(self, order_no=None, teach_id=None, collect_user_id=None):
         session = None
         rst_code = 0
         rst_desc = 'success'
 
         try:
             session = DbEngine.get_session_simple()
-            return session.query(Order).filter(Order.order_no == order_no).one()
+            qr = session.query(Order)
+            if order_no:
+                qr = qr.filter(Order.order_no == order_no)
+            if teach_id:
+                qr = qr.filter(Order.teach_id == teach_id)
+            if collect_user_id:
+                qr = qr.filter(Order.collect_user_id == collect_user_id)
+            return qr.one()
         except NoResultFound as e:
-            LOG.exception("order_not_exists error.")
-            return None
+            rst_code = 100000
+            rst_desc = '订单不存在'
         except (TypeError, Exception) as e:
             LOG.exception("get_order error.")
             # 数据库异常

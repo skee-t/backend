@@ -60,6 +60,8 @@ class MyXml:
         sign = None
         for child_of_tree in tree:
             if child_of_tree.tag != 'sign':
+                if not child_of_tree.text:
+                    continue
                 mydict[child_of_tree.tag] = child_of_tree.text
             else:
                 sign = child_of_tree.text

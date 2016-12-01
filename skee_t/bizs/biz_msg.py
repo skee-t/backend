@@ -28,9 +28,7 @@ class BizMsgV1(object):
 
         # 消息类型:
         # 0系统通知 1成员入队提醒; 2批准入队通知; 3评价队长提醒;
-        # 4成员评价通知; 5 学员评级提醒; 6 学员晋级通知
-
-        send_msg_dict = dict()
+        # 4成员评价通知; 5 学员评级提醒; 6 学员晋级通知; 7 成员退出通知
         if type == 1:
            pass
         elif type == 2:
@@ -45,7 +43,7 @@ class BizMsgV1(object):
             send_msg_template = None
             property = SysService.getByKey('wx-notify-approve')
             if isinstance(property, Property):
-                send_msg_template = str(property.value)
+                send_msg_template = property.value
 
             send_msg = send_msg_template % {'target_name':target_name,'source_name':source_name,
                                             'activity_title':activity_title,'cur_time':U.timeStr(),
@@ -59,9 +57,19 @@ class BizMsgV1(object):
             pass
         elif type == 6:
             pass
+        elif type == 7:  # 成员退出通知
+            send_msg_template = None
+            property = SysService.getByKey('wx-notify-quit')
+            if isinstance(property, Property):
+                send_msg_template = property.value
+
+            send_msg = send_msg_template % {'target_name':target_name,'source_name':source_name,
+                                            'activity_title':activity_title,'cur_time':U.timeStr(),
+                                            'template_id': 'ySPCCRtPJJaoI28o_DHIdCVeHWfijAofF0_W0xDUSHU',
+                                            'activity_id':activity_id ,'target_open_id':target_open_id}
 
         acc_token = WxBasic().get_access_token()
-        wxRsp = WxTempMsgProxy().send(acc_token,msg=send_msg)
+        wxRsp = WxTempMsgProxy().send(acc_token,msg=str(send_msg))
 
         # 消息入库
         msg = Msg(uuid=U.gen_uuid(), type=type, source_id=source_id,

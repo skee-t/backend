@@ -11,7 +11,7 @@ from sqlalchemy.sql.elements import and_
 from sqlalchemy.sql.functions import now
 
 from skee_t.db import DbEngine
-from skee_t.db.models import Activity, User, ActivityMember, Msg, Order, OrderPay
+from skee_t.db.models import Activity, User, ActivityMember, Msg, Order, OrderPay, OrderRefund
 from skee_t.services import BaseService
 
 __author__ = 'rensikun'
@@ -207,6 +207,27 @@ class TaskService(BaseService):
         except NoResultFound as e:
             LOG.exception("List activity information error.")
             return {'rst_code': 100000, 'rst_desc': '未找到活动'}
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    # @SkiResortListValidator
+    def list_order_refund(self, state, page_index, page_size):
+        """
+        获取等待退款订单
+        """
+        try:
+            session = DbEngine.get_session_simple()
+            query_sr = session.query(OrderRefund) \
+                .filter(OrderRefund.state == state) \
+                .order_by(OrderRefund.update_time)
+            return query_sr.offset((page_index-1)*page_size).limit(page_index*page_size).all()
+        except NoResultFound as e:
+            LOG.exception("List activity information error.")
+            return {'rst_code': 100000, 'rst_desc': '未找到待退款'}
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
             # 数据库异常

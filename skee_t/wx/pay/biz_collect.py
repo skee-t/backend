@@ -2,13 +2,8 @@
 
 import logging
 
-import requests
-
-from skee_t.conf import CONF
 from skee_t.db.models import User
 from skee_t.services.services import UserService
-from skee_t.utils.my_exception import MyException
-from skee_t.utils.my_xml import MyXml
 from skee_t.wx.pay.service_collect import CollectService
 from skee_t.wx.pay.service_order import OrderService
 from skee_t.wx.proxy.collect import CollectProxy
@@ -25,32 +20,7 @@ class BizPayV1(object):
         pass
 
     def pre_pay(self, user_ip, open_id, attach, check_order):
-
-        req_wx_dict = dict()
-        req_wx_dict['spbill_create_ip'] = user_ip
-        req_wx_dict['openid'] = open_id
-        req_wx_dict['attach'] = attach
-        req_wx_dict['out_trade_no'] = check_order.order_no
-        req_wx_dict['total_fee'] = check_order.fee
-        req_xml = MyXml.gen(req_wx_dict)
-
-        LOG.info('send %s' % req_xml)
-        r = requests.post (CONF.wxp.i_unifiedorder, data = req_xml)
-        LOG.info('rece %s' % r.content)
-
-        # 先判断协议字段返回，再判断业务返回，最后判断交易状态
-        rsp_wx_dict = MyXml.parse(r.content)
-        if rsp_wx_dict['return_code'] != 'SUCCESS':
-            LOG.warn('order_pay_exception %s %s' %(check_order.order_no, rsp_wx_dict['return_msg']))
-            raise MyException(700000, '系统异常,请稍微再试')
-        elif rsp_wx_dict['my_sign'] != rsp_wx_dict['sign']:
-            LOG.warn('order_pay_exception ' + open_id)
-            raise MyException(800000, '系统安全异常')
-        elif rsp_wx_dict['result_code'] != 'SUCCESS':
-            LOG.warn('order_pay_exception ' + open_id)
-            raise MyException(rsp_wx_dict['err_code'], rsp_wx_dict['err_code_des'])
-
-        return req_wx_dict
+        pass
 
     '''
     1 支付流水状态为[同步OK] 当商户后台、网络、服务器等出现异常，商户系统最终未接收到支付通知；
@@ -116,7 +86,7 @@ class BizPayV1(object):
             return rsp_dict
 
         order_service = OrderService()
-        order = order_service.get_order(order_no)
+        order = order_service.get_order(order_no=order_no)
 
         if order.collect_id != user.uuid:
             LOG.warn('order_user_wrong ' + open_id)

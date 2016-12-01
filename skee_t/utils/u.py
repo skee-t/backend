@@ -121,5 +121,5 @@ class U:
 # mydict['url'] = 'http://skihelp.cn/teaminfo.html?tid=52e15c24560e4bb8af3953e2c043d04d&id=o2pJcvz6msVs08t49EU8zsLjAaXo'
 # #
 # print U.sign_sha1(mydict)
-
 # print "i love %(python)s " % {'python':'ddd','p1':'eee'}
+#print datetime.datetime.now() - datetime.timedelta(hours=24)

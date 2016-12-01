@@ -64,7 +64,8 @@ class wxAccessTokenService(BaseService):
         try:
             session = DbEngine.get_session_simple()
             return session.query(WxAccessToken) \
-                .filter(WxAccessToken.state == state).first()
+                .filter(WxAccessToken.state == state)\
+                .order_by(WxAccessToken.entry_time.desc()).first()
         except NoResultFound as e:
             LOG.exception("access token error.")
             return None

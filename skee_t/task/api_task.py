@@ -150,6 +150,7 @@ class ControllerV1(object):
 
     '''
     教学结束后,将未投诉的学员学费直接付给教学者
+    初始化代付订单
     '''
     def pay_for_teacher_pre(self, request):
         LOG.info('[task]pay_for_teacher...s')
@@ -157,9 +158,6 @@ class ControllerV1(object):
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
         # 用户投诉(estimate_score = -1) 订单退款(Order.state:-1)
-        # 3 微信企业代付
-        # 4 更新代付流水(OrderPay.state代付结果),更新订单(Order.state:5代付成功6代付失败)
-        # 5 通知教练: 代付成功时通知教练
         service = TaskService()
         # 1 获取活动结束(Activity.state:3)超过24小时又短于36小时,学费代收有成功的(Order.state:2)
         acts = service.list_order_wait_payfor_teacher(type=1, page_index=1, page_size=15);
@@ -216,6 +214,9 @@ class ControllerV1(object):
 
     '''
     教学结束后,将未投诉的学员学费直接付给教学者
+    3 微信企业代付
+    4 更新代付流水(OrderPay.state代付结果),更新订单(Order.state:5代付成功6代付失败)
+    5 通知教练: 代付成功时通知教练
     '''
     def pay_for_teacher(self, request):
         LOG.info('[task]pay_for_teacher...s')
