@@ -7,7 +7,7 @@ import logging
 from sqlalchemy.orm.exc import NoResultFound
 
 from skee_t.db import DbEngine
-from skee_t.db.models import Order, OrderPay, OrderRefund
+from skee_t.db.models import Order, OrderPay, OrderRefund, User, Activity
 from skee_t.services import BaseService
 from skee_t.utils.my_exception import MyException
 
@@ -129,6 +129,28 @@ class RefundService(BaseService):
                             synchronize_session=False)
 
             session.commit()
+        except (TypeError, Exception) as e:
+            LOG.exception("get_order error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+            if session is not None:
+                session.rollback()
+            return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+
+    def getRefundMsgParams(self, collect_id):
+        session = None
+        try:
+            session = DbEngine.get_session_simple()
+            return session.query(
+                                  User.name.label('target_name'),
+                                  User.open_id.label('target_open_id'),
+                                  Activity.title.label('activity_title'),
+                                  Activity.uuid.label('activity_id')) \
+                .filter(User.uuid == Order.collect_user_id) \
+                .filter(Activity.uuid == Order.teach_id) \
+                .filter(Order.collect_id == collect_id).one()
         except (TypeError, Exception) as e:
             LOG.exception("get_order error.")
             # 数据库异常

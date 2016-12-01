@@ -28,6 +28,10 @@ class U:
         return datetime.datetime.now().strftime("%Y%m%d%H%M%S")+'-'+U.gen_uuid()[0:13]
 
     @staticmethod
+    def gen_refund_id():
+        return datetime.datetime.now().strftime("%Y%m%d%H%M%S")+U.gen_uuid()[0:5].upper()
+
+    @staticmethod
     def gen_uuid():
         return str(uuid.uuid4()).replace('-','')
 
@@ -123,3 +127,4 @@ class U:
 # print U.sign_sha1(mydict)
 # print "i love %(python)s " % {'python':'ddd','p1':'eee'}
 #print datetime.datetime.now() - datetime.timedelta(hours=24)
+print U.gen_refund_id()

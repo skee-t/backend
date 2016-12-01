@@ -2,6 +2,9 @@
 
 import logging
 
+from sqlalchemy.util import KeyedTuple
+
+from skee_t.bizs.biz_msg import BizMsgV1
 from skee_t.db.models import Order
 from skee_t.utils.my_exception import MyException
 from skee_t.utils.u import U
@@ -31,7 +34,7 @@ class BizRefundV1(object):
         elif order.state != 2:
             raise MyException(200000, '待退款订单状态异常')
 
-        refund_id = U.gen_uuid()
+        refund_id = U.gen_refund_id()
         nonce_str = U.gen_uuid()
         create_refund_rst = RefundService().create(refund_id, order.collect_id, nonce_str, order.fee)
         if create_refund_rst:
@@ -80,6 +83,7 @@ class BizRefundV1(object):
         # 更新退款流水状态(OrderRefund.state:4退款成功 5:退款失败), 如何退款成功则更新订单(Order.state:-2)
         refund_state = None
         err_code = None
+        refundService = RefundService()
         if 'err_code_des' in rsp_wx_dict:
             err_code = rsp_wx_dict['err_code']
         if 'refund_status_0' in rsp_wx_dict:
@@ -90,7 +94,7 @@ class BizRefundV1(object):
             else:
                 err_code = rsp_wx_dict['refund_status_0']
 
-        update_rst = RefundService().update(
+        update_rst = refundService.update(
             collect_id=order_refund.collect_id,
             refund_id=order_refund.uuid,
             partner_refund_id = rsp_wx_dict['refund_id'] if 'refund_id' in rsp_wx_dict else None,
@@ -109,6 +113,22 @@ class BizRefundV1(object):
 
         if rsp_wx_dict['result_code']!='SUCCESS':
             raise MyException(700000, '系统异常,请稍微再试')
+
+        # 退款成功通知
+        if refund_state and refund_state == 4:
+            refundMsgParams = refundService.getRefundMsgParams(order_refund.collect_id)
+            if not isinstance(refundMsgParams, KeyedTuple):
+                raise MyException(refundMsgParams['rst_code'], refundMsgParams['rst_desc'])
+
+            order_dict = dict()
+            order_dict['order_no'] = order_refund.uuid
+            order_dict['amount'] = '%s元' % (order_refund.amount/100)
+            BizMsgV1.notify_wx_temp_msg(type=8,
+                                        target_name=refundMsgParams.__getattribute__('target_name'),
+                                        activity_id=refundMsgParams.__getattribute__('activity_id'),
+                                        activity_title=refundMsgParams.__getattribute__('activity_title'),
+                                        target_open_id=refundMsgParams.__getattribute__('target_open_id'),
+                                        order_dict=order_dict)
 
         return rsp_dict
 
