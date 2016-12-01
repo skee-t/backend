@@ -7,7 +7,7 @@ import logging
 from sqlalchemy.orm.exc import NoResultFound
 
 from skee_t.db import DbEngine
-from skee_t.db.models import Order, OrderPay, OrderRefund, User, Activity
+from skee_t.db.models import Order, OrderRefund, User, Activity
 from skee_t.services import BaseService
 from skee_t.utils.my_exception import MyException
 
@@ -143,7 +143,7 @@ class RefundService(BaseService):
         session = None
         try:
             session = DbEngine.get_session_simple()
-            return session.query(
+            return session.query( User.uuid.label('target_id'),
                                   User.name.label('target_name'),
                                   User.open_id.label('target_open_id'),
                                   Activity.title.label('activity_title'),

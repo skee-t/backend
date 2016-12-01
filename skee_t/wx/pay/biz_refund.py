@@ -124,6 +124,7 @@ class BizRefundV1(object):
             order_dict['order_no'] = order_refund.uuid
             order_dict['amount'] = '%s元' % (order_refund.amount/100)
             BizMsgV1.notify_wx_temp_msg(type=8,
+                                        target_id=refundMsgParams.__getattribute__('target_id'),
                                         target_name=refundMsgParams.__getattribute__('target_name'),
                                         activity_id=refundMsgParams.__getattribute__('activity_id'),
                                         activity_title=refundMsgParams.__getattribute__('activity_title'),
