@@ -408,15 +408,27 @@ class ControllerV1(object):
             rsp_dict['rspCode'] = member_item['rst_code']
             rsp_dict['rspDesc'] = member_item['rst_desc']
         else:
+            # 2 发送[成员申请入队]微信消息
             try:
-                BizMsgV1().create_with_send_sms(type=1,source_id=user.uuid,source_name=user.name,
-                                            target_id=activity_item.__getattribute__('leader_id'),
-                                            target_name=activity_item.__getattribute__('leader_name'),
-                                            target_phone=activity_item.__getattribute__('leader_phone'),
-                                            activity_id=req_json.get('teachId'))
+                BizMsgV1().notify_wx_temp_msg(type=1,source_id=user.uuid,source_name=user.name,
+                                              target_open_id=activity_item.__getattribute__('leader_open_id'),
+                                              target_id=activity_item.__getattribute__('leader_id'),
+                                              target_name=activity_item.__getattribute__('leader_name'),
+                                              activity_id=req_json.get('teachId'),
+                                              activity_title=activity_item.__getattribute__('title'))
             except Exception as e:
                 rsp_dict['rspCode'] = 999999
                 rsp_dict['rspDesc'] = e.message
+
+            # try:
+            #     BizMsgV1().create_with_send_sms(type=1,source_id=user.uuid,source_name=user.name,
+            #                                 target_id=activity_item.__getattribute__('leader_id'),
+            #                                 target_name=activity_item.__getattribute__('leader_name'),
+            #                                 target_phone=activity_item.__getattribute__('leader_phone'),
+            #                                 activity_id=req_json.get('teachId'))
+            # except Exception as e:
+            #     rsp_dict['rspCode'] = 999999
+            #     rsp_dict['rspDesc'] = e.message
 
         return Response(body=MyJson.dumps(rsp_dict))
 
@@ -552,12 +564,18 @@ class ControllerV1(object):
             # todo 后续改造为异步线程处理,以减少前端等待时间
             for member_user in member_users:
                 try:
+                    BizMsgV1().notify_wx_temp_msg(type=2, source_id=user.uuid,source_name=user.name,
+                                                  target_open_id=member_user.open_id,
+                                                  target_id=member_user.uuid,
+                                                  target_name=member_user.name,
+                                                  activity_id=req_json.get('teachId'),
+                                                  activity_title=activity_item.__getattribute__('title'))
 
-                    BizMsgV1().create_with_send_sms(type=2,source_id=user.uuid,source_name=user.name,
-                                                    target_id=member_user.uuid,
-                                                    target_name=member_user.name,
-                                                    target_phone=member_user.phone_no,
-                                                    activity_id=req_json.get('teachId'))
+                    # BizMsgV1().create_with_send_sms(type=2,source_id=user.uuid,source_name=user.name,
+                    #                                 target_id=member_user.uuid,
+                    #                                 target_name=member_user.name,
+                    #                                 target_phone=member_user.phone_no,
+                    #                                 activity_id=req_json.get('teachId'))
 
                 except Exception as e:
                     rsp_dict['rspCode'] = 999999
