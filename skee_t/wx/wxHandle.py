@@ -7,8 +7,9 @@ from urllib import unquote
 from webob import Response
 
 from skee_t.conf import CONF
-from skee_t.db.models import Property
+from skee_t.db.models import Property, User
 from skee_t.services.service_system import SysService
+from skee_t.services.services import UserService
 from skee_t.utils.my_json import MyJson
 from skee_t.utils.u import U
 from skee_t.wsgi import Resource
@@ -46,6 +47,11 @@ class WxHandle_V1(Router):
         mapper.connect('/asb',
                        controller=Resource(controller_v1),
                        action='auth_snsapi_base',
+                       conditions={'method': ['GET']})
+
+        mapper.connect('/at',
+                       controller=Resource(controller_v1),
+                       action='auth_transfer',
                        conditions={'method': ['GET']})
 
         mapper.connect('/wechatjs',
@@ -185,6 +191,41 @@ class ControllerV1(object):
             LOG.info("openid [%s] " % (wxWebAccessToken.open_id))
 
             # 转向目标页面
+            response = Response()
+            # unicode to str
+            response.headers["Location"] = str('http://skihelp.cn/%s%s%s'
+                                               % (redirect,
+                                                  ('&' if '?' in redirect else '?'),
+                                                  'id='+wxWebAccessToken.open_id))
+            response.status_int = 302
+            LOG.info("redirect [%s] " % (response.headers["Location"]))
+            return response
+        except Exception, Argment:
+            LOG.exception("auth_snsapi_base error.")
+            return Argment
+
+    def auth_transfer(self, request):
+        LOG.info('Current received message is %s' % request.params)
+        try:
+            code = request.params['code']
+            # state = request.params['state']
+
+            # 0 通过code换取网页授权access_token
+            wxWebAccessToken = WxOpenIdProxy.get_open_id(code)
+            LOG.info("openid [%s] " % (wxWebAccessToken.open_id))
+
+            # 1.1 未注册过的用户,先跳转到注册页面,注册成功后跳转页面xcworld.html
+            redirect = 'infoauth.html?cb=8afcb239990b7d99ad01e2f9044f1e09'
+            # teaching_list.html
+            # 'infoauth.html?cb=8657d54f6ce3e40f337472c263419f898eb805879d75'
+
+            # 1.2 如果之前注册过且有效,则直接转到个人中心
+            userExists = UserService().get_user(open_id=wxWebAccessToken.open_id)
+            if isinstance(userExists, User):
+                if userExists.deleted == 0 and userExists.disabled == 0:
+                    redirect = 'my.html'
+
+            # 2 转向目标页面
             response = Response()
             # unicode to str
             response.headers["Location"] = str('http://skihelp.cn/%s%s%s'

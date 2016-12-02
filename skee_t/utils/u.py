@@ -115,7 +115,7 @@ class U:
         return result
 
 
-# print urllib.quote('teaminfo.html?tid=')
+# print urllib.quote('http://skihelp.cn/b/wx/asb?t=infoauth.html?cb=8afcb239990b7d99ad01e2f9044f1e09')
 # print int(time.time())
 
 # mydict = dict()
@@ -127,4 +127,4 @@ class U:
 # print U.sign_sha1(mydict)
 # print "i love %(python)s " % {'python':'ddd','p1':'eee'}
 #print datetime.datetime.now() - datetime.timedelta(hours=24)
-print U.gen_refund_id()
+# print U.gen_refund_id()
