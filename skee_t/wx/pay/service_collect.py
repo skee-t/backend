@@ -160,7 +160,7 @@ class CollectService(BaseService):
         try:
             session = DbEngine.get_session_simple()
             return session.query(OrderCollect.state, Order.state.label('order_state'), Order.order_no
-                                 , Order.teach_id, Order.pay_user_id) \
+                                 , Order.teach_id, Order.collect_user_id) \
                 .filter(OrderCollect.uuid == pay_id) \
                 .filter(OrderCollect.openid == open_id) \
                 .filter(User.open_id == OrderCollect.openid) \
