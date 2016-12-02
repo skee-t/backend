@@ -35,11 +35,12 @@ class OrderService(BaseService):
         rst_desc = 'success'
 
         # 1 检查是否已存在订单,只要存在就直接返回
-        # 订单状态 0：初始；1：预支付；2：成功; 3: 失败；
+        # 0：初始；1：预支付；2：平台代收成功; 3: 平台代收失败；4：代付预支付 5：平台代付成功 6：平台代付失败 -1：预退款 -2:退款成功
         try:
             session = DbEngine.get_session_simple()
             order_exists = session.query(Order).filter(Order.teach_id ==teach_id,
-                                                       Order.collect_user_id==collect_user_id).one()
+                                                       Order.collect_user_id==collect_user_id,
+                                                       Order.state != -2).one()
             LOG.warn("order_exists. order_no is %s" % order_exists.order_no)
             return order_exists
         except NoResultFound as e:

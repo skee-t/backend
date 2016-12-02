@@ -101,7 +101,7 @@ class MemberService(BaseService):
             if leader_id:
                 query_sr = query_sr.filter(ActivityMember.user_uuid != leader_id)
 
-            return query_sr.order_by(ActivityMember.state.desc(), ActivityMember.create_time.asc()).all()
+            return query_sr.order_by(ActivityMember.state.desc(), ActivityMember.update_time.asc()).all()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
             # 数据库异常
