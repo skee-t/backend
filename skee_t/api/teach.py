@@ -333,12 +333,13 @@ class ControllerV1(object):
                         else:
                             can_join = 2
 
-        # 移除申请中队员,并统计申请人数
+        # 移除去除自己之外的申请中队员,并统计所有申请人数
         apply_num = 0
         for i in range(len(rsp_dict['members'])-1,-1,-1):         #倒序
             if rsp_dict['members'][i]['state'] == 0:
                 apply_num += 1
-                del rsp_dict['members'][i]
+                # if rsp_dict['members'][i] != cur_user_id:
+                #     del rsp_dict['members'][i]
 
         rsp_dict['curUser'] = cur_user_id
         # rsp_dict['curSubscribe'] = 0
