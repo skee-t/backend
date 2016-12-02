@@ -223,7 +223,7 @@ class ControllerV1(object):
             userExists = UserService().get_user(open_id=wxWebAccessToken.open_id)
             if isinstance(userExists, User):
                 if userExists.deleted == 0 and userExists.disabled == 0:
-                    redirect = 'my.html'
+                    redirect = 'my.html?method=b'
 
             # 2 转向目标页面
             response = Response()
