@@ -306,10 +306,11 @@ class ControllerV1(object):
         # 判断当前用户的关注状况
         # 三种用户 1 关注且有账户 2 关注但无账户 3 未关注且无账户
         cur_user_id = ''
-        cur_subscribe = 1
+        cur_subscribe = 0
         user = UserService().get_user(browseOpenId)
         if isinstance(user, User):
             cur_user_id = user.uuid
+            cur_subscribe = 1
         else:
             # todo 之前可以缓存在表中,该用户注册时直接拿过来用,不再向微信要
             acc_token = WxBasic().get_access_token()
