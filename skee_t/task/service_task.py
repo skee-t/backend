@@ -99,7 +99,7 @@ class TaskService(BaseService):
                                      Activity.uuid.label('activity_id'), User.phone_no) \
                 .filter(User.uuid == Activity.creator)\
                 .filter(Activity.state == 3) \
-                .filter(Activity.update_time >= datetime.datetime.now() - datetime.timedelta(hours=4)) \
+                .filter(Activity.update_time <= datetime.datetime.now() - datetime.timedelta(hours=4)) \
                 .filter(Activity.type == type) \
                 .filter(exists().where(
                     and_(ActivityMember.activity_uuid == Activity.uuid, ActivityMember.state == 2))) \
@@ -138,7 +138,7 @@ class TaskService(BaseService):
                 .filter(ActivityMember.activity_uuid == Activity.uuid) \
                 .filter(ActivityMember.state.in_([2, 3])) \
                 .filter(Activity.state == 3) \
-                .filter(Activity.update_time >= datetime.datetime.now() - datetime.timedelta(hours=8)) \
+                .filter(Activity.update_time <= datetime.datetime.now() - datetime.timedelta(hours=8)) \
                 .filter(Activity.type == type) \
                 .filter(~exists().where(
                     and_(Msg.target_id == User.uuid, Msg.activity_id == Activity.uuid, Msg.type == 3))) \
