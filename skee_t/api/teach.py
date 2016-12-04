@@ -321,18 +321,19 @@ class ControllerV1(object):
         # 判断当前浏览用户是否可以参加该活动
         #  3 队长 2 已被批准 1 可以加入 0 申请中等待批准
         can_join = 1
-        if rsp_dict['state'] != 0:
+        if isinstance(user, User):
+            for member in rsp_dict['members']:
+                if member['id'] == user.uuid:
+                    if member['state'] == 0:
+                        can_join = 0
+                    elif member['state'] == 4:
+                        can_join = 3
+                    else:
+                        can_join = 2
+
+        if can_join == 1 and rsp_dict['state'] != 0:
             can_join = -1
-        else:
-            if isinstance(user, User):
-                for member in rsp_dict['members']:
-                    if member['id'] == user.uuid:
-                        if member['state'] == 0:
-                            can_join = 0
-                        elif member['state'] == 4:
-                            can_join = 3
-                        else:
-                            can_join = 2
+
 
         # 移除去除自己之外的申请中队员,并统计所有申请人数
         apply_num = 0
