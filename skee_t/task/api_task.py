@@ -128,7 +128,7 @@ class ControllerV1(object):
         # 结束时间(8小时内)
         # 成员状态(2: 已付款 3:晋级)
         acts = service.list_member_wait_comment(type=1, page_index=1);
-        LOG.info('list_act_wait_pro is %s' % acts)
+        LOG.info('teacher_wait_comment is %s' % acts)
         if isinstance(acts, list):
             for act in acts:
                 try:
@@ -159,7 +159,7 @@ class ControllerV1(object):
 
         # 用户投诉(estimate_score = -1) 订单退款(Order.state:-1)
         service = TaskService()
-        # 1 获取活动结束(Activity.state:3)超过24小时又短于36小时,学费代收有成功的(Order.state:2)
+        # 1 获取活动结束(Activity.state:3)超过12小时又短于18小时,学费代收有成功的(Order.state:2)
         acts = service.list_order_wait_payfor_teacher(type=1, page_index=1, page_size=15);
         LOG.info('list_order_wait_payfor_teacher is %s' % acts)
         user_ip = request._headers.get('Proxy-Client-IP','192.168.0.100')
@@ -267,6 +267,14 @@ class ControllerV1(object):
 
             if update_rst:
                 LOG.error('[task]pay_for_teacher...:%s' % update_rst)
+            else:
+                # 通知教练
+                BizMsgV1().notify_wx_temp_msg(type=2, source_id=user.uuid,source_name=user.name,
+                                              target_open_id=member_user.open_id,
+                                              target_id=member_user.uuid,
+                                              target_name=member_user.name,
+                                              activity_id=req_json.get('teachId'),
+                                              activity_title=activity_item.__getattribute__('title'))
 
         LOG.info('[task]pay_for_teacher...e:%s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))

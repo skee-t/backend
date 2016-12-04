@@ -138,7 +138,7 @@ class TaskService(BaseService):
                 .filter(ActivityMember.activity_uuid == Activity.uuid) \
                 .filter(ActivityMember.state.in_([2, 3])) \
                 .filter(Activity.state == 3) \
-                .filter(Activity.update_time <= datetime.datetime.now() - datetime.timedelta(hours=8)) \
+                .filter(Activity.update_time <= datetime.datetime.now() - datetime.timedelta(hours=4)) \
                 .filter(Activity.type == type) \
                 .filter(~exists().where(
                     and_(Msg.target_id == User.uuid, Msg.activity_id == Activity.uuid, Msg.type == 3))) \
@@ -172,8 +172,8 @@ class TaskService(BaseService):
                                      Order.order_no) \
                 .filter(User.uuid == Activity.creator) \
                 .filter(Activity.state == 3, Activity.type == type) \
-                .filter(Activity.update_time.between(datetime.datetime.now() - datetime.timedelta(hours=36),
-                                                     datetime.datetime.now() - datetime.timedelta(hours=24))) \
+                .filter(Activity.update_time.between(datetime.datetime.now() - datetime.timedelta(hours=18),
+                                                     datetime.datetime.now() - datetime.timedelta(hours=12))) \
                 .filter(Order.teach_id == Activity.uuid, Order.state == 2) \
                 .order_by(Activity.meeting_time,Activity.uuid,Order.update_time)
             return query_sr.offset((page_index-1)*page_size).limit(page_index*page_size).all()
