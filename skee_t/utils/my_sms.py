@@ -112,4 +112,4 @@ class SMS:
 
 if __name__ == '__main__':
     # SMS.send_auth_code('18600363459', '123456')
-    SMS.send_notify('18600363459', '叨叨', '小春')
+    SMS.send_auth_code('+31652726236', '237834')

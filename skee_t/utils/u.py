@@ -128,3 +128,4 @@ class U:
 # print "i love %(python)s " % {'python':'ddd','p1':'eee'}
 #print datetime.datetime.now() - datetime.timedelta(hours=24)
 # print U.gen_refund_id()
+# print '%0.0f元' % 200.00000

@@ -155,6 +155,63 @@ class TaskService(BaseService):
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
     # @SkiResortListValidator
+    def list_activity_pay(self, type, page_index = None):
+        # 活动状态(0：召集中)
+        # 时间(活动开始前1小时)
+        try:
+            session = DbEngine.get_session_simple()
+            query_sr = session.query(User.uuid.label('leader_id'),
+                                     User.open_id.label('leader_open_id'),
+                                     User.name.label('leader_name'),
+                                     User.phone_no.label('phone_no'),
+                                     Activity.uuid.label('activity_id'),
+                                     Activity.title.label('activity_title'),
+                                     Activity.fee.label('amount')) \
+                .filter(User.uuid == Activity.creator) \
+                .filter(Activity.state == 0) \
+                .filter(Activity.meeting_time >= datetime.datetime.now() + datetime.timedelta(minutes=30)) \
+                .filter(Activity.meeting_time < datetime.datetime.now() + datetime.timedelta(hours=1)) \
+                .filter(Activity.type == type) \
+                .filter(~exists().where(
+                    and_(Msg.target_id == Activity.creator, Msg.activity_id == Activity.uuid, Msg.type == 9))) \
+                .order_by(Activity.meeting_time)
+            return query_sr.offset((page_index-1)*20).limit(page_index*20).all()
+        except NoResultFound as e:
+            LOG.exception("List activity information error.")
+            return {'rst_code': 100000, 'rst_desc': '未找到活动'}
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    # @SkiResortListValidator
+    def list_member_pay(self, activity_id):
+        # 活动状态(0：召集中)
+        # 时间(活动开始前1小时)
+        try:
+            session = DbEngine.get_session_simple()
+            query_sr = session.query(User.name.label('member_name')) \
+                .filter(User.uuid == ActivityMember.user_uuid) \
+                .filter(Activity.uuid == ActivityMember.activity_uuid) \
+                .filter(Activity.uuid == activity_id) \
+                .filter(ActivityMember.state == 2) \
+                .filter(~exists().where(
+                    and_(Msg.target_id == Activity.creator, Msg.activity_id == Activity.uuid, Msg.type == 9))) \
+                .order_by(ActivityMember.update_time)
+            return query_sr.all()
+        except NoResultFound as e:
+            LOG.exception("List activity information error.")
+            return {'rst_code': 100000, 'rst_desc': '未找到活动'}
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    # @SkiResortListValidator
     def list_order_wait_payfor_teacher(self, type, page_index, page_size):
         """
         创建用户方法

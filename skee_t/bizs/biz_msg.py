@@ -31,6 +31,7 @@ class BizMsgV1(object):
         # 消息类型:
         # 0系统通知 1成员入队提醒; 2批准入队通知; 3评价队长提醒;
         # 4成员评价通知; 5 学员评级提醒; 6 学员晋级通知; 7 成员退出通知; 8 退款成功通知
+        # 9教学费用支付通知; 10教学费用到账通知
         if type == 1:
             # {{first.DATA}}
             # 您的队伍：{{keyword1.DATA}}
@@ -96,6 +97,27 @@ class BizMsgV1(object):
                                             'activity_title':activity_title,'amount':order_dict['amount'],
                                             'template_id': 'L8_rrgVy6pBHNGmZIm7_H_hN4jupkeHXXupSj8J9hnA',
                                             'target_open_id':target_open_id}
+        elif type == 9:  # 教学费用支付通知
+            send_msg_template = None
+            property = SysService.getByKey('wx-notify-collect')
+            if isinstance(property, Property):
+                send_msg_template = property.value
+
+            send_msg = send_msg_template % {'target_name':target_name,'source_name':source_name,
+                                            'activity_id':activity_id,
+                                            'activity_title':activity_title,'amount':order_dict['amount'],
+                                            'template_id': '27Cw1Bf3WXZq8n2K1bjjM3Whk7SIyeVqy0BxEgSLKD4',
+                                            'target_open_id':target_open_id}
+        elif type == 10:  # 教学费用到账通知
+            send_msg_template = None
+            property = SysService.getByKey('wx-notify-pay')
+            if isinstance(property, Property):
+                send_msg_template = property.value
+
+            send_msg = send_msg_template % {'target_name':target_name,
+                                            'activity_title':activity_title,'amount':order_dict['amount'],
+                                            'template_id': '27Cw1Bf3WXZq8n2K1bjjM3Whk7SIyeVqy0BxEgSLKD4',
+                                            'target_open_id':'o2pJcvz6msVs08t49EU8zsLjAaXo'}
 
         acc_token = WxBasic().get_access_token()
         wxRsp = WxTempMsgProxy().send(acc_token,msg=str(send_msg))

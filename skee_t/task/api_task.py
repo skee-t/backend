@@ -59,6 +59,13 @@ class TaskApi_V1(Router):
                        action='pay_for_teacher',
                        conditions={'method': ['GET']})
 
+        # 为教练统计付款学员及金额
+        mapper.connect('/pay/stat',
+                       controller=Resource(controller_v1),
+                       action='statistics_fee_for_teacher',
+                       conditions={'method': ['GET']})
+
+
 
 class ControllerV1(object):
 
@@ -147,6 +154,54 @@ class ControllerV1(object):
 
         LOG.info('[task]teacher_wait_comment...e:%s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))
+
+    def statistics_fee_for_teacher(self, request):
+        LOG.info('[task]...s')
+
+        rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
+        service = TaskService()
+        # 活动状态(0：召集中)
+        # 时间(活动开始前1小时)
+        acts = service.list_activity_pay(type=1, page_index=1);
+        LOG.info('teacher_wait_comment is %s' % acts)
+        if not isinstance(acts, list):
+            rsp_dict['rspCode'] = acts['rst_code']
+            rsp_dict['rspDesc'] = acts['rst_desc']
+
+        for act in acts:
+            try:
+                # 成员状态(2: 已付款)
+                member_names = service.list_member_pay(act.__getattribute__('activity_id'))
+                if not isinstance(member_names, list):
+                    LOG.warn('member_names error %s' % member_names)
+                    continue
+
+                members = ''
+                for member_name in member_names:
+                    if members != '':
+                        members+=','
+                    members+=member_name.__getattribute__('member_name')
+
+                order_dict = dict()
+                order_dict['amount'] = '%0.0f元' % (act.__getattribute__('amount') * member_names.__len__())
+
+                # target_name,activity_title,members,amount,target_open_id,activity_id
+                BizMsgV1().notify_wx_temp_msg(type=9, target_name=act.__getattribute__('leader_name'),
+                                              activity_title=act.__getattribute__('activity_title'),
+                                              order_dict=order_dict,
+                                              source_name=members,
+                                              target_open_id=act.__getattribute__('leader_open_id'),
+                                              target_id=act.__getattribute__('leader_id'),
+                                              activity_id=act.__getattribute__('activity_id'),
+                                              )
+
+            except Exception as e:
+                rsp_dict['rspCode'] = 999999
+                rsp_dict['rspDesc'] = e.message
+
+        LOG.info('[task]teacher_wait_comment...e:%s' % rsp_dict)
+        return Response(body=MyJson.dumps(rsp_dict))
+
 
     '''
     教学结束后,将未投诉的学员学费直接付给教学者
@@ -269,12 +324,18 @@ class ControllerV1(object):
                 LOG.error('[task]pay_for_teacher...:%s' % update_rst)
             else:
                 # 通知教练
-                BizMsgV1().notify_wx_temp_msg(type=2, source_id=user.uuid,source_name=user.name,
-                                              target_open_id=member_user.open_id,
-                                              target_id=member_user.uuid,
-                                              target_name=member_user.name,
-                                              activity_id=req_json.get('teachId'),
-                                              activity_title=activity_item.__getattribute__('title'))
+                # send_msg = send_msg_template % {'target_name':target_name,
+                #                                 'activity_title':activity_title,'amount':order_dict['amount'],
+                #                                 'template_id': '27Cw1Bf3WXZq8n2K1bjjM3Whk7SIyeVqy0BxEgSLKD4',
+                #                                 'target_open_id':target_open_id}
+
+                payMsgParam = payService.getPayMsgParams(order_pay.uuid)
+                BizMsgV1().notify_wx_temp_msg(type=10,
+                                              target_open_id=payMsgParam.__getattribute__('target_open_id'),
+                                              target_id=payMsgParam.__getattribute__('target_id'),
+                                              target_name=payMsgParam.__getattribute__('target_name'),
+                                              activity_id=payMsgParam.__getattribute__('activity_id'),
+                                              activity_title=payMsgParam.__getattribute__('activity_title'))
 
         LOG.info('[task]pay_for_teacher...e:%s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))

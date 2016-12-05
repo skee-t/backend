@@ -6,7 +6,7 @@ import logging
 # from sqlalchemy.sql.expression import func, text
 
 from skee_t.db import DbEngine
-from skee_t.db.models import Order, OrderPay
+from skee_t.db.models import Order, OrderPay, Activity, User, ActivityMember
 from skee_t.services import BaseService
 
 __author__ = 'rensikun'
@@ -99,4 +99,22 @@ class PayService(BaseService):
             rst_desc = e.message
             if session is not None:
                 session.rollback()
+            return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    def getPayMsgParams(self, pay_id):
+        try:
+            session = DbEngine.get_session_simple()
+            return session.query(
+                        User.uuid.label('target_id'),
+                        User.name.label('target_name'),
+                        User.open_id.label('target_open_id'),
+                        Activity.title.label('activity_title'),
+                        Activity.uuid.label('activity_id'))\
+                    .filter(Order.pay_user_id == User.uuid, Order.teach_id == Activity.uuid)\
+                    .filter(Order.pay_id == pay_id)
+        except (TypeError, Exception) as e:
+            LOG.exception("get_order error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
             return {'rst_code': rst_code, 'rst_desc': rst_desc}
