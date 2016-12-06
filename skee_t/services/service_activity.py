@@ -119,7 +119,7 @@ class ActivityService(BaseService):
             else:
                 query_sr = query_sr.order_by(Activity.type, Activity.create_time.desc())
 
-            return query_sr.offset((int(page_index)-1)*8).limit(int(page_index)*8).all()
+            return query_sr.offset((int(page_index)-1)*7).limit(int(page_index)*7).all()
         except NoResultFound as e:
             LOG.exception("List activity information error.")
             return {'rst_code': 100000, 'rst_desc': '未找到活动'}
