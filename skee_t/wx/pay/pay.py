@@ -16,7 +16,7 @@ from skee_t.utils.my_xml import MyXml
 from skee_t.utils.u import U
 from skee_t.wsgi import Resource
 from skee_t.wsgi import Router
-from skee_t.wx.pay.biz_collect import BizPayV1
+from skee_t.wx.pay.biz_collect import BizCollectV1
 from skee_t.wx.pay.service_collect import CollectService
 from skee_t.wx.pay.service_order import OrderService
 from skee_t.wx.proxy.collect import CollectProxy
@@ -153,11 +153,11 @@ class ControllerV1(object):
                     return Response(body=MyJson.dumps(rsp_dict))
                 elif orderCollect.state in (1, 2, 5):
                     try:
-                        query_rst = BizPayV1().query(transaction_id=orderCollect.partner_collect_id,
-                                                     pay_id=orderCollect.uuid,
-                                                     order_no=corder_rst.order_no,
-                                                     activity_uuid=teach_id,
-                                                     user_uuid=user_info.uuid)
+                        query_rst = BizCollectV1().query(transaction_id=orderCollect.partner_collect_id,
+                                                         pay_id=orderCollect.uuid,
+                                                         order_no=corder_rst.order_no,
+                                                         activity_uuid=teach_id,
+                                                         user_uuid=user_info.uuid)
                         if query_rst['rspCode'] != 0:
                             rsp_dict['rspCode'] = query_rst.get('rspCode')
                             rsp_dict['rspDesc'] = query_rst.get('rspDesc')

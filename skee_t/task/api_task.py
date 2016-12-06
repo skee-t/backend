@@ -8,9 +8,9 @@ from skee_t.bizs.biz_msg import BizMsgV1
 from skee_t.task.service_pay import PayService
 from skee_t.task.service_task import TaskService
 from skee_t.utils.my_json import MyJson
-from skee_t.utils.u import U
 from skee_t.wsgi import Resource
 from skee_t.wsgi import Router
+from skee_t.wx.pay.biz_pay import BizPayV1
 from skee_t.wx.proxy.pay import PayProxy
 
 __author__ = 'rensikun'
@@ -47,10 +47,16 @@ class TaskApi_V1(Router):
                        action='teacher_wait_comment',
                        conditions={'method': ['GET']})
 
-        # 代付预支付
-        mapper.connect('/pay/teacher/pre',
+        # 代付预支付(学员都评价了)
+        mapper.connect('/pay/teacher/pre_e',
                        controller=Resource(controller_v1),
-                       action='pay_for_teacher_pre',
+                       action='pay_for_teacher_pre_early',
+                       conditions={'method': ['GET']})
+
+        # 代付预支付(学员有未评价,活动结束12~18小时)
+        mapper.connect('/pay/teacher/pre_l',
+                       controller=Resource(controller_v1),
+                       action='pay_for_teacher_pre_late',
                        conditions={'method': ['GET']})
 
         # 代付预支付
@@ -64,7 +70,6 @@ class TaskApi_V1(Router):
                        controller=Resource(controller_v1),
                        action='statistics_fee_for_teacher',
                        conditions={'method': ['GET']})
-
 
 
 class ControllerV1(object):
@@ -155,6 +160,7 @@ class ControllerV1(object):
         LOG.info('[task]teacher_wait_comment...e:%s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))
 
+    # todo
     def statistics_fee_for_teacher(self, request):
         LOG.info('[task]...s')
 
@@ -202,66 +208,56 @@ class ControllerV1(object):
         LOG.info('[task]teacher_wait_comment...e:%s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))
 
+    '''
+    教学结束后,将未投诉的学员学费直接付给教学者
+    1 活动结束(Activity.state:3)
+    2 学费代收成功的(Order.state:2)
+    3 用户未投诉(ActivityMember.state(2,3) estimate_score != -1)
+    4 不存在已缴费但未评价的学员(ActivityMember.estimate_score != 0)
+    -> 初始化代付订单
+    '''
+    def pay_for_teacher_pre_early(self, request):
+        LOG.info('[task]...s')
+        rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
+
+        # 订单退款(Order.state:-1)
+        service = TaskService()
+        acts = service.list_order_wait_payfor_teacher_early(type=1, page_index=1, page_size=15);
+        LOG.info('list_order_wait_payfor_teacher_early is %s' % acts)
+        user_ip = request._headers.get('Proxy-Client-IP','192.168.0.100')
+        if not isinstance(acts, list):
+            rsp_dict['rspCode'] = acts['rst_code']
+            rsp_dict['rspDesc'] = acts['rst_desc']
+        elif acts.__len__() > 0:
+            BizPayV1().pre_pay(acts, user_ip)
+
+        LOG.info('[task]teacher_wait_comment...e:%s' % rsp_dict)
+        return Response(body=MyJson.dumps(rsp_dict))
+
 
     '''
     教学结束后,将未投诉的学员学费直接付给教学者
-    初始化代付订单
+    1 活动结束(Activity.state:3)
+    2 结束时间超过12小时又短于18小时(Activity.update_time(12h,18h))
+    3 学费代收成功的(Order.state:2)
+    4 用户未投诉(ActivityMember.estimate_score != -1)
+    -> 初始化代付订单
     '''
-    def pay_for_teacher_pre(self, request):
+    def pay_for_teacher_pre_late(self, request):
         LOG.info('[task]pay_for_teacher...s')
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
-        # 用户投诉(estimate_score = -1) 订单退款(Order.state:-1)
+        # 订单退款(Order.state:-1)
         service = TaskService()
-        # 1 获取活动结束(Activity.state:3)超过12小时又短于18小时,学费代收有成功的(Order.state:2)
-        acts = service.list_order_wait_payfor_teacher(type=1, page_index=1, page_size=15);
-        LOG.info('list_order_wait_payfor_teacher is %s' % acts)
+        acts = service.list_order_wait_payfor_teacher_late(type=1, page_index=1, page_size=15);
+        LOG.info('list_order_wait_payfor_teacher_late is %s' % acts)
         user_ip = request._headers.get('Proxy-Client-IP','192.168.0.100')
-        payService = PayService()
-        if isinstance(acts, list):
-            order_no_list = list()
-            do_biz = False
-            for index in range(len(acts)):
-                # 1.1 首个元素 且 非最后一个元素 则 追加订单号后继续循环
-                # 1.2 非首个元素 且 非最后一个元素 且 当前元素的activity_id与前一个相同 则 追加后继续循环
-                # 1.3 当前元素的activity_id与前一个不相同 则业务处理 置空订单号缓冲区 再 追加当前订单号后继续循环
-                # 1.4 当前元素是最后一个元素 且 数组总长度<15 则业务处理
-                if order_no_list.__len__() == 0 and index+1 != len(acts):
-                    order_no_list.append(acts[index].__getattribute__('order_no'))
-                    continue
-                elif acts[index-1].__getattribute__('activity_id') == acts[index].__getattribute__('activity_id') \
-                        and index+1 != len(acts):
-                    order_no_list.append(acts[index].__getattribute__('order_no'))
-                    continue
-                elif acts[index-1].__getattribute__('activity_id') != acts[index].__getattribute__('activity_id'):
-                    do_biz = True
-                    open_id = acts[index-1].__getattribute__('open_id')
-                    amount = acts[index-1].__getattribute__('fee')*order_no_list.__len__()*100
-                    title = acts[index-1].__getattribute__('title')
-                elif index+1 == len(acts) and len(acts) < 15:
-                    do_biz = True
-                    order_no_list.append(acts[index].__getattribute__('order_no'))
-                    open_id = acts[index].__getattribute__('open_id')
-                    amount = acts[index].__getattribute__('fee')*order_no_list.__len__()*100
-                    title = acts[index].__getattribute__('title')
-
-                if do_biz:
-                    # 2 初始化代付流水,更新订单(Order.state:4代付预支付,Order.collect_id代付流水号)
-                    create_rst = payService.create(uuid=U.gen_uuid(), order_no_list=order_no_list,
-                                                   nonce_str=U.gen_uuid(),
-                                                   amount=amount,
-                                                   user_ip=user_ip,
-                                                   openid=open_id,
-                                                   desc='滑雪帮-%s-教学费用' % title)
-                    if create_rst:
-                        LOG.error('[task]pay_for_teacher...:%s' % create_rst)
-                    if index+1 != len(acts):
-                        order_no_list = list()
-                        order_no_list.append(acts[index].__getattribute__('order_no'))
-        else:
+        if not isinstance(acts, list):
             rsp_dict['rspCode'] = acts['rst_code']
             rsp_dict['rspDesc'] = acts['rst_desc']
+        else:
+            BizPayV1().pre_pay(acts, user_ip)
 
         LOG.info('[task]teacher_wait_comment...e:%s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))
@@ -302,6 +298,7 @@ class ControllerV1(object):
                 LOG.info('different pay for user-wait for 1 seconds')
                 user_pre = order_pay.openid
                 time.sleep(1)
+
             try:
                 rsp_wx_dict = PayProxy.pay(order_pay.openid, order_pay.user_ip,
                                            order_pay.uuid, order_pay.desc, str(order_pay.amount))
@@ -324,18 +321,28 @@ class ControllerV1(object):
                 LOG.error('[task]pay_for_teacher...:%s' % update_rst)
             else:
                 # 通知教练
-                # send_msg = send_msg_template % {'target_name':target_name,
-                #                                 'activity_title':activity_title,'amount':order_dict['amount'],
-                #                                 'template_id': '27Cw1Bf3WXZq8n2K1bjjM3Whk7SIyeVqy0BxEgSLKD4',
-                #                                 'target_open_id':target_open_id}
-
                 payMsgParam = payService.getPayMsgParams(order_pay.uuid)
-                BizMsgV1().notify_wx_temp_msg(type=10,
-                                              target_open_id=payMsgParam.__getattribute__('target_open_id'),
-                                              target_id=payMsgParam.__getattribute__('target_id'),
-                                              target_name=payMsgParam.__getattribute__('target_name'),
-                                              activity_id=payMsgParam.__getattribute__('activity_id'),
-                                              activity_title=payMsgParam.__getattribute__('activity_title'))
+
+                # 成员状态(2: 已付款)
+                member_names = service.list_member_pay(payMsgParam.__getattribute__('activity_id'))
+                if not isinstance(member_names, list):
+                    LOG.warn('member_names error %s' % member_names)
+                    continue
+                members = ''
+                for member_name in member_names:
+                    if members != '':
+                        members+=','
+                    members+=member_name.__getattribute__('member_name')
+
+                order_dict = dict()
+                order_dict['amount'] = '%0.0f元' % (order_pay.amount/100)
+                BizMsgV1().notify_wx_temp_msg(type=10,source_name=members,
+                                          target_open_id=payMsgParam.__getattribute__('target_open_id'),
+                                          target_id=payMsgParam.__getattribute__('target_id'),
+                                          target_name=payMsgParam.__getattribute__('target_name'),
+                                          activity_id=payMsgParam.__getattribute__('activity_id'),
+                                          activity_title=payMsgParam.__getattribute__('activity_title'),
+                                          order_dict=order_dict)
 
         LOG.info('[task]pay_for_teacher...e:%s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))

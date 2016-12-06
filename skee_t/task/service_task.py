@@ -211,8 +211,10 @@ class TaskService(BaseService):
             rst_desc = e.message
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
+
+
     # @SkiResortListValidator
-    def list_order_wait_payfor_teacher(self, type, page_index, page_size):
+    def list_order_wait_payfor_teacher_early(self, type, page_index, page_size):
         """
         创建用户方法
         :param dict_args:Map类型的参数，封装了由前端传来的用户信息
@@ -228,6 +230,47 @@ class TaskService(BaseService):
                                      Activity.uuid.label('activity_id'),
                                      Order.order_no) \
                 .filter(User.uuid == Activity.creator) \
+                .filter(Activity.state == 3, Activity.type == type) \
+                .filter(Order.teach_id == Activity.uuid, Order.state == 2) \
+                .filter(~exists().where(and_(
+                        ActivityMember.activity_uuid == Order.teach_id,
+                        ActivityMember.state.in_([2,3]),
+                        ActivityMember.estimate_score == 0))) \
+                .filter(~exists().where(and_(
+                        ActivityMember.activity_uuid == Order.teach_id,
+                        ActivityMember.user_uuid == Order.collect_user_id,
+                        ActivityMember.estimate_score == -1))) \
+                .order_by(Activity.meeting_time,Activity.uuid,Order.update_time)
+            return query_sr.offset((page_index-1)*page_size).limit(page_index*page_size).all()
+        except NoResultFound as e:
+            LOG.exception("List activity information error.")
+            return {'rst_code': 100000, 'rst_desc': '未找到活动'}
+        except (TypeError, Exception) as e:
+            LOG.exception("List SkiResort information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
+    def list_order_wait_payfor_teacher_late(self, type, page_index, page_size):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            session = DbEngine.get_session_simple()
+            query_sr = session.query(User.open_id, Activity.title, Activity.fee,
+                                     Activity.uuid.label('activity_id'),
+                                     Order.order_no) \
+                .filter(User.uuid == Activity.creator) \
+                .filter(ActivityMember.activity_uuid == Order.teach_id,
+                        ActivityMember.user_uuid == Order.collect_user_id,
+                        ActivityMember.estimate_score != -1) \
                 .filter(Activity.state == 3, Activity.type == type) \
                 .filter(Activity.update_time.between(datetime.datetime.now() - datetime.timedelta(hours=18),
                                                      datetime.datetime.now() - datetime.timedelta(hours=12))) \

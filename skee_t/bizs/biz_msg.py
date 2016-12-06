@@ -114,7 +114,7 @@ class BizMsgV1(object):
             if isinstance(property, Property):
                 send_msg_template = property.value
 
-            send_msg = send_msg_template % {'target_name':target_name,
+            send_msg = send_msg_template % {'target_name':target_name,'source_name':source_name,
                                             'activity_title':activity_title,'amount':order_dict['amount'],
                                             'template_id': '27Cw1Bf3WXZq8n2K1bjjM3Whk7SIyeVqy0BxEgSLKD4',
                                             'target_open_id':'o2pJcvz6msVs08t49EU8zsLjAaXo'}

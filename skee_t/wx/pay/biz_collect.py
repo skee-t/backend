@@ -14,7 +14,7 @@ __author__ = 'rensikun'
 LOG = logging.getLogger(__name__)
 
 
-class BizPayV1(object):
+class BizCollectV1(object):
 
     def __init__(self):
         pass

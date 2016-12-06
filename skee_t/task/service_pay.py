@@ -6,7 +6,7 @@ import logging
 # from sqlalchemy.sql.expression import func, text
 
 from skee_t.db import DbEngine
-from skee_t.db.models import Order, OrderPay, Activity, User, ActivityMember
+from skee_t.db.models import Order, OrderPay, Activity, User
 from skee_t.services import BaseService
 
 __author__ = 'rensikun'
@@ -111,7 +111,7 @@ class PayService(BaseService):
                         Activity.title.label('activity_title'),
                         Activity.uuid.label('activity_id'))\
                     .filter(Order.pay_user_id == User.uuid, Order.teach_id == Activity.uuid)\
-                    .filter(Order.pay_id == pay_id)
+                    .filter(Order.pay_id == pay_id).one()
         except (TypeError, Exception) as e:
             LOG.exception("get_order error.")
             # 数据库异常
