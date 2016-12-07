@@ -88,7 +88,8 @@ class MemberService(BaseService):
 
         try:
             session = DbEngine.get_session_simple()
-            query_sr = session.query(ActivityMember.user_uuid.label('id'), ActivityMember.state,
+            query_sr = session.query(ActivityMember.user_uuid.label('id'),
+                                     ActivityMember.state, ActivityMember.update_time,
                                      User.head_image_path, User.name, User.ski_level,) \
                 .filter(ActivityMember.user_uuid == User.uuid) \
                 .filter(ActivityMember.activity_uuid == teach_id)
