@@ -150,7 +150,7 @@ class BizMsgV1(object):
             send_msg = send_msg_template % {'target_name':target_name,'source_name':source_name,
                                             'activity_title':activity_title,'amount':order_dict['amount'],
                                             'template_id': '27Cw1Bf3WXZq8n2K1bjjM3Whk7SIyeVqy0BxEgSLKD4',
-                                            'target_open_id':'o2pJcvz6msVs08t49EU8zsLjAaXo'}
+                                            'target_open_id':target_open_id}
 
         acc_token = WxBasic().get_access_token()
         wxRsp = WxTempMsgProxy().send(acc_token,msg=str(send_msg))

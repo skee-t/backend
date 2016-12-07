@@ -188,7 +188,7 @@ class TaskService(BaseService):
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
     # @SkiResortListValidator
-    def list_member_pay(self, activity_id):
+    def list_member_pay(self, activity_id, member_states, msg_type):
         # 活动状态(0：召集中)
         # 时间(活动开始前1小时)
         try:
@@ -197,9 +197,9 @@ class TaskService(BaseService):
                 .filter(User.uuid == ActivityMember.user_uuid) \
                 .filter(Activity.uuid == ActivityMember.activity_uuid) \
                 .filter(Activity.uuid == activity_id) \
-                .filter(ActivityMember.state == 2) \
+                .filter(ActivityMember.state.in_(member_states)) \
                 .filter(~exists().where(
-                    and_(Msg.target_id == Activity.creator, Msg.activity_id == Activity.uuid, Msg.type == 9))) \
+                    and_(Msg.target_id == Activity.creator, Msg.activity_id == Activity.uuid, Msg.type == msg_type))) \
                 .order_by(ActivityMember.update_time)
             return query_sr.all()
         except NoResultFound as e:

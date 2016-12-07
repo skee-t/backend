@@ -189,7 +189,7 @@ class ControllerV1(object):
         for act in acts:
             try:
                 # 成员状态(2: 已付款)
-                member_names = service.list_member_pay(act.__getattribute__('activity_id'))
+                member_names = service.list_member_pay(act.__getattribute__('activity_id'), [2], 9)
                 if not isinstance(member_names, list):
                     LOG.warn('member_names error %s' % member_names)
                     continue
@@ -336,7 +336,7 @@ class ControllerV1(object):
                 payMsgParam = payService.getPayMsgParams(order_pay.uuid)
 
                 # 成员状态(2: 已付款)
-                member_names = service.list_member_pay(payMsgParam.__getattribute__('activity_id'))
+                member_names = service.list_member_pay(payMsgParam.__getattribute__('activity_id'), [2,3], 10)
                 if not isinstance(member_names, list):
                     LOG.warn('member_names error %s' % member_names)
                     continue
