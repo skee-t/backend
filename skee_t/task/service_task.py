@@ -96,7 +96,8 @@ class TaskService(BaseService):
         try:
             session = DbEngine.get_session_simple()
             query_sr = session.query(User.uuid.label('leader_id'), User.name.label('leader_name'),
-                                     Activity.uuid.label('activity_id'), User.phone_no) \
+                                     User.open_id.label('leader_open_id'), User.phone_no,
+                                     Activity.uuid.label('activity_id'), Activity.title.label('activity_title')) \
                 .filter(User.uuid == Activity.creator)\
                 .filter(Activity.state == 3) \
                 .filter(Activity.update_time <= datetime.datetime.now() - datetime.timedelta(hours=4)) \
@@ -132,8 +133,8 @@ class TaskService(BaseService):
         try:
             session = DbEngine.get_session_simple()
             query_sr = session.query(User.uuid.label('member_id'), User.name.label('member_name'),
-                                     User.phone_no.label('phone_no'),
-                                     Activity.uuid.label('activity_id')) \
+                                     User.open_id.label('member_open_id'), User.phone_no,
+                                     Activity.uuid.label('activity_id'), Activity.title.label('activity_title')) \
                 .filter(User.uuid == ActivityMember.user_uuid) \
                 .filter(ActivityMember.activity_uuid == Activity.uuid) \
                 .filter(ActivityMember.state.in_([2, 3])) \

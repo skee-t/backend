@@ -384,14 +384,14 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = '活动不存在'
             return Response(body=MyJson.dumps(rsp_dict))
 
-        # 判断是否超员(总人数不超过15人)
+        # 判断是否超员(总人数不超过12人)
         member_count = MemberService().member_count(req_json.get('teachId'),[3,2,1,0])
         if not isinstance(member_count, KeyedTuple):
             rsp_dict['rspCode'] = member_count['rst_code']
             rsp_dict['rspDesc'] = member_count['rst_code']
             return Response(body=MyJson.dumps(rsp_dict))
 
-        if member_count.__getattribute__('member_count') >= 15:
+        if member_count.__getattribute__('member_count') >= 12:
             rsp_dict['rspCode'] = 100003
             rsp_dict['rspDesc'] = '此活动太火爆,申请人过多,请选择其他活动或者稍后再试'
             return Response(body=MyJson.dumps(rsp_dict))
@@ -540,16 +540,16 @@ class ControllerV1(object):
             return Response(body=MyJson.dumps(rsp_dict))
 
         # 判断是否超员
-        member_count = MemberService().member_count(req_json.get('teachId'),[4,3,2,1])
-        if not isinstance(member_count, KeyedTuple):
-            rsp_dict['rspCode'] = member_count['rst_code']
-            rsp_dict['rspDesc'] = member_count['rst_desc']
-            return Response(body=MyJson.dumps(rsp_dict))
-
-        if member_count.__getattribute__('member_count') + req_json.get('members').__len__() > 6:
-            rsp_dict['rspCode'] = '100002'
-            rsp_dict['rspDesc'] = '小队成员数超过6人，请三思~'
-            return Response(body=MyJson.dumps(rsp_dict))
+        # member_count = MemberService().member_count(req_json.get('teachId'),[4,3,2,1])
+        # if not isinstance(member_count, KeyedTuple):
+        #     rsp_dict['rspCode'] = member_count['rst_code']
+        #     rsp_dict['rspDesc'] = member_count['rst_desc']
+        #     return Response(body=MyJson.dumps(rsp_dict))
+        #
+        # if member_count.__getattribute__('member_count') + req_json.get('members').__len__() > 6:
+        #     rsp_dict['rspCode'] = '100002'
+        #     rsp_dict['rspDesc'] = '小队成员数超过6人，请三思~'
+        #     return Response(body=MyJson.dumps(rsp_dict))
 
         # 批准入队(从0到1)
         approve_rst = MemberService().member_update(req_json.get('teachId'), req_json.get('members'), 0, 1)

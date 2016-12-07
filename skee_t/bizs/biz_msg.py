@@ -29,8 +29,9 @@ class BizMsgV1(object):
                            order_dict = None):
 
         # 消息类型:
-        # 0系统通知 1成员入队提醒; 2批准入队通知; 3评价队长提醒;
-        # 4成员评价通知; 5 学员评级提醒; 6 学员晋级通知; 7 成员退出通知; 8 退款成功通知
+        # 0系统通知 1成员入队提醒; 2批准入队通知;
+        # 3评价队长提醒; 4成员评价通知; 5 学员评级提醒; 6 学员晋级通知;
+        # 7 成员退出通知; 8 退款成功通知
         # 9教学费用支付通知; 10教学费用到账通知
         if type == 1:
             # {{first.DATA}}
@@ -70,13 +71,45 @@ class BizMsgV1(object):
                                             'template_id': 'ySPCCRtPJJaoI28o_DHIdCVeHWfijAofF0_W0xDUSHU',
                                             'activity_id':activity_id ,'target_open_id':target_open_id}
         elif type == 3:
-            pass
+            send_msg_template = None
+            property = SysService.getByKey('wx-notify-comment')
+            if isinstance(property, Property):
+                send_msg_template = property.value
+
+            send_msg = send_msg_template % {'target_name':target_name,
+                                            'activity_title':activity_title,'cur_time':U.timeStr(),
+                                            'template_id': 'ySPCCRtPJJaoI28o_DHIdCVeHWfijAofF0_W0xDUSHU',
+                                            'activity_id':activity_id ,'target_open_id':target_open_id}
         elif type == 4:
-            pass
+            send_msg_template = None
+            property = SysService.getByKey('wx-notify-comments')
+            if isinstance(property, Property):
+                send_msg_template = property.value
+
+            send_msg = send_msg_template % {'target_name':target_name,
+                                            'activity_title':activity_title,'cur_time':U.timeStr(),
+                                            'template_id': 'ySPCCRtPJJaoI28o_DHIdCVeHWfijAofF0_W0xDUSHU',
+                                            'activity_id':activity_id ,'target_open_id':target_open_id}
         elif type == 5:
-            pass
+            send_msg_template = None
+            property = SysService.getByKey('wx-notify-pro-tea')
+            if isinstance(property, Property):
+                send_msg_template = property.value
+
+            send_msg = send_msg_template % {'target_name':target_name,
+                                            'activity_title':activity_title,'cur_time':U.timeStr(),
+                                            'template_id': 'ySPCCRtPJJaoI28o_DHIdCVeHWfijAofF0_W0xDUSHU',
+                                            'activity_id':activity_id ,'target_open_id':target_open_id}
         elif type == 6:
-            pass
+            send_msg_template = None
+            property = SysService.getByKey('wx-notify-pro-stu')
+            if isinstance(property, Property):
+                send_msg_template = property.value
+
+            send_msg = send_msg_template % {'target_name':target_name,
+                                            'activity_title':activity_title,'cur_time':U.timeStr(),
+                                            'template_id': 'ySPCCRtPJJaoI28o_DHIdCVeHWfijAofF0_W0xDUSHU',
+                                            'activity_id':activity_id ,'target_open_id':target_open_id}
         elif type == 7:  # 成员退出通知
             send_msg_template = None
             property = SysService.getByKey('wx-notify-quit')

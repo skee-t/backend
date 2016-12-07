@@ -360,8 +360,10 @@ class ActivityService(BaseService):
         try:
             session = DbEngine.get_session_simple()
             query_sr = session.query(Activity.uuid.label('id'),
+                                     Activity.title,
                                      User.uuid.label('leader_id'),
                                      User.name.label('leader_name'),
+                                     User.open_id.label('leader_open_id'),
                                      User.phone_no.label('leader_phone')
                                      ) \
                 .filter(User.uuid == Activity.creator) \

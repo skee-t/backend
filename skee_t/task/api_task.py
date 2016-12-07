@@ -115,11 +115,17 @@ class ControllerV1(object):
         if isinstance(acts, list):
             for act in acts:
                 try:
-                    BizMsgV1().create_with_send_sms(type=5,source_id='admin_msg',source_name='小帮',
-                                                    target_id=act.__getattribute__('leader_id'),
-                                                    target_name=act.__getattribute__('leader_name'),
-                                                    target_phone=act.__getattribute__('phone_no'),
-                                                    activity_id=act.__getattribute__('activity_id'))
+                    BizMsgV1().notify_wx_temp_msg(type=5,
+                                                  target_open_id=act.__getattribute__('leader_open_id'),
+                                                  target_id=act.__getattribute__('leader_id'),
+                                                  target_name=act.__getattribute__('leader_name'),
+                                                  activity_id=act.__getattribute__('activity_id'),
+                                                  activity_title=act.__getattribute__('activity_title'))
+                    # BizMsgV1().create_with_send_sms(type=5,source_id='admin_msg',source_name='小帮',
+                    #                                 target_id=act.__getattribute__('leader_id'),
+                    #                                 target_name=act.__getattribute__('leader_name'),
+                    #                                 target_phone=act.__getattribute__('phone_no'),
+                    #                                 activity_id=act.__getattribute__('activity_id'))
 
                 except Exception as e:
                     rsp_dict['rspCode'] = 999999
@@ -144,11 +150,17 @@ class ControllerV1(object):
         if isinstance(acts, list):
             for act in acts:
                 try:
-                    BizMsgV1().create_with_send_sms(type=3,source_id='admin_msg',source_name='小帮',
-                                                    target_id=act.__getattribute__('member_id'),
-                                                    target_name=act.__getattribute__('member_name'),
-                                                    target_phone=act.__getattribute__('phone_no'),
-                                                    activity_id=act.__getattribute__('activity_id'))
+                    BizMsgV1().notify_wx_temp_msg(type=3,
+                                                  target_open_id=act.__getattribute__('member_open_id'),
+                                                  target_id=act.__getattribute__('member_id'),
+                                                  target_name=act.__getattribute__('member_name'),
+                                                  activity_id=act.__getattribute__('activity_id'),
+                                                  activity_title=act.__getattribute__('activity_title'))
+                    # BizMsgV1().create_with_send_sms(type=3,source_id='admin_msg',source_name='小帮',
+                    #                                 target_id=act.__getattribute__('member_id'),
+                    #                                 target_name=act.__getattribute__('member_name'),
+                    #                                 target_phone=act.__getattribute__('phone_no'),
+                    #                                 activity_id=act.__getattribute__('activity_id'))
 
                 except Exception as e:
                     rsp_dict['rspCode'] = 999999
