@@ -318,22 +318,13 @@ class ControllerV1(object):
             if 'subscribe' in wx_user_info:
                 cur_subscribe = wx_user_info['subscribe']
 
-        # 判断当前浏览用户是否可以参加该活动
-        #  3 队长 2 已被批准 1 可以加入 0 申请中等待批准
-        can_join = 1
+        # 判断当前浏览用户的状态
+        #  -2：报名后退出；-1: 队长拒绝； 0：已报名待批准；1：队长批准待付款; 2: 已付款 3:晋级 4:队长
+        cu_state = -3 # 未在队伍中
         if isinstance(user, User):
             for member in rsp_dict['members']:
                 if member['id'] == user.uuid:
-                    if member['state'] == 0:
-                        can_join = 0
-                    elif member['state'] == 4:
-                        can_join = 3
-                    else:
-                        can_join = 2
-
-        if can_join == 1 and rsp_dict['state'] != 0:
-            can_join = -1
-
+                    cu_state = member['state']
 
         # 移除去除自己之外的申请中队员,并统计所有申请人数
         apply_num = 0
@@ -347,7 +338,7 @@ class ControllerV1(object):
         # rsp_dict['curSubscribe'] = 0
         # rsp_dict['canJoin'] = 1
         rsp_dict['curSubscribe'] = cur_subscribe
-        rsp_dict['canJoin'] = can_join
+        rsp_dict['cuState'] = cu_state
         rsp_dict['applyNum'] = apply_num
         LOG.info('The result of create user information is %s' % rsp_dict)
         return Response(body=MyJson.dumps(rsp_dict))
@@ -393,14 +384,14 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = '活动不存在'
             return Response(body=MyJson.dumps(rsp_dict))
 
-        # 判断是否超员(总人数不超过10人)
-        member_count = MemberService().member_count(req_json.get('teachId'),[4,3,2,1,0])
+        # 判断是否超员(总人数不超过15人)
+        member_count = MemberService().member_count(req_json.get('teachId'),[3,2,1,0])
         if not isinstance(member_count, KeyedTuple):
             rsp_dict['rspCode'] = member_count['rst_code']
             rsp_dict['rspDesc'] = member_count['rst_code']
             return Response(body=MyJson.dumps(rsp_dict))
 
-        if member_count.__getattribute__('member_count') >= 10:
+        if member_count.__getattribute__('member_count') >= 15:
             rsp_dict['rspCode'] = 100003
             rsp_dict['rspDesc'] = '此活动太火爆,申请人过多,请选择其他活动或者稍后再试'
             return Response(body=MyJson.dumps(rsp_dict))
@@ -682,11 +673,17 @@ class ControllerV1(object):
         # todo 后续改造为异步线程处理,以减少前端等待时间
         for member_user in member_users:
             try:
-                BizMsgV1().create_with_send_sms(type=6,source_id=user.uuid,source_name=user.name,
-                                                target_id=member_user.uuid,
-                                                target_name=member_user.name,
-                                                target_phone=member_user.phone_no,
-                                                activity_id=req_json.get('teachId'))
+                BizMsgV1().notify_wx_temp_msg(type=6,source_id=user.uuid,source_name=user.name,
+                                              target_open_id=member_user.open_id,
+                                              target_id=member_user.uuid,
+                                              target_name=member_user.name,
+                                              activity_id=req_json.get('teachId'),
+                                              activity_title=activity_item.__getattribute__('title'))
+                # BizMsgV1().create_with_send_sms(type=6,source_id=user.uuid,source_name=user.name,
+                #                                 target_id=member_user.uuid,
+                #                                 target_name=member_user.name,
+                #                                 target_phone=member_user.phone_no,
+                #                                 activity_id=req_json.get('teachId'))
 
             except Exception as e:
                 rsp_dict['rspCode'] = 999999
@@ -731,11 +728,18 @@ class ControllerV1(object):
             else:
                 source_id=user.uuid
                 source_name=user.name
-            BizMsgV1().create_with_send_sms(type=4,source_id=source_id,source_name=source_name,
-                                            target_id=activity_leader.__getattribute__('leader_id'),
-                                            target_name=activity_leader.__getattribute__('leader_name'),
-                                            target_phone=activity_leader.__getattribute__('leader_phone'),
-                                            activity_id=req_json.get('teachId'))
+
+            BizMsgV1().notify_wx_temp_msg(type=4,source_id=source_id,source_name=source_name,
+                                          target_open_id=activity_leader.__getattribute__('leader_open_id'),
+                                          target_id=activity_leader.__getattribute__('leader_id'),
+                                          target_name=activity_leader.__getattribute__('leader_name'),
+                                          activity_id=req_json.get('teachId'),
+                                          activity_title=activity_leader.__getattribute__('title'))
+            # BizMsgV1().create_with_send_sms(type=4,source_id=source_id,source_name=source_name,
+            #                                 target_id=activity_leader.__getattribute__('leader_id'),
+            #                                 target_name=activity_leader.__getattribute__('leader_name'),
+            #                                 target_phone=activity_leader.__getattribute__('leader_phone'),
+            #                                 activity_id=req_json.get('teachId'))
         except Exception as e:
             rsp_dict['rspCode'] = 999999
             rsp_dict['rspDesc'] = e.message
