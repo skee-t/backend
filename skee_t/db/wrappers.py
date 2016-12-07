@@ -1,8 +1,8 @@
 #! -*-coding:UTF-8 -*-
-import abc
 import datetime
 import decimal
 
+import abc
 from sqlalchemy.util import KeyedTuple
 
 from skee_t.db.models import SkiResort, Activity, User, ActivityMember, Msg
@@ -22,7 +22,7 @@ class AbstractORMWrapper(dict):
                 if isinstance(attr_value, decimal.Decimal):
                     self[underline_to_camel(attr)] = format(attr_value, '0.0f')
                 elif isinstance(attr_value, datetime.datetime):
-                    self[underline_to_camel(attr)] = attr_value.strftime('%Y-%m-%d %H:%M:%S')
+                    self[underline_to_camel(attr)] = attr_value.strftime('%Y-%m-%d %H:%M')
                 else:
                     self[underline_to_camel(attr)] = attr_value
             # 组合字段
