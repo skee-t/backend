@@ -146,6 +146,31 @@ class UserService(BaseService):
             rst_desc = e.message
         return {'rst_code': rst_code, 'rst_desc': rst_desc}
 
+    def get_levels(self, type, levels):
+        """
+        创建用户方法
+        :param dict_args:Map类型的参数，封装了由前端传来的用户信息
+        :return:
+        """
+        session = None
+        rst_code = 0
+        rst_desc = 'success'
+
+        try:
+            session = DbEngine.get_session_simple()
+            return session.query(Level) \
+                .filter(Level.type == type).filter(Level.level.in_(levels)).order_by(Level.level).all()
+        except NoResultFound as e:
+            LOG.exception("get_level error.")
+            rst_code = 100000
+            rst_desc = '等级信息不存在'
+        except (TypeError, Exception) as e:
+            LOG.exception("List level information error.")
+            # 数据库异常
+            rst_code = 999999
+            rst_desc = e.message
+        return {'rst_code': rst_code, 'rst_desc': rst_desc}
+
     # @SkiResortListValidator
     def level_update(self, activity_id, members, session_com = None):
         """

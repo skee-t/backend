@@ -364,6 +364,13 @@ class ControllerV1(object):
 
         # 成员状态: 2-已付款 活动状态: 3-已结束
         rsp_dict = BizTeachV1().detail_teach_team(teachId=teachId, leaderId=user.uuid, memberStates = [2], activityState=3)
+
+        # 获取当前等级和下一等级
+        if rsp_dict['rspCode'] == 0:
+            levels = UserService().get_levels(user.ski_type, [rsp_dict['levelLimit'],rsp_dict['levelLimit']+1])
+            rsp_dict['levelDescCur'] = levels[0].level_desc
+            rsp_dict['levelDescNext'] = levels[1].level_desc
+
         return Response(body=MyJson.dumps(rsp_dict))
 
 
