@@ -626,9 +626,9 @@ class ControllerV1(object):
 
         # 判断活动时间是否还允许晋级(活动结束48小时内)
         if activity_item.__getattribute__('update_time') \
-                + datetime.timedelta(hours=48) < datetime.datetime.now():
+                + datetime.timedelta(hours=24) < datetime.datetime.now():
             rsp_dict['rspCode'] = 100001
-            rsp_dict['rspDesc'] = '教学活动结束已超过48小时，不可再晋级学员'
+            rsp_dict['rspDesc'] = '教学活动结束已超过24小时，不可再晋级学员'
             return Response(body=MyJson.dumps(rsp_dict))
 
         # 获取待晋级用户信息
@@ -637,6 +637,13 @@ class ControllerV1(object):
             rsp_dict['rspCode'] = member_users['rst_code']
             rsp_dict['rspDesc'] = member_users['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
+
+        for member_user in member_users:
+            if member_user.ski_level != activity_item.__getattribute__('level_limit'):
+                rsp_dict['rspCode'] = 100001
+                rsp_dict['rspDesc'] = '晋级学员中包含高等级学员，请仔细打量后再晋级'
+                return Response(body=MyJson.dumps(rsp_dict))
+
 
         session = DbEngine.get_session_simple()
         # 更新活动成员状态(从2到3)
