@@ -726,7 +726,10 @@ class ControllerV1(object):
             rsp_dict['rspDesc'] = activity_leader['rst_desc']
             return Response(body=MyJson.dumps(rsp_dict))
 
-        # 更新成员评价
+        # 领队ID
+        req_json['leaderId'] = activity_leader.__getattribute__('leader_id')
+
+         # 更新成员评价
         approve_rst = MemberService().member_estimate(req_json)
         if approve_rst['rst_code'] != 0:
             rsp_dict['rspCode'] = approve_rst['rst_code']

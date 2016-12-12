@@ -183,6 +183,16 @@ class MemberService(BaseService):
                          ActivityMember.update_time:now()}
                         ,synchronize_session=False
                         )
+
+            # 更新领队的教学等级
+            if int(dict_args.get('score')) == 5:
+                session.query(User) \
+                    .filter(User.uuid == dict_args.get('leaderId')) \
+                    .update({User.teach_level:User.teach_level+1,
+                             User.update_time:now()}
+                            ,synchronize_session=False
+                            )
+
             session.commit()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")

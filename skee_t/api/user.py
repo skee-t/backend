@@ -173,7 +173,7 @@ class ControllerV1(object):
 
         level_info = user_service.get_level(0, user.teach_level)
         if isinstance(level_info, Level):
-            rsp_dict['teachLevel'] = level_info.level_desc
+            rsp_dict['teachLevel'] = '%s(%s)'%(level_info.level_desc, user.teach_level)
             rsp_dict['encouragement'] = level_info.comment
         else:
             rsp_dict['teachLevel'] = user.teach_level

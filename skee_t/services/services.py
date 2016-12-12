@@ -134,7 +134,8 @@ class UserService(BaseService):
         try:
             session = DbEngine.get_session_simple()
             return session.query(Level)\
-                .filter(Level.type == type).filter(Level.level == level).one()
+                .filter(Level.type == type)\
+                .filter(Level.level <= level).order_by(Level.level.desc()).first()
         except NoResultFound as e:
             LOG.exception("get_level error.")
             rst_code = 100000
