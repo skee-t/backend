@@ -283,7 +283,6 @@ class ControllerV1(object):
     '''
     def pay_for_teacher(self, request):
         LOG.info('[task]pay_for_teacher...s')
-
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
         # 用户投诉(estimate_score = -1) 订单退款(Order.state:-1)

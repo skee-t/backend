@@ -161,7 +161,6 @@ class ControllerV1(object):
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
 
         user_service = UserService()
-        # todo 获取当前用户
         user = user_service.get_user(open_id=openId, user_id=userId)
         if not isinstance(user, User):
             rsp_dict['rspCode'] = user['rst_code']
