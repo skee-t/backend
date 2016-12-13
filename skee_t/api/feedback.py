@@ -56,8 +56,11 @@ class ControllerV1(object):
         req_json['userId'] = user.uuid
 
         rst = FeedbackService().create_feedback(req_json)
+        # BizMsgV1().create_with_send_sms(type=4,source_id=source_id,source_name=source_name,
+        #                                 target_id=activity_leader.__getattribute__('leader_id'),
+        #                                 target_name=activity_leader.__getattribute__('leader_name'),
+        #                                 target_phone=activity_leader.__getattribute__('leader_phone'),
+        #                                 activity_id=req_json.get('teachId'))
         LOG.info('The result of create user information is %s' % rst)
         rsp_dict = {'rspCode':rst.get('rst_code'),'rspDesc':rst.get('rst_desc')}
-        return Response(body=MyJson.dumps(rsp_dict))
-
         return Response(body=MyJson.dumps(rsp_dict))
