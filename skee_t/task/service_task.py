@@ -17,7 +17,7 @@ from skee_t.services import BaseService
 __author__ = 'rensikun'
 
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__.split('.')[1])
 
 
 class TaskService(BaseService):

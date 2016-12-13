@@ -1,25 +1,19 @@
 #! -*- coding: UTF-8 -*-
 import logging
-import time
 
 from webob import Response
 
-from skee_t.bizs.biz_msg import BizMsgV1
-from skee_t.task.service_pay import PayService
 from skee_t.task.service_task import TaskService
 from skee_t.utils.my_exception import MyException
 from skee_t.utils.my_json import MyJson
-from skee_t.utils.u import U
 from skee_t.wsgi import Resource
 from skee_t.wsgi import Router
 from skee_t.wx.pay.biz_refund import BizRefundV1
-from skee_t.wx.pay.service_refund import RefundService
-from skee_t.wx.proxy.pay import PayProxy
 
 __author__ = 'rensikun'
 
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__.split('.')[1])
 
 
 class TaskApiRefund_V1(Router):

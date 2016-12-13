@@ -16,7 +16,7 @@ from skee_t.wx.proxy.pay import PayProxy
 __author__ = 'rensikun'
 
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__.split('.')[1])
 
 
 class TaskApi_V1(Router):
