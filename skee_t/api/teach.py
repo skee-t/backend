@@ -513,7 +513,7 @@ class ControllerV1(object):
         rsp_dict['skiResortName'] = activity_item.__getattribute__('ski_resort_name')
         rsp_dict['trailPic'] = activity_item.__getattribute__('trail_pic')
 
-        members = MemberService().list_member(teachId, 0)
+        members = MemberService().list_member(teachId, [0])
         if isinstance(members, list):
             rsp_dict['members'] = [MemberWrapper(item) for item in members]
         else:
