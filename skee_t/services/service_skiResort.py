@@ -195,7 +195,7 @@ class SkiResortService(BaseService):
             if skiResort_id:
                 query_sr = query_sr.filter(SkiResort.uuid == skiResort_id)
             else:
-                query_sr = query_sr.order_by(SkiResort.city,SkiResort.name)
+                query_sr = query_sr.order_by(SkiResort.type.desc(),SkiResort.city,SkiResort.name)
             if page_index:
                 return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
             else:
