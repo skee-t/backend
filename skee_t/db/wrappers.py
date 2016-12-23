@@ -62,10 +62,22 @@ class SkiResortWrapper(AbstractORMWrapper):
 class SkiResortSimpleWrapper(AbstractORMWrapper):
 
     def _getwrapattrs(self):
-        return ['id', 'name', 'city', 'teaching_fee']
+        return ['id', 'teaching_fee']
 
     def _getClass(self):
         return SkiResort
+
+    def _mergeattrs(self, model_obj):
+        if model_obj.__getattribute__('type') == 1:
+            self['cityName'] = '%s-%s' \
+                               % (model_obj.__getattribute__('city'),
+                                  model_obj.__getattribute__('name')
+                                  )
+        else:
+            self['cityName'] = '%s' \
+                               % (
+                                  model_obj.__getattribute__('name')
+                                  )
 
 
 

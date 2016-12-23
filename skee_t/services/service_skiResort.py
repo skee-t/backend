@@ -188,7 +188,8 @@ class SkiResortService(BaseService):
 
         try:
             session = DbEngine.get_session_simple()
-            query_sr = session.query(SkiResort.uuid.label('id'), SkiResort.name, SkiResort.address, SkiResort.city,
+            query_sr = session.query(SkiResort.uuid.label('id'), SkiResort.name, SkiResort.type,
+                                     SkiResort.address, SkiResort.city,
                                      TeachingFee.fee_desc.label('teaching_fee'))\
                 .outerjoin(TeachingFee, TeachingFee.ski_resort_uuid == SkiResort.uuid)\
                 .filter(or_(TeachingFee.ski_type == None, TeachingFee.ski_type == ski_type))
