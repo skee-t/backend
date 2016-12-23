@@ -30,6 +30,7 @@ class SkiResort(DB_BASE_MODEL, GenericModel):
     id = Column('id', BigInteger, primary_key=True, autoincrement=True)
     uuid = Column('uuid', String(32), nullable=False, unique=True)
     name = Column('name', String(255), nullable=False, doc='雪场名称', unique=True)
+    type = Column('type', SmallInteger, nullable=False, default=1, doc='类型: 1具体雪场 2范围雪场')
     city = Column('city', String(100), nullable=False, doc='雪场所在城市')
     address = Column('address', String(255), nullable=False, doc='雪场具体位置')
     spec_pic = Column('spec_pic', String(255), nullable=False, doc='雪场特色照片')

@@ -83,6 +83,8 @@ class SkiResortService(BaseService):
                 return query_sr.filter_by(uuid=uuid).one()
             elif city:
                 query_sr = query_sr.filter_by(city=city)
+            query_sr = query_sr.filter_by(type=1)
+
             return query_sr.offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
@@ -122,6 +124,7 @@ class SkiResortService(BaseService):
                 return query_sr.filter_by(uuid=uuid).one()
             elif city:
                 query_sr = query_sr.filter_by(city=city)
+            query_sr = query_sr.filter_by(type=1)
             return query_sr.order_by(sbq_join_count.desc()).offset((int(page_index)-1)*5).limit(int(page_index)*5).all()
         except (TypeError, Exception) as e:
             LOG.exception("List SkiResort information error.")
