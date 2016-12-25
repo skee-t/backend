@@ -25,7 +25,7 @@ class U:
 
     @staticmethod
     def gen_order_no():
-        return datetime.datetime.now().strftime("%Y%m%d%H%M%S")+'-'+U.gen_uuid()[0:13]
+        return datetime.datetime.now().strftime("%Y%m%d%H%M%S")+U.gen_uuid()[0:13].upper()
 
     @staticmethod
     def gen_refund_id():

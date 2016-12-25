@@ -35,14 +35,21 @@ class PayApi_V1(Router):
         # 订单状态 0：初始；1：支付处理中；2：成功; 3: 失败;
         # 订单支付流水状态 0:初始 1:预支付 2:同步成功 3:同步失败 4:同步未知 5:异步成功 6:异步失败 7:关闭 8:未知
 
-        # 生成订单,状态0
-        # 调用微信统一下单API
+        # 生成教学订单,状态0
         # 订单状态1
-        mapper.connect('/order',
+        mapper.connect('/order/t',
                        controller=Resource(controller_v1),
-                       action='create_order',
+                       action='create_order_teach',
                        conditions={'method': ['POST']})
 
+        # 生成悬赏订单,状态0
+        # 订单状态1
+        mapper.connect('/order/o',
+                       controller=Resource(controller_v1),
+                       action='create_order_offer',
+                       conditions={'method': ['POST']})
+
+        # 调用微信统一下单API
         mapper.connect('/prepay',
                        controller=Resource(controller_v1),
                        action='prepay',
@@ -80,7 +87,17 @@ class ControllerV1(object):
     def __init__(self):
         pass
 
-    def create_order(self, request):
+    def create_order_offer(self, request):
+        LOG.info('Current received message is %s' % request.json_body)
+        rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
+        co_rsp_dict = self.create_order(request.json_body['openId'], request.json_body['desc'],
+                                        request.json_body['teachId'],
+                                        request.json_body['payUserId'], request.json_body['collectUserId'],
+                                        request.json_body['fee'], request.json_body['userIp'])
+        rsp_dict.update(co_rsp_dict)
+        return Response(body=MyJson.dumps(rsp_dict))
+
+    def create_order_teach(self, request):
         LOG.info('Current received message is %s' % request.json_body)
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
         open_id = request.json_body['openId']
@@ -95,9 +112,9 @@ class ControllerV1(object):
 
         # 1 获取小队详情
         activity_member_rst = ActivityService().activity_member(type=1,
-                                                     teach_id=teach_id,
-                                                     member_id_join=user_info.uuid
-                                                  )
+                                                                teach_id=teach_id,
+                                                                member_id_join=user_info.uuid
+                                                                )
         if not isinstance(activity_member_rst, KeyedTuple):
             return Response(body=MyJson.dumps(activity_member_rst))
 
@@ -109,18 +126,24 @@ class ControllerV1(object):
         rsp_dict['leaderName'] = ams['leaderName']
         rsp_dict['meetingTime'] = ams['meetingTime']
         rsp_dict['venue'] = ams['venue']
+        user_ip = request._headers.get('Proxy-Client-IP','192.168.0.100')
+        co_rsp_dict = self.create_order(open_id, ams['title']+'教学费', teach_id, ams['leaderId'], user_info.uuid, ams['fee']+'00', user_ip)
+        rsp_dict.update(co_rsp_dict)
+        return Response(body=MyJson.dumps(rsp_dict))
 
+    def create_order(self, open_id, order_desc, teach_id, pay_user_id, collect_user_id, fee, user_ip):
+        rsp_dict = dict()
         # 2 创建订单 订单状态0
-        corder_rst = OrderService().create_order(ams['title']+'教学费',
+        corder_rst = OrderService().create_order(order_desc,
                                                  teach_id,
-                                                 pay_user_id=ams['leaderId'],  # 订单代付的对象
-                                                 collect_user_id=user_info.uuid,  # 订单代收的对象
-                                                 fee=ams['fee']+'00')
+                                                 pay_user_id=pay_user_id,  # 订单代付的对象
+                                                 collect_user_id=collect_user_id,  # 订单代收的对象
+                                                 fee=fee)
         LOG.info('The result of create order information is %s' % corder_rst)
         if not isinstance(corder_rst, Order):
             rsp_dict['rspCode'] = corder_rst.get('rst_code')
             rsp_dict['rspDesc'] = corder_rst.get('rst_desc')
-            return Response(body=MyJson.dumps(rsp_dict))
+            return rsp_dict
         else:
             rsp_dict['orderNo'] = corder_rst.order_no
             rsp_dict['orderTime'] = corder_rst.create_time.strftime('%Y-%m-%d %H:%M:%S')
@@ -129,7 +152,7 @@ class ControllerV1(object):
                 LOG.info('order already success')
                 rsp_dict['rspCode'] = 200000
                 rsp_dict['rspDesc'] = '已支付成功'
-                return Response(body=MyJson.dumps(rsp_dict))
+                return rsp_dict
 
         pay_service = CollectService()
         # 3 查询微信支付流水状态
@@ -140,36 +163,35 @@ class ControllerV1(object):
             if not isinstance(orderCollect, OrderCollect):
                 rsp_dict['rspCode'] = orderCollect.get('rst_code')
                 rsp_dict['rspDesc'] = orderCollect.get('rst_desc')
-                return Response(body=MyJson.dumps(rsp_dict))
+                return rsp_dict
             else:
                 # 0:初始 1:预支付 2支付流水处理中 3:成功 4:失败 5:未知
                 if orderCollect.state == 3:
                     LOG.info('order already success')
                     rsp_dict['rspCode'] = 200000
                     rsp_dict['rspDesc'] = '已支付成功'
-                    return Response(body=MyJson.dumps(rsp_dict))
+                    return rsp_dict
                 elif orderCollect.state == 0:
                     LOG.info('pay already exists')
-                    return Response(body=MyJson.dumps(rsp_dict))
+                    return rsp_dict
                 elif orderCollect.state in (1, 2, 5):
                     try:
                         query_rst = BizCollectV1().query(transaction_id=orderCollect.partner_collect_id,
                                                          pay_id=orderCollect.uuid,
                                                          order_no=corder_rst.order_no,
                                                          activity_uuid=teach_id,
-                                                         user_uuid=user_info.uuid)
+                                                         user_uuid=collect_user_id)
                         if query_rst['rspCode'] != 0:
                             rsp_dict['rspCode'] = query_rst.get('rspCode')
                             rsp_dict['rspDesc'] = query_rst.get('rspDesc')
-                            return Response(body=MyJson.dumps(rsp_dict))
+                            return rsp_dict
                     except MyException as e:
                         rsp_dict['rspCode'] = e.code
                         rsp_dict['rspDesc'] = e.desc
-                        return Response(body=MyJson.dumps(rsp_dict))
+                        return rsp_dict
 
         # 3.1 写订单支付信息 订单支付流水状态0
         attach = 'www.huaxuebang.pro'
-        user_ip = request._headers.get('Proxy-Client-IP','192.168.0.100')
         pay_id = U.gen_uuid()
         # 支付流水状态 0  支付流水处理中
         # 并将支付流水号记录在订单信息中
@@ -177,10 +199,10 @@ class ControllerV1(object):
         if cpay_rst:
             rsp_dict['rspCode'] = cpay_rst.get('rst_code')
             rsp_dict['rspDesc'] = cpay_rst.get('rst_desc')
-            return Response(body=MyJson.dumps(rsp_dict))
+            return rsp_dict
 
         LOG.info('The result information is %s' % rsp_dict)
-        return Response(body=MyJson.dumps(rsp_dict))
+        return rsp_dict
 
     def prepay(self, request):
         req_json = request.json_body
