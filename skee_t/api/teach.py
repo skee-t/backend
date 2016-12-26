@@ -176,7 +176,6 @@ class ControllerV1(object):
         return Response(body=MyJson.dumps(rsp_dict))
 
     def detail_teach(self, request, teachId):
-        # todo 获取当前用户所在城市
         LOG.info( 'detail_teach teachId:%s' % teachId)
 
         rsp_dict = dict([('rspCode', 0), ('rspDesc', 'success')])
