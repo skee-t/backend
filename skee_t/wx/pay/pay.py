@@ -321,8 +321,8 @@ class ControllerV1(object):
             return Response(body=MyXml.gensimple(rsp_dict))
 
         # 2 验证openid和out_trade_no有效性 及获取state,order_state,order_no,teach_id,pay_user_id
-        pay_service = CollectService()
-        orderpay_rst = pay_service.getpay_by_userpayid(open_id=rsp_wx_dict['openid'], pay_id=rsp_wx_dict['out_trade_no'])
+        collect_service = CollectService()
+        orderpay_rst = collect_service.getpay_by_userpayid(open_id=rsp_wx_dict['openid'], pay_id=rsp_wx_dict['out_trade_no'])
         if not isinstance(orderpay_rst, KeyedTuple):
             rsp_dict['return_code'] = 'FAIL'
             rsp_dict['return_msg'] = '未找到相关订单'
@@ -340,7 +340,7 @@ class ControllerV1(object):
         if rsp_wx_dict['result_code'] == 'SUCCESS':
             # 3.1更新流水及订单成功
             #    更改成员状态为已付款
-            urst = pay_service.update_pay_by_async_success( pay_id=rsp_wx_dict['out_trade_no'],
+            urst = collect_service.update_pay_by_async_success( pay_id=rsp_wx_dict['out_trade_no'],
                                                             order_no=orderpay_rst.__getattribute__('order_no'),
                                                             transaction_id=rsp_wx_dict['transaction_id'],
                                                             activity_uuid=orderpay_rst.__getattribute__('teach_id'),
@@ -348,7 +348,7 @@ class ControllerV1(object):
 
         else:
             # 3.2 更新流水及订单失败
-            urst = pay_service.update_pay_by_async_fail(pay_id=rsp_wx_dict['out_trade_no'],
+            urst = collect_service.update_pay_by_async_fail(pay_id=rsp_wx_dict['out_trade_no'],
                                                         order_no=orderpay_rst.__getattribute__('order_no'),
                                                         transaction_id=rsp_wx_dict['transaction_id'],
                                                         err_code=rsp_wx_dict['err_code'],
